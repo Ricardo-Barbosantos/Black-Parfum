@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import { kv } from '@vercel/kv';
 
 const dataFilePath = path.join(process.cwd(), 'data', 'products.json');
 
@@ -9,11 +10,26 @@ const sanitizeString = (str) => {
   return str.replace(/<[^>]*>?/gm, ''); 
 };
 
+// Carregar os produtos (da Nuvem KV ou do Arquivo Local)
 export async function GET() {
   try {
-    const fileContents = await fs.readFile(dataFilePath, 'utf8');
-    return new Response(fileContents, { status: 200, headers: { 'Content-Type': 'application/json' } });
+    // ☁️ Tenta pegar da Nuvem (KV) primeiro
+    let products = await kv.get('black_parfum_products');
+    
+    // 🧱 Se a Nuvem estiver vazia, pega do arquivo local e sobe pra nuvem (Seeding)
+    if (!products) {
+      const fileContents = await fs.readFile(dataFilePath, 'utf8');
+      products = JSON.parse(fileContents);
+      // Salva no KV para as próximas vezes
+      await kv.set('black_parfum_products', products);
+    }
+    
+    return new Response(JSON.stringify(products), { 
+      status: 200, 
+      headers: { 'Content-Type': 'application/json' } 
+    });
   } catch (error) {
+    console.error('Erro ao listar produtos:', error);
     return new Response(JSON.stringify({ error: 'Erro ao carregar os produtos' }), { status: 500 });
   }
 }
@@ -32,7 +48,7 @@ export async function PUT(request) {
 
     const payload = await request.json();
     
-    // 🛡️ SECURITY 2: Validação de Estrutura do Payload (Anti JSON-Injection)
+    // 🛡️ SECURITY 2: Validação de Estrutura do Payload
     if (!Array.isArray(payload)) {
       return new Response(JSON.stringify({ error: 'Payload inválido. Esperado um array.' }), { status: 400 });
     }
@@ -56,10 +72,20 @@ export async function PUT(request) {
       };
     });
 
-    await fs.writeFile(dataFilePath, JSON.stringify(sanitizedProducts, null, 2), 'utf8');
-    return new Response(JSON.stringify({ success: true, products: sanitizedProducts }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    // ☁️ Salva na Nuvem (KV)
+    await kv.set('black_parfum_products', sanitizedProducts);
+    
+    // Tenta salvar local também (opcional, só funciona localmente)
+    try {
+      await fs.writeFile(dataFilePath, JSON.stringify(sanitizedProducts, null, 2), 'utf8');
+    } catch(e) {}
+
+    return new Response(JSON.stringify({ success: true, products: sanitizedProducts }), { 
+      status: 200, 
+      headers: { 'Content-Type': 'application/json' } 
+    });
   } catch (error) {
-    console.error('Erro na API de Produtos:', error);
-    return new Response(JSON.stringify({ error: 'Erro ao atualizar os produtos no disco' }), { status: 500 });
+    console.error('Erro na API de Produtos (KV):', error);
+    return new Response(JSON.stringify({ error: 'Erro ao salvar produtos na nuvem.' }), { status: 500 });
   }
 }

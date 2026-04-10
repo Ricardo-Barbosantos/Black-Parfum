@@ -1,5 +1,4 @@
-import { promises as fs } from 'fs';
-import path from 'path';
+import { put } from '@vercel/blob';
 
 export async function POST(request) {
   try {
@@ -20,27 +19,21 @@ export async function POST(request) {
       return new Response(JSON.stringify({ error: "Nenhum arquivo enviado." }), { status: 400 });
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    
-    // 🛡️ SECURITY: Impedir Path Traversal (evitar filenames hackers como "../../../etc/passwd")
-    // Limpamos o nome do arquivo, removendo espaços e caracteres perigosos.
+    // 🛡️ SECURITY: Gerar nome seguro e subir para o Vercel Blob
     const safeFilename = file.name.replaceAll(/[^a-zA-Z0-9.\-_]/g, '');
-    const finalFilename = `${Date.now()}_${safeFilename}`;
+    const finalFilename = `photos/${Date.now()}_${safeFilename}`;
     
-    const photosDir = path.join(process.cwd(), 'public', 'photos');
-    
-    // Garante que a pasta existe
-    await fs.mkdir(photosDir, { recursive: true });
-    
-    // Salva o arquivo em public/photos/
-    await fs.writeFile(path.join(photosDir, finalFilename), buffer);
+    // Sobe o arquivo para o Vercel Blob (Nuvem)
+    const blob = await put(finalFilename, file, {
+      access: 'public',
+    });
 
-    return new Response(JSON.stringify({ success: true, url: `/photos/${finalFilename}` }), { 
+    return new Response(JSON.stringify({ success: true, url: blob.url }), { 
       status: 201, 
       headers: { 'Content-Type': 'application/json' } 
     });
   } catch (error) {
-    console.error("Erro no Upload:", error);
-    return new Response(JSON.stringify({ error: 'Erro ao fazer upload no servidor.' }), { status: 500 });
+    console.error("Erro no Upload Vercel Blob:", error);
+    return new Response(JSON.stringify({ error: 'Erro ao fazer upload na nuvem Vercel.' }), { status: 500 });
   }
 }
