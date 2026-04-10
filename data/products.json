@@ -1,0 +1,58 @@
+[
+  {
+    "id": "al-haramain",
+    "name": "Al Haramain Miracle Dubai Eau de Parfum",
+    "price": 500,
+    "compareAtPrice": 999,
+    "image": "/photos/1775830308715_Gemini_Generated_Image_4ftic54ftic54fti.png",
+    "isOnSale": false,
+    "rating": 5,
+    "discountPercent": 20,
+    "installments": "ou 8x de R$ 94,76",
+    "category": "Perfume",
+    "brand": "Paris Elysees",
+    "gender": "Masculino"
+  },
+  {
+    "id": "al-wataniah",
+    "name": "Al Wataniah Bareeq Al Dhahab Eau de Parfum",
+    "price": 312.55,
+    "compareAtPrice": 359,
+    "image": "/perfume.jpg",
+    "isOnSale": true,
+    "rating": 5,
+    "discountPercent": 8,
+    "installments": "ou 8x de R$ 39,06",
+    "category": "Perfume",
+    "brand": "Outra",
+    "gender": "Unissex"
+  },
+  {
+    "id": "royal-oud",
+    "name": "Oud Royale Essência Dourada",
+    "price": 450,
+    "compareAtPrice": null,
+    "image": "/perfume.jpg",
+    "isOnSale": false,
+    "rating": 5,
+    "discountPercent": 0,
+    "installments": "ou 8x de R$ 56,25",
+    "category": "Perfume",
+    "brand": "Outra",
+    "gender": "Unissex"
+  },
+  {
+    "id": "midnight-amber",
+    "name": "Midnight Amber Intense",
+    "price": 289.9,
+    "compareAtPrice": 320,
+    "image": "/perfume.jpg",
+    "isOnSale": true,
+    "rating": 5,
+    "discountPercent": 10,
+    "installments": "ou 6x de R$ 48,31",
+    "category": "Perfume",
+    "brand": "Outra",
+    "gender": "Unissex"
+  }
+]
