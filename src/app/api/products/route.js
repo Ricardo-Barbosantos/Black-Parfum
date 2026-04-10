@@ -1,7 +1,13 @@
 import { kv } from '@vercel/kv';
+import Redis from 'ioredis';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// Configuração do Redis (Caso o KV da Vercel falhe)
+let redis = null;
+if (process.env.REDIS_URL) {
+  try {
+    redis = new Redis(process.env.REDIS_URL);
+  } catch (e) { console.error("Erro ao iniciar Redis:", e); }
+}
 
 // 🛡️ REDE DE SEGURANÇA: Produtos iniciais caso o Banco de Dados ou o Arquivo falhem
 const INITIAL_PRODUCTS = [
@@ -43,22 +49,34 @@ const sanitizeString = (str) => {
   return str.replace(/<[^>]*>?/gm, ''); 
 };
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
     let products = null;
     let source = 'fallback';
     
-    // 1. Tenta pegar da Nuvem (KV) com força total
-    try {
-      products = await kv.get('black_parfum_products');
-      if (products && Array.isArray(products)) {
-        source = 'kv';
-      }
-    } catch (e) { 
-      console.error("KV GET Error:", e); 
+    // 1. Tenta pegar do KV da Vercel (REST)
+    if (process.env.KV_REST_API_URL) {
+      try {
+        products = await kv.get('black_parfum_products');
+        if (products && Array.isArray(products)) source = 'kv';
+      } catch (e) {}
     }
     
-    // 2. Se falhar ou estiver vazio, usa os produtos iniciais
+    // 2. Tenta pegar do Redis (Protocolo Redis) Caso o anterior falhe
+    if (source === 'fallback' && redis) {
+      try {
+        const data = await redis.get('black_parfum_products');
+        if (data) {
+          products = JSON.parse(data);
+          if (Array.isArray(products)) source = 'redis';
+        }
+      } catch (e) { console.error("Redis GET Error", e); }
+    }
+    
+    // 3. Se tudo falhar, usa os produtos iniciais
     if (source === 'fallback') {
         products = INITIAL_PRODUCTS;
     }
@@ -67,7 +85,7 @@ export async function GET() {
       status: 200, 
       headers: { 
         'Content-Type': 'application/json',
-        'X-Data-Source': source, // Header para debug
+        'X-Data-Source': source,
         'Cache-Control': 'no-store, max-age=0'
       } 
     });
@@ -92,7 +110,7 @@ export async function PUT(request) {
     if (!Array.isArray(payload)) return new Response("Inválido", { status: 400 });
 
     const sanitizedProducts = payload.map(product => ({
-      id: product.id ? sanitizeString(String(product.id)) : `prod_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      id: product.id ? sanitizeString(String(product.id)) : `prod_${Date.now()}`,
       name: sanitizeString(product.name),
       price: Number(product.price) || 0,
       compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
@@ -104,12 +122,27 @@ export async function PUT(request) {
       gender: sanitizeString(product.gender) || 'Unissex'
     }));
 
-    // Força o salvamento no KV e gera erro explícito se falhar
-    await kv.set('black_parfum_products', sanitizedProducts);
+    let saved = false;
 
-    return new Response(JSON.stringify({ success: true, products: sanitizedProducts, source: 'kv' }), { status: 200 });
+    // Tenta salvar no KV (REST)
+    if (process.env.KV_REST_API_URL) {
+      try {
+        await kv.set('black_parfum_products', sanitizedProducts);
+        saved = true;
+      } catch (e) {}
+    }
+
+    // Tenta salvar no Redis (Protocolo)
+    if (!saved && redis) {
+       await redis.set('black_parfum_products', JSON.stringify(sanitizedProducts));
+       saved = true;
+    }
+
+    if (!saved) throw new Error("Nenhum banco de dados disponível (KV ou REDIS_URL)");
+
+    return new Response(JSON.stringify({ success: true, products: sanitizedProducts, source: saved ? 'cloud' : 'fail' }), { status: 200 });
   } catch (error) {
-    console.error('ERRO AO SALVAR NO KV:', error);
+    console.error('ERRO AO SALVAR NO BANCO:', error);
     return new Response(JSON.stringify({ error: 'Erro ao salvar no banco de dados: ' + error.message }), { status: 500 });
   }
 }
