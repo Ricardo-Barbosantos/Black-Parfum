@@ -73,32 +73,60 @@ export default function AdminPage() {
     setProducts(newProducts);
   };
 
-  const handleImageUpload = async (index, file) => {
-    if (!file) return;
+  const handleImageUpload = async (index, files) => {
+    if (!files || files.length === 0) return;
     setUploadingImageIndex(index);
     
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Basic ${authToken}`
-        },
-        body: formData // Não setamos o Content-Type para o browser colocar o boundary do "multipart/form-data"!
-      });
+    const newProducts = [...products];
+    const product = newProducts[index];
+    if (!product.images) product.images = product.image ? [product.image] : [];
+
+    for (const file of Array.from(files)) {
+      const formData = new FormData();
+      formData.append('file', file);
       
-      const data = await res.json();
-      if (res.ok && data.url) {
-        handleChange(index, 'image', data.url);
-      } else {
-        alert(data.error || 'Erro ao subir imagem. Token inválido ou formato incorreto.');
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Basic ${authToken}`
+          },
+          body: formData 
+        });
+        
+        const data = await res.json();
+        if (res.ok && data.url) {
+          // Adiciona à lista de imagens
+          product.images.push(data.url);
+          // Define a primeira como imagem principal se não houver uma
+          if (!product.image || product.image === '/photos/perfume.jpg') {
+            product.image = data.url;
+          }
+        } else {
+          alert(`Erro ao subir ${file.name}: ${data.error}`);
+        }
+      } catch (err) {
+        alert(`Erro de rede ao enviar ${file.name}`);
       }
-    } catch (err) {
-      alert('Erro de rede ao enviar a imagem.');
     }
+    
+    setProducts(newProducts);
     setUploadingImageIndex(null);
+  };
+
+  const removeImage = (pIndex, imgIndex) => {
+    const newProducts = [...products];
+    const product = newProducts[pIndex];
+    product.images.splice(imgIndex, 1);
+    
+    // Atualiza a thumbnail principal se removermos a atual
+    if (product.images.length > 0) {
+      product.image = product.images[0];
+    } else {
+      product.image = '/photos/perfume.jpg';
+    }
+    
+    setProducts(newProducts);
   };
 
   const handleAddProduct = () => {
@@ -108,6 +136,7 @@ export default function AdminPage() {
       price: 0,
       compareAtPrice: 0,
       image: "/photos/perfume.jpg",
+      images: ["/photos/perfume.jpg"],
       isOnSale: false,
       rating: 5,
       discountPercent: 0,
@@ -248,30 +277,40 @@ export default function AdminPage() {
                 X
               </button>
 
-              <div style={{ width: '150px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ height: '200px', background: '#222', borderRadius: '4px', overflow: 'hidden', position: 'relative' }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={product.image || ''} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '10px' }} />
+              <div style={{ width: '180px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ padding: '10px', background: '#0a0a0a', borderRadius: '8px', border: '1px solid #222' }}>
+                  <label style={{ display: 'block', fontSize: '0.75rem', color: '#888', marginBottom: '8px', textTransform: 'uppercase' }}>Galeria ({product.images?.length || 0})</label>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+                    {(product.images || [product.image]).map((img, i) => (
+                      <div key={i} style={{ aspectRatio: '1/1', background: '#1a1a1a', borderRadius: '4px', position: 'relative', overflow: 'hidden', border: product.image === img ? '2px solid var(--primary-gold)' : '1px solid #333' }}>
+                        <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <button 
+                          onClick={() => removeImage(index, i)}
+                          style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(255,0,0,0.8)', color: '#fff', border: 'none', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                        >✕</button>
+                        {product.image === img && (
+                          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'var(--primary-gold)', color: '#000', fontSize: '8px', textAlign: 'center', fontWeight: 'bold', padding: '1px' }}>PRINCIPAL</div>
+                        )}
+                      </div>
+                    ))}
+                    
+                    <label style={{ aspectRatio: '1/1', background: '#222', borderRadius: '4px', border: '1px dashed #555', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', fontSize: '1.2rem', color: '#888' }}>
+                      +
+                      <input type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={(e) => handleImageUpload(index, e.target.files)} />
+                    </label>
+                  </div>
+
                   {uploadingImageIndex === index && (
-                     <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <span className="spinner"></span>
-                     </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--primary-gold)', textAlign: 'center', marginBottom: '10px' }}>
+                      ⚡ Enviando fotos...
+                    </div>
                   )}
+
+                  <p style={{ fontSize: '0.65rem', color: '#666', lineHeight: '1.2' }}>
+                    Dica: Clique em "+" para subir várias fotos de uma vez. A primeira será a principal.
+                  </p>
                 </div>
-                
-                {/* File Upload Buttom (Gallery Input) */}
-                <label style={{ cursor: 'pointer', background: '#333', color: '#fff', padding: '8px', textAlign: 'center', borderRadius: '4px', fontSize: '0.85rem', display: 'block', border: '1px solid #555' }}>
-                  {uploadingImageIndex === index ? 'Enviando...' : '📷 Escolher Galeria'}
-                  <input type="file" accept="image/*" style={{ display: 'none' }} disabled={uploadingImageIndex === index} onChange={(e) => handleImageUpload(index, e.target.files[0])} />
-                </label>
-                
-                <input 
-                    type="text" 
-                    placeholder="URL (ou /photos/...)"
-                    value={product.image || ''}
-                    onChange={(e) => handleChange(index, 'image', e.target.value)}
-                    style={{ width: '100%', padding: '8px', background: '#0a0a0a', border: '1px solid #333', color: '#888', borderRadius: '4px', fontSize: '0.7rem' }}
-                />
               </div>
               
               <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>

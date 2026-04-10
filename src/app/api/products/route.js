@@ -45,6 +45,7 @@ export async function PUT(request) {
         price: typeof product.price === 'number' ? product.price : parseFloat(product.price) || 0,
         compareAtPrice: product.compareAtPrice ? (typeof product.compareAtPrice === 'number' ? product.compareAtPrice : parseFloat(product.compareAtPrice)) : null,
         image: sanitizeString(product.image),
+        images: Array.isArray(product.images) ? product.images.map(img => sanitizeString(img)) : [sanitizeString(product.image)],
         isOnSale: Boolean(product.isOnSale),
         rating: typeof product.rating === 'number' ? product.rating : parseFloat(product.rating) || 5,
         discountPercent: typeof product.discountPercent === 'number' ? product.discountPercent : parseInt(product.discountPercent) || 0,
@@ -58,6 +59,7 @@ export async function PUT(request) {
     await fs.writeFile(dataFilePath, JSON.stringify(sanitizedProducts, null, 2), 'utf8');
     return new Response(JSON.stringify({ success: true, products: sanitizedProducts }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch (error) {
+    console.error('Erro na API de Produtos:', error);
     return new Response(JSON.stringify({ error: 'Erro ao atualizar os produtos no disco' }), { status: 500 });
   }
 }
