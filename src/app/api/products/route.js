@@ -46,30 +46,33 @@ const sanitizeString = (str) => {
 export async function GET() {
   try {
     let products = null;
+    let source = 'fallback';
     
-    // 1. Tenta pegar da Nuvem (KV)
-    if (process.env.KV_REST_API_URL) {
-      try {
-        products = await kv.get('black_parfum_products');
-      } catch (e) { console.error("KV GET Error", e); }
+    // 1. Tenta pegar da Nuvem (KV) com força total
+    try {
+      products = await kv.get('black_parfum_products');
+      if (products && Array.isArray(products)) {
+        source = 'kv';
+      }
+    } catch (e) { 
+      console.error("KV GET Error:", e); 
     }
     
-    // 2. Se falhar, usa os produtos CHUMBADOS (Garante que o site abre)
-    if (!products || !Array.isArray(products)) {
+    // 2. Se falhar ou estiver vazio, usa os produtos iniciais
+    if (source === 'fallback') {
         products = INITIAL_PRODUCTS;
-        // Tenta salvar no KV para as próximas vezes
-        if (process.env.KV_REST_API_URL) {
-           await kv.set('black_parfum_products', products);
-        }
     }
     
     return new Response(JSON.stringify(products), { 
       status: 200, 
-      headers: { 'Content-Type': 'application/json' } 
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-Data-Source': source, // Header para debug
+        'Cache-Control': 'no-store, max-age=0'
+      } 
     });
   } catch (error) {
     console.error('Falha crítica no GET:', error);
-    // Retorno de emergência absoluta
     return new Response(JSON.stringify(INITIAL_PRODUCTS), { status: 200 });
   }
 }
@@ -89,7 +92,7 @@ export async function PUT(request) {
     if (!Array.isArray(payload)) return new Response("Inválido", { status: 400 });
 
     const sanitizedProducts = payload.map(product => ({
-      id: sanitizeString(String(product.id)),
+      id: product.id ? sanitizeString(String(product.id)) : `prod_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
       name: sanitizeString(product.name),
       price: Number(product.price) || 0,
       compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
@@ -101,14 +104,12 @@ export async function PUT(request) {
       gender: sanitizeString(product.gender) || 'Unissex'
     }));
 
-    // Salva na Nuvem (KV)
-    if (process.env.KV_REST_API_URL) {
-        await kv.set('black_parfum_products', sanitizedProducts);
-    }
+    // Força o salvamento no KV e gera erro explícito se falhar
+    await kv.set('black_parfum_products', sanitizedProducts);
 
-    return new Response(JSON.stringify({ success: true, products: sanitizedProducts }), { status: 200 });
+    return new Response(JSON.stringify({ success: true, products: sanitizedProducts, source: 'kv' }), { status: 200 });
   } catch (error) {
-    console.error('Falha crítica no PUT:', error);
-    return new Response(JSON.stringify({ error: 'Erro ao salvar' }), { status: 500 });
+    console.error('ERRO AO SALVAR NO KV:', error);
+    return new Response(JSON.stringify({ error: 'Erro ao salvar no banco de dados: ' + error.message }), { status: 500 });
   }
 }
