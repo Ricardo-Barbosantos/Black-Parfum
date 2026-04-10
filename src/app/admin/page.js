@@ -307,8 +307,16 @@ export default function AdminPage() {
                     </div>
                   )}
 
-                  <p style={{ fontSize: '0.65rem', color: '#666', lineHeight: '1.2' }}>
-                    Dica: Clique em "+" para subir várias fotos de uma vez. A primeira será a principal.
+                  <input 
+                    type="text" 
+                    placeholder="Ou cole link da imagem aqui..."
+                    value={product.image || ''}
+                    onChange={(e) => handleChange(index, 'image', e.target.value)}
+                    style={{ width: '100%', padding: '8px', background: '#000', border: '1px solid #333', color: '#888', borderRadius: '4px', fontSize: '0.7rem', marginTop: '5px' }}
+                  />
+
+                  <p style={{ fontSize: '0.6rem', color: '#555', lineHeight: '1.2', marginTop: '10px' }}>
+                    Dica: Use o "+" para subir fotos. O campo acima serve para links externos.
                   </p>
                 </div>
               </div>
