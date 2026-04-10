@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -204,12 +203,11 @@ export default function Home() {
                    </div>
                 )}
                 
-                <div className="card-image-wrap">
-                  <Image 
+                <div className="card-image-wrap" style={{ position: 'relative', height: '200px', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
+                   <img 
                     src={product.image || '/photos/perfume.jpg'} 
                     alt={product.name} 
-                    fill
-                    style={{ objectFit: 'contain', padding: '10%' }}
+                    style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', padding: '10%' }}
                   />
                 </div>
 
@@ -350,8 +348,8 @@ export default function Home() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                   {cart.map(item => (
                     <div key={item.id} style={{ display: 'flex', gap: '15px', borderBottom: '1px solid #f4f4f4', paddingBottom: '15px' }}>
-                      <div style={{ width: '70px', height: '70px', position: 'relative', backgroundColor: '#fcfcfc', border: '1px solid #eaeaea' }}>
-                        <Image src={item.image || '/photos/perfume.jpg'} alt={item.name} fill style={{ objectFit: 'contain', padding: '5px' }} />
+                      <div style={{ width: '70px', height: '70px', position: 'relative', backgroundColor: '#fcfcfc', border: '1px solid #eaeaea', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
+                        <img src={item.image || '/photos/perfume.jpg'} alt={item.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', padding: '5px' }} />
                       </div>
                       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: '500', color: '#111', lineHeight: '1.2' }}>{item.name}</div>
