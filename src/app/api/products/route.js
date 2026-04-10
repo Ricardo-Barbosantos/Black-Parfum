@@ -1,27 +1,63 @@
-import { promises as fs } from 'fs';
-import path from 'path';
 import { kv } from '@vercel/kv';
 
-const dataFilePath = path.join(process.cwd(), 'data', 'products.json');
+// 🛡️ REDE DE SEGURANÇA: Produtos iniciais caso o Banco de Dados ou o Arquivo falhem
+const INITIAL_PRODUCTS = [
+  {
+    "id": "al-haramain",
+    "name": "Al Haramain Miracle Dubai Eau de Parfum",
+    "price": 500,
+    "compareAtPrice": 999,
+    "image": "/photos/1775830308715_Gemini_Generated_Image_4ftic54ftic54fti.png",
+    "images": ["/photos/1775830308715_Gemini_Generated_Image_4ftic54ftic54fti.png"],
+    "isOnSale": false,
+    "rating": 5,
+    "discountPercent": 20,
+    "installments": "ou 8x de R$ 94,76",
+    "category": "Perfume",
+    "brand": "Paris Elysees",
+    "gender": "Masculino"
+  },
+  {
+    "id": "al-wataniah",
+    "name": "Al Wataniah Bareeq Al Dhahab Eau de Parfum",
+    "price": 312.55,
+    "compareAtPrice": 359,
+    "image": "/perfume.jpg",
+    "images": ["/perfume.jpg"],
+    "isOnSale": true,
+    "rating": 5,
+    "discountPercent": 8,
+    "installments": "ou 8x de R$ 39,06",
+    "category": "Perfume",
+    "brand": "Outra",
+    "gender": "Unissex"
+  }
+];
 
-// Função de Sanitização: Remove tentativas de injeção de script (XSS)
+// Função de Sanitização
 const sanitizeString = (str) => {
   if (typeof str !== 'string' || !str) return '';
   return str.replace(/<[^>]*>?/gm, ''); 
 };
 
-// Carregar os produtos (da Nuvem KV ou do Arquivo Local)
 export async function GET() {
   try {
-    // ☁️ Tenta pegar da Nuvem (KV) primeiro
-    let products = await kv.get('black_parfum_products');
+    let products = null;
     
-    // 🧱 Se a Nuvem estiver vazia, pega do arquivo local e sobe pra nuvem (Seeding)
-    if (!products) {
-      const fileContents = await fs.readFile(dataFilePath, 'utf8');
-      products = JSON.parse(fileContents);
-      // Salva no KV para as próximas vezes
-      await kv.set('black_parfum_products', products);
+    // 1. Tenta pegar da Nuvem (KV)
+    if (process.env.KV_REST_API_URL) {
+      try {
+        products = await kv.get('black_parfum_products');
+      } catch (e) { console.error("KV GET Error", e); }
+    }
+    
+    // 2. Se falhar, usa os produtos CHUMBADOS (Garante que o site abre)
+    if (!products || !Array.isArray(products)) {
+        products = INITIAL_PRODUCTS;
+        // Tenta salvar no KV para as próximas vezes
+        if (process.env.KV_REST_API_URL) {
+           await kv.set('black_parfum_products', products);
+        }
     }
     
     return new Response(JSON.stringify(products), { 
@@ -29,63 +65,47 @@ export async function GET() {
       headers: { 'Content-Type': 'application/json' } 
     });
   } catch (error) {
-    console.error('Erro ao listar produtos:', error);
-    return new Response(JSON.stringify({ error: 'Erro ao carregar os produtos' }), { status: 500 });
+    console.error('Falha crítica no GET:', error);
+    // Retorno de emergência absoluta
+    return new Response(JSON.stringify(INITIAL_PRODUCTS), { status: 200 });
   }
 }
 
 export async function PUT(request) {
   try {
-    // 🛡️ SECURITY 1: Basic Authentication
     const authHeader = request.headers.get('authorization');
     const correctEmail = process.env.ADMIN_EMAIL || 'admin@admin.enter';
     const correctPassword = process.env.ADMIN_PASSWORD || 'Blackparfum@2026';
     const expectedAuth = `Basic ${Buffer.from(`${correctEmail}:${correctPassword}`).toString('base64')}`;
     
     if (!authHeader || authHeader !== expectedAuth) {
-      return new Response(JSON.stringify({ error: 'Acesso Negado! Tentativa bloqueada.' }), { status: 401 });
+      return new Response(JSON.stringify({ error: 'Acesso Negado!' }), { status: 401 });
     }
 
     const payload = await request.json();
-    
-    // 🛡️ SECURITY 2: Validação de Estrutura do Payload
-    if (!Array.isArray(payload)) {
-      return new Response(JSON.stringify({ error: 'Payload inválido. Esperado um array.' }), { status: 400 });
+    if (!Array.isArray(payload)) return new Response("Inválido", { status: 400 });
+
+    const sanitizedProducts = payload.map(product => ({
+      id: sanitizeString(String(product.id)),
+      name: sanitizeString(product.name),
+      price: Number(product.price) || 0,
+      compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
+      image: sanitizeString(product.image),
+      images: Array.isArray(product.images) ? product.images.map(img => sanitizeString(img)) : [sanitizeString(product.image)],
+      isOnSale: Boolean(product.isOnSale),
+      brand: sanitizeString(product.brand) || 'Outra',
+      category: sanitizeString(product.category) || 'Perfume',
+      gender: sanitizeString(product.gender) || 'Unissex'
+    }));
+
+    // Salva na Nuvem (KV)
+    if (process.env.KV_REST_API_URL) {
+        await kv.set('black_parfum_products', sanitizedProducts);
     }
 
-    // 🛡️ SECURITY 3: Sanitização Limpa (Anti XSS)
-    const sanitizedProducts = payload.map(product => {
-      return {
-        id: sanitizeString(String(product.id)),
-        name: sanitizeString(product.name),
-        price: typeof product.price === 'number' ? product.price : parseFloat(product.price) || 0,
-        compareAtPrice: product.compareAtPrice ? (typeof product.compareAtPrice === 'number' ? product.compareAtPrice : parseFloat(product.compareAtPrice)) : null,
-        image: sanitizeString(product.image),
-        images: Array.isArray(product.images) ? product.images.map(img => sanitizeString(img)) : [sanitizeString(product.image)],
-        isOnSale: Boolean(product.isOnSale),
-        rating: typeof product.rating === 'number' ? product.rating : parseFloat(product.rating) || 5,
-        discountPercent: typeof product.discountPercent === 'number' ? product.discountPercent : parseInt(product.discountPercent) || 0,
-        installments: sanitizeString(product.installments),
-        category: sanitizeString(product.category) || 'Perfume',
-        brand: sanitizeString(product.brand) || 'Outra',
-        gender: sanitizeString(product.gender) || 'Unissex'
-      };
-    });
-
-    // ☁️ Salva na Nuvem (KV)
-    await kv.set('black_parfum_products', sanitizedProducts);
-    
-    // Tenta salvar local também (opcional, só funciona localmente)
-    try {
-      await fs.writeFile(dataFilePath, JSON.stringify(sanitizedProducts, null, 2), 'utf8');
-    } catch(e) {}
-
-    return new Response(JSON.stringify({ success: true, products: sanitizedProducts }), { 
-      status: 200, 
-      headers: { 'Content-Type': 'application/json' } 
-    });
+    return new Response(JSON.stringify({ success: true, products: sanitizedProducts }), { status: 200 });
   } catch (error) {
-    console.error('Erro na API de Produtos (KV):', error);
-    return new Response(JSON.stringify({ error: 'Erro ao salvar produtos na nuvem.' }), { status: 500 });
+    console.error('Falha crítica no PUT:', error);
+    return new Response(JSON.stringify({ error: 'Erro ao salvar' }), { status: 500 });
   }
 }
