@@ -1,5 +1,8 @@
 import { kv } from '@vercel/kv';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // 🛡️ REDE DE SEGURANÇA: Produtos iniciais caso o Banco de Dados ou o Arquivo falhem
 const INITIAL_PRODUCTS = [
   {

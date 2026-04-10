@@ -20,9 +20,11 @@ export default function Home() {
   });
 
   useEffect(() => {
-    fetch('/api/products')
+    fetch('/api/products?t=' + Date.now(), { cache: 'no-store' })
       .then(res => res.json())
-      .then(data => setProducts(data))
+      .then(data => {
+          if (Array.isArray(data)) setProducts(data);
+      })
       .catch(err => console.error(err));
       
     const savedCart = localStorage.getItem('oud_cart');
