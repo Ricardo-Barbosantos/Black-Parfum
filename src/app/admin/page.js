@@ -167,19 +167,26 @@ export default function AdminPage() {
         body: JSON.stringify(products)
       });
       
+      const data = await res.json().catch(() => ({}));
+      
       if (res.status === 401) {
-        setMessage('Erro de Segurança: Sessão inválida. Você está desconectado.');
+        setMessage('❌ Erro de Segurança: Sessão inválida.');
         setTimeout(() => handleLogout(), 2000); 
       } else if (res.ok) {
-        setMessage('Alterações salvas com sucesso!');
+        setMessage('✅ Alterações salvas com sucesso na nuvem!');
+        // Refresh products to ensure sync
+        const refresh = await fetch('/api/products?t=' + Date.now(), { cache: 'no-store' });
+        const freshData = await refresh.json();
+        if (Array.isArray(freshData)) setProducts(freshData);
       } else {
-        setMessage('Erro ao salvar as alterações.');
+        setMessage('❌ Erro ao salvar: ' + (data.error || 'Erro desconhecido.'));
       }
     } catch(err) {
-      setMessage('Erro de conexão ao salvar.');
+      setMessage('❌ Erro de conexão ao salvar no banco de dados.');
+    } finally {
+      setSaving(false);
+      setTimeout(() => setMessage(''), 5000);
     }
-    setSaving(false);
-    setTimeout(() => setMessage(''), 3000);
   };
 
   if (!loading && !isAuthenticated) {
