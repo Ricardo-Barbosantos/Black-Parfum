@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import './page.css';
 
 export default function AdminPage() {
   const [products, setProducts] = useState([]);
@@ -236,30 +237,30 @@ export default function AdminPage() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', paddingBottom: '100px' }}>
-      <aside className="admin-sidebar" style={{ width: '250px', padding: '30px', display: 'flex', flexDirection: 'column', gap: '30px' }}>
-        <div>
-          <h2 style={{ color: 'var(--primary-gold)', fontSize: '1.2rem' }}>Painel Admin</h2>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>Gestão Segura</p>
+    <div className="admin-layout">
+      <aside className="admin-sidebar">
+        <div className="sidebar-header">
+          <h2>Painel Admin</h2>
+          <p>Gestão Segura</p>
         </div>
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '15px', flex: 1 }}>
-          <div style={{ padding: '10px', background: 'var(--primary-gold-dim)', borderRadius: '4px', borderLeft: '3px solid var(--primary-gold)', color: 'var(--primary-gold)' }}>
+        <nav className="admin-nav">
+          <div className="nav-item active">
             Produtos e Preços
           </div>
-          <button onClick={handleAddProduct} style={{ padding: '10px', background: '#222', color: '#fff', borderRadius: '4px', cursor: 'pointer', textAlign: 'left', border: '1px solid #444' }}>
+          <button onClick={handleAddProduct} className="btn-add">
             + Novo Produto
           </button>
-          <Link href="/" style={{ padding: '10px', color: 'var(--text-dim)' }}>
+          <Link href="/" className="nav-link">
             Ver Loja
           </Link>
         </nav>
         
-        <button onClick={handleLogout} style={{ background: 'transparent', border: '1px solid #333', color: '#f87171', padding: '10px', borderRadius: '4px', cursor: 'pointer' }}>
+        <button onClick={handleLogout} className="btn-logout">
           Sair / Logout
         </button>
       </aside>
 
-      <main style={{ flex: 1, padding: '50px', background: 'var(--bg-dark)' }}>
+      <main className="admin-main">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
           <h1>Gerenciamento de Produtos</h1>
           <button className="btn-gold" onClick={handleSave} disabled={saving} style={{ padding: '12px 24px', fontSize: '1rem' }}>
@@ -273,7 +274,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        <div style={{ background: '#111', borderRadius: '8px', padding: '30px', border: '1px solid #222' }}>
+        <div className="products-container">
           {products.map((product, index) => (
             <div key={product.id} style={{ display: 'flex', gap: '40px', alignItems: 'flex-start', borderBottom: '1px solid #222', paddingBottom: '30px', marginBottom: '30px', position: 'relative' }}>
               

@@ -1,5 +1,21 @@
 import { kv } from '@vercel/kv';
 import Redis from 'ioredis';
+import { z } from 'zod';
+
+const ProductSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Nome é obrigatório"),
+  price: z.number().min(0, "Preço deve ser positivo"),
+  compareAtPrice: z.number().nullable().optional(),
+  image: z.string().min(1),
+  images: z.array(z.string()).optional(),
+  isOnSale: z.boolean().optional(),
+  brand: z.string().optional(),
+  category: z.string().optional(),
+  gender: z.string().optional()
+});
+
+const ProductsArraySchema = z.array(ProductSchema);
 
 // Configuração do Redis (Caso o KV da Vercel falhe)
 let redis = null;
@@ -98,8 +114,13 @@ export async function GET() {
 export async function PUT(request) {
   try {
     const authHeader = request.headers.get('authorization');
-    const correctEmail = process.env.ADMIN_EMAIL || 'admin@admin.enter';
-    const correctPassword = process.env.ADMIN_PASSWORD || 'Blackparfum@2026';
+    const correctEmail = process.env.ADMIN_EMAIL;
+    const correctPassword = process.env.ADMIN_PASSWORD;
+
+    if (!correctEmail || !correctPassword) {
+        return new Response(JSON.stringify({ error: 'Erro de configuração do servidor' }), { status: 500 });
+    }
+
     const expectedAuth = `Basic ${Buffer.from(`${correctEmail}:${correctPassword}`).toString('base64')}`;
     
     if (!authHeader || authHeader !== expectedAuth) {
@@ -107,16 +128,20 @@ export async function PUT(request) {
     }
 
     const payload = await request.json();
-    if (!Array.isArray(payload)) return new Response("Inválido", { status: 400 });
+    
+    // Validação com Zod
+    const validation = ProductsArraySchema.safeParse(payload);
+    if (!validation.success) {
+      return new Response(JSON.stringify({ 
+        error: 'Dados inválidos', 
+        details: validation.error.format() 
+      }), { status: 400 });
+    }
 
-    const sanitizedProducts = payload.map(product => ({
-      id: product.id ? sanitizeString(String(product.id)) : `prod_${Date.now()}`,
+    const sanitizedProducts = validation.data.map(product => ({
+      ...product,
+      id: product.id || `prod_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
       name: sanitizeString(product.name),
-      price: Number(product.price) || 0,
-      compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
-      image: sanitizeString(product.image),
-      images: Array.isArray(product.images) ? product.images.map(img => sanitizeString(img)) : [sanitizeString(product.image)],
-      isOnSale: Boolean(product.isOnSale),
       brand: sanitizeString(product.brand) || 'Outra',
       category: sanitizeString(product.category) || 'Perfume',
       gender: sanitizeString(product.gender) || 'Unissex'

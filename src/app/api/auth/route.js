@@ -2,8 +2,13 @@ export async function POST(request) {
   try {
     const { email, password } = await request.json();
     
-    const correctEmail = process.env.ADMIN_EMAIL || 'admin@admin.enter';
-    const correctPassword = process.env.ADMIN_PASSWORD || 'Blackparfum@2026';
+    const correctEmail = process.env.ADMIN_EMAIL;
+    const correctPassword = process.env.ADMIN_PASSWORD;
+
+    if (!correctEmail || !correctPassword) {
+      console.error("ERRO CRÍTICO: Variáveis de ambiente ADMIN_EMAIL ou ADMIN_PASSWORD não configuradas.");
+      return new Response(JSON.stringify({ error: 'Erro de configuração do servidor' }), { status: 500 });
+    }
     
     // Proteção Timing Attack básica
     if (email === correctEmail && password === correctPassword) {
