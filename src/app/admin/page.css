@@ -153,17 +153,34 @@
 
 @media (max-width: 768px) {
   .admin-layout {
-    flex-direction: column;
+    flex-direction: column !important;
   }
 
   .admin-sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-    padding: 20px;
-    gap: 20px;
-    border-right: none;
-    border-bottom: 1px solid var(--admin-border);
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    position: relative !important;
+    padding: 20px !important;
+    gap: 20px !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--admin-border) !important;
+  }
+
+  /* Admin Header Stacking */
+  .admin-main > div:first-child {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 15px !important;
+  }
+  
+  .admin-main h1 {
+    font-size: 1.5rem !important;
+    margin-bottom: 0 !important;
+  }
+
+  .btn-gold {
+    width: 100% !important;
   }
 
   .admin-sidebar .admin-nav {
