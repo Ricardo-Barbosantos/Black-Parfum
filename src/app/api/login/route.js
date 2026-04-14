@@ -21,8 +21,7 @@ export async function POST(request) {
     // Gerar token JWT
     const tokenPayload = {
       email: email,
-      role: 'admin',
-      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 horas
+      role: 'admin'
     };
 
     const token = generateAuthToken(tokenPayload);
