@@ -5,8 +5,8 @@ export async function POST(request) {
     const body = await request.json();
     const { email, password } = body;
 
-    // Verificar credenciais com as variáveis de ambiente ou usar fallback
-    const correctEmail = process.env.ADMIN_EMAIL || 'admin@admin.enter';
+    // Verificar credenciais com as variáveis de ambiente ou usar fallback (Normalizando para minúsculo no email)
+    const correctEmail = (process.env.ADMIN_EMAIL || 'admin@admin.enter').toLowerCase();
     const correctPassword = process.env.ADMIN_PASSWORD || 'Blackparfum@2026';
 
     if (!correctEmail || !correctPassword) {
@@ -14,7 +14,7 @@ export async function POST(request) {
       return new Response(JSON.stringify({ error: 'Erro de configuração do servidor.' }), { status: 500 });
     }
 
-    if (email !== correctEmail || password !== correctPassword) {
+    if (email.toLowerCase() !== correctEmail || password !== correctPassword) {
       return new Response(JSON.stringify({ error: 'Credenciais inválidas.' }), { status: 401 });
     }
 
