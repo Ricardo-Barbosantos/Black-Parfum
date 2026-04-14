@@ -102,30 +102,30 @@ export default function Home() {
   return (
     <main style={{ backgroundColor: '#fcfcfc', minHeight: '100vh', paddingBottom: '30px', position: 'relative' }}>
       
-      {/* HEADER SECTION */}
-      <header>
-        <div className="container top-header" style={{ padding: '20px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ cursor: 'pointer', padding: '5px' }} onClick={() => setIsMenuOpen(true)}>
-            <svg viewBox="0 0 24 24" width="28" height="28" stroke="#111" strokeWidth="2" fill="none">
+      <header style={{ background: '#fff', borderBottom: '1px solid #f0f0f0', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div className="container" style={{ padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ cursor: 'pointer' }} onClick={() => setIsMenuOpen(true)}>
+            <svg viewBox="0 0 24 24" width="26" height="26" stroke="#000" strokeWidth="1.5" fill="none">
               <path d="M3 12h18M3 6h18M3 18h18" />
             </svg>
           </div>
           
-          <div className="logo-text" style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.4rem', letterSpacing: '3px', color: '#111' }}>
-             A R Ô M E<br/><span style={{fontSize: '10px', color: '#666', fontFamily: 'Inter', letterSpacing: '4px', textTransform: 'uppercase'}}>DE CAPELIN</span>
+          <div className="logo-text" style={{ textAlign: 'center', fontWeight: 'bold' }}>
+             <div style={{ fontSize: '1.4rem', letterSpacing: '4px', color: '#000', lineHeight: '1' }}>A R Ô M E</div>
+             <div style={{ fontSize: '8px', color: '#999', letterSpacing: '3px', textTransform: 'uppercase', marginTop: '4px' }}>DE CAPELIN</div>
           </div>
 
-          <div onClick={() => setIsCartOpen(true)} style={{ position: 'relative', cursor: 'pointer', padding: '5px' }}>
-            <svg viewBox="0 0 24 24" width="28" height="28" stroke="#111" strokeWidth="1.5" fill="none">
+          <div onClick={() => setIsCartOpen(true)} style={{ position: 'relative', cursor: 'pointer' }}>
+            <svg viewBox="0 0 24 24" width="26" height="26" stroke="#000" strokeWidth="1.2" fill="none">
               <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
               <line x1="3" y1="6" x2="21" y2="6" />
               <path d="M16 10a4 4 0 0 1-8 0" />
             </svg>
             <span style={{
-              position: 'absolute', bottom: '-2px', right: '-8px', 
-              background: '#eab308', color: '#111', fontSize: '11px', fontWeight: 'bold',
-              width: '20px', height: '20px', borderRadius: '50%', 
-              display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+              position: 'absolute', top: '-5px', right: '-10px', 
+              background: '#c5a67c', color: '#fff', fontSize: '10px', fontWeight: 'bold',
+              width: '18px', height: '18px', borderRadius: '50%', 
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
               {cartItemCount}
             </span>
@@ -133,7 +133,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* NOVO: BANNER HERO PREMIUM PARA CELULAR E DESKTOP */}
+      {/* HERO BANNER - BOUTIQUE STYLE */}
       <div className="hero-banner">
         <h2>A Essência do Oriente</h2>
         <p>A maior coleção de perfumes árabes exclusivos do Brasil. Deixe um rastro inesquecível de sofisticação por onde você passar.</p>
@@ -157,7 +157,7 @@ export default function Home() {
           </div>
 
           {/* FILTER CHIPS */}
-          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '5px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '0 15px 5px 15px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             <style>{`div::-webkit-scrollbar { display: none; }`}</style>
             <button 
               onClick={() => { setSelectedBrand('Todas'); setSelectedGender('Todos'); setSelectedCategory('Todos'); setMaxPrice(Infinity); }}
@@ -199,60 +199,50 @@ export default function Home() {
           <div className="product-grid">
             {filteredProducts.map((product) => (
               <div key={product.id} className="product-card">
-                {product.isOnSale && product.discountPercent > 0 && (
+                {product.isOnSale && (
                    <div className="card-badge">
-                     -{product.discountPercent}%
+                     12% OFF
                    </div>
                 )}
                 
-                <div className="card-image-wrap" style={{ position: 'relative', height: '200px', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
+                <div className="card-image-wrap">
                    <img 
                     src={product.image || '/photos/perfume.jpg'} 
                     alt={product.name} 
-                    style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', padding: '10%' }}
                   />
                 </div>
-
+ 
                 <div className="card-content">
-                  <div className="stars">
-                    ★★★★★
-                  </div>
-                  
                   <div className="card-title">
                     {product.name}
                   </div>
                   
-                  <div className="card-bottom">
-                    {product.compareAtPrice > 0 ? (
-                      <div className="card-old-price">
+                  <div className="card-price-container">
+                    {product.compareAtPrice > 0 && (
+                      <span className="card-old-price">
                         R$ {product.compareAtPrice.toFixed(2).replace('.', ',')}
-                      </div>
-                    ) : (
-                      <div style={{ visibility: 'hidden', fontSize: '0.9rem', marginBottom: '2px' }}>-</div>
+                      </span>
                     )}
 
-                    <div className="card-price-row">
-                      <span className="card-new-price">
-                        R$ {product.price.toFixed(2).replace('.', ',')}
-                      </span>
-                      <span className="card-pix">no pix</span>
+                    <span className="card-new-price">
+                      R$ {product.price.toFixed(2).replace('.', ',')}
+                    </span>
+                    
+                    <div className="card-pix-row">
+                      R$ {(product.price * 0.9).toFixed(2).replace('.', ',')} <span>com Pix</span>
                     </div>
-
-                    <div style={{ 
-                      fontSize: '0.8rem', color: '#2d6b22', marginTop: '6px',
-                      background: '#f0fdf4', padding: '5px 10px', borderRadius: '4px',
-                      textAlign: 'center', border: '1px solid #bbf7d0', fontWeight: '500'
-                    }}>
-                      6x de <strong>R$ {(product.price / 6).toFixed(2).replace('.', ',')}</strong> sem juros
-                    </div>
-
-                    <button 
-                      className="btn-comprar"
-                      onClick={() => addToCart(product)}
-                    >
-                      Comprar
-                    </button>
                   </div>
+
+                  <div className="card-installments-box">
+                    6 x de R$ {(product.price / 6).toFixed(2).replace('.', ',')} sem juros
+                  </div>
+
+                  <button 
+                    className="btn-comprar"
+                    onClick={() => addToCart(product)}
+                  >
+                    Comprar
+                  </button>
                 </div>
               </div>
             ))}

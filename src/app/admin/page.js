@@ -37,20 +37,20 @@ export default function AdminPage() {
     e.preventDefault();
     setAuthError('');
     setLoading(true);
-    
+
     try {
-      const res = await fetch('/api/auth', {
+      const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
-      
+
       const data = await res.json();
-      
-      if (res.ok) {
+
+      if (res.ok && data.token) {
         setIsAuthenticated(true);
         setAuthToken(data.token);
-        localStorage.setItem('oud_admin_cache', data.token); 
+        localStorage.setItem('oud_admin_cache', data.token);
       } else {
         setAuthError(data.error || 'Credenciais inválidas!');
       }
@@ -90,9 +90,9 @@ export default function AdminPage() {
         const res = await fetch('/api/upload', {
           method: 'POST',
           headers: {
-            'Authorization': `Basic ${authToken}`
+            'Authorization': `Bearer ${authToken}`
           },
-          body: formData 
+          body: formData
         });
         
         const data = await res.json();
@@ -161,9 +161,9 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/products', {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Basic ${authToken}` 
+          'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify(products)
       });
