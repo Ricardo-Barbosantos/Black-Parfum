@@ -51,6 +51,9 @@ export default function AdminPage() {
         setIsAuthenticated(true);
         setAuthToken(data.token);
         localStorage.setItem('oud_admin_cache', data.token);
+        // Armazena temporariamente email e senha para renovação de token
+        localStorage.setItem('admin_email', email);
+        localStorage.setItem('admin_password', password);
       } else {
         setAuthError(data.error || 'Credenciais inválidas!');
       }
@@ -62,6 +65,8 @@ export default function AdminPage() {
 
   const handleLogout = () => {
     localStorage.removeItem('oud_admin_cache');
+    localStorage.removeItem('admin_email');
+    localStorage.removeItem('admin_password');
     setIsAuthenticated(false);
     setAuthToken('');
     setPassword('');
@@ -77,7 +82,7 @@ export default function AdminPage() {
   const handleImageUpload = async (index, files) => {
     if (!files || files.length === 0) return;
     setUploadingImageIndex(index);
-    
+
     const newProducts = [...products];
     const product = newProducts[index];
     if (!product.images) product.images = product.image ? [product.image] : [];
@@ -85,7 +90,7 @@ export default function AdminPage() {
     for (const file of Array.from(files)) {
       const formData = new FormData();
       formData.append('file', file);
-      
+
       try {
         const res = await fetch('/api/upload', {
           method: 'POST',
@@ -94,23 +99,67 @@ export default function AdminPage() {
           },
           body: formData
         });
-        
-        const data = await res.json();
-        if (res.ok && data.url) {
-          // Adiciona à lista de imagens
-          product.images.push(data.url);
-          // Define a primeira como imagem principal se não houver uma
-          if (!product.image || product.image === '/photos/perfume.jpg') {
-            product.image = data.url;
+
+        // Se receber erro de autenticação, tenta renovar o token
+        if (res.status === 401) {
+          // Faz login novamente para obter novo token
+          const loginRes = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: localStorage.getItem('admin_email') || process.env.ADMIN_EMAIL || '',
+              password: localStorage.getItem('admin_password') || process.env.ADMIN_PASSWORD || ''
+            })
+          });
+
+          const loginData = await loginRes.json();
+
+          if (loginRes.ok && loginData.token) {
+            // Atualiza o token e tenta novamente
+            setAuthToken(loginData.token);
+            localStorage.setItem('oud_admin_cache', loginData.token);
+
+            // Tenta o upload novamente com o novo token
+            const retryRes = await fetch('/api/upload', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${loginData.token}`
+              },
+              body: formData
+            });
+
+            const retryData = await retryRes.json();
+            if (retryRes.ok && retryData.url) {
+              // Adiciona à lista de imagens
+              product.images.push(retryData.url);
+              // Define a primeira como imagem principal se não houver uma
+              if (!product.image || product.image === '/photos/perfume.jpg') {
+                product.image = retryData.url;
+              }
+            } else {
+              alert(`Erro ao subir ${file.name} após renovação de token: ${retryData.error}`);
+            }
+          } else {
+            alert(`Erro de autenticação renovada para ${file.name}: ${loginData.error || 'Falha ao renovar o token'}`);
           }
         } else {
-          alert(`Erro ao subir ${file.name}: ${data.error}`);
+          const data = await res.json();
+          if (res.ok && data.url) {
+            // Adiciona à lista de imagens
+            product.images.push(data.url);
+            // Define a primeira como imagem principal se não houver uma
+            if (!product.image || product.image === '/photos/perfume.jpg') {
+              product.image = data.url;
+            }
+          } else {
+            alert(`Erro ao subir ${file.name}: ${data.error}`);
+          }
         }
       } catch (err) {
         alert(`Erro de rede ao enviar ${file.name}`);
       }
     }
-    
+
     setProducts(newProducts);
     setUploadingImageIndex(null);
   };
@@ -167,12 +216,59 @@ export default function AdminPage() {
         },
         body: JSON.stringify(products)
       });
-      
-      const data = await res.json().catch(() => ({}));
-      
+
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (e) {
+        // Se não conseguir parsear o JSON, continua com dados vazios
+      }
+
       if (res.status === 401) {
-        setMessage('❌ Erro de Segurança: Sessão inválida.');
-        setTimeout(() => handleLogout(), 2000); 
+        // Tenta renovar o token e tentar novamente
+        const loginRes = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: localStorage.getItem('admin_email') || process.env.ADMIN_EMAIL || '',
+            password: localStorage.getItem('admin_password') || process.env.ADMIN_PASSWORD || ''
+          })
+        });
+
+        const loginData = await loginRes.json();
+
+        if (loginRes.ok && loginData.token) {
+          // Atualiza o token e tenta novamente
+          setAuthToken(loginData.token);
+          localStorage.setItem('oud_admin_cache', loginData.token);
+
+          // Tenta salvar novamente com o novo token
+          const retryRes = await fetch('/api/products', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${loginData.token}`
+            },
+            body: JSON.stringify(products)
+          });
+
+          try {
+            data = await retryRes.json();
+          } catch (e) {}
+
+          if (retryRes.ok) {
+            setMessage('✅ Alterações salvas com sucesso na nuvem!');
+            // Refresh products to ensure sync
+            const refresh = await fetch('/api/products?t=' + Date.now(), { cache: 'no-store' });
+            const freshData = await refresh.json();
+            if (Array.isArray(freshData)) setProducts(freshData);
+          } else {
+            setMessage('❌ Erro ao salvar após renovação de token: ' + (data.error || 'Erro desconhecido.'));
+          }
+        } else {
+          setMessage('❌ Erro de Segurança: Sessão inválida e falha na renovação.');
+          setTimeout(() => handleLogout(), 2000);
+        }
       } else if (res.ok) {
         setMessage('✅ Alterações salvas com sucesso na nuvem!');
         // Refresh products to ensure sync

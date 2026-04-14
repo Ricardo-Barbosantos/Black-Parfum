@@ -1,6 +1,7 @@
 import { kv } from '@vercel/kv';
 import Redis from 'ioredis';
 import { z } from 'zod';
+import { verify } from 'jsonwebtoken';
 
 const ProductSchema = z.object({
   id: z.string().optional(),
@@ -16,6 +17,16 @@ const ProductSchema = z.object({
 });
 
 const ProductsArraySchema = z.array(ProductSchema);
+
+// Função auxiliar para verificar o token JWT
+const verifyAuthToken = (token) => {
+  try {
+    const decoded = verify(token, process.env.JWT_SECRET || 'fallback_secret_key');
+    return decoded;
+  } catch (error) {
+    return null;
+  }
+};
 
 // Configuração do Redis (Caso o KV da Vercel falhe)
 let redis = null;
@@ -121,20 +132,39 @@ export async function PUT(request) {
         return new Response(JSON.stringify({ error: 'Erro de configuração do servidor' }), { status: 500 });
     }
 
-    const expectedAuth = `Basic ${Buffer.from(`${correctEmail}:${correctPassword}`).toString('base64')}`;
-    
-    if (!authHeader || authHeader !== expectedAuth) {
+    // Verificar autenticação: suporta ambos JWT e Basic Authentication
+    let isAuthenticated = false;
+
+    if (authHeader) {
+      // Tentar autenticação JWT primeiro
+      if (authHeader.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        const decoded = verifyAuthToken(token);
+        if (decoded) {
+          isAuthenticated = true;
+        }
+      }
+      // Caso contrário, tentar autenticação Basic
+      else if (authHeader.startsWith('Basic ')) {
+        const expectedAuth = `Basic ${Buffer.from(`${correctEmail}:${correctPassword}`).toString('base64')}`;
+        if (authHeader === expectedAuth) {
+          isAuthenticated = true;
+        }
+      }
+    }
+
+    if (!isAuthenticated) {
       return new Response(JSON.stringify({ error: 'Acesso Negado!' }), { status: 401 });
     }
 
     const payload = await request.json();
-    
+
     // Validação com Zod
     const validation = ProductsArraySchema.safeParse(payload);
     if (!validation.success) {
-      return new Response(JSON.stringify({ 
-        error: 'Dados inválidos', 
-        details: validation.error.format() 
+      return new Response(JSON.stringify({
+        error: 'Dados inválidos',
+        details: validation.error.format()
       }), { status: 400 });
     }
 
