@@ -106,7 +106,11 @@ export default function AdminPage() {
     const product = newProducts[index];
     if (!product.images) product.images = product.image ? [product.image] : [];
 
-      let currentToken = authToken;
+    let currentToken = authToken;
+
+    for (const file of Array.from(files)) {
+      const formData = new FormData();
+      formData.append('file', file);
 
       // Verifica se o token atual está expirado antes de tentar fazer o upload
       if (isTokenExpired(currentToken)) {
