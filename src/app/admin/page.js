@@ -10,21 +10,40 @@ export default function AdminPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [uploadingImageIndex, setUploadingImageIndex] = useState(null);
-  
+
   // Auth state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authToken, setAuthToken] = useState(''); 
+  const [authToken, setAuthToken] = useState('');
+
+  // Função para verificar se o token JWT está expirado
+  const isTokenExpired = (token) => {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      return payload.exp < currentTime;
+    } catch (error) {
+      console.error('Erro ao verificar expiração do token:', error);
+      return true; // Assume expirado se não puder verificar
+    }
+  };
 
   useEffect(() => {
     const savedToken = localStorage.getItem('oud_admin_cache');
     if (savedToken) {
-      setAuthToken(savedToken);
-      setIsAuthenticated(true);
+      // Verifica se o token está expirado antes de usá-lo
+      if (isTokenExpired(savedToken)) {
+        localStorage.removeItem('oud_admin_cache');
+        localStorage.removeItem('admin_email');
+        localStorage.removeItem('admin_password');
+      } else {
+        setAuthToken(savedToken);
+        setIsAuthenticated(true);
+      }
     }
-    
+
     fetch('/api/products')
       .then(res => res.json())
       .then(data => {
@@ -51,7 +70,7 @@ export default function AdminPage() {
         setIsAuthenticated(true);
         setAuthToken(data.token);
         localStorage.setItem('oud_admin_cache', data.token);
-        // Armazena temporariamente email e senha para renovação de token
+        // Armazena temporariamente email e senha para renovação automática do token
         localStorage.setItem('admin_email', email);
         localStorage.setItem('admin_password', password);
       } else {
@@ -87,28 +106,68 @@ export default function AdminPage() {
     const product = newProducts[index];
     if (!product.images) product.images = product.image ? [product.image] : [];
 
-    for (const file of Array.from(files)) {
-      const formData = new FormData();
-      formData.append('file', file);
+      let currentToken = authToken;
+
+      // Verifica se o token atual está expirado antes de tentar fazer o upload
+      if (isTokenExpired(currentToken)) {
+        const storedEmail = localStorage.getItem('admin_email');
+        const storedPassword = localStorage.getItem('admin_password');
+
+        if (!storedEmail || !storedPassword) {
+          alert(`Erro ao subir ${file.name}: Credenciais não encontradas. Por favor, faça login novamente.`);
+          handleLogout();
+          return;
+        }
+
+        // Renova o token antes de tentar o upload
+        const loginRes = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: storedEmail,
+            password: storedPassword
+          })
+        });
+
+        const loginData = await loginRes.json();
+
+        if (loginRes.ok && loginData.token) {
+          currentToken = loginData.token; // Atualiza a variável local para uso imediato
+          setAuthToken(loginData.token);
+          localStorage.setItem('oud_admin_cache', loginData.token);
+        } else {
+          alert(`Erro ao renovar token para upload de ${file.name}: ${loginData.error || 'Falha ao renovar o token'}`);
+          return;
+        }
+      }
 
       try {
         const res = await fetch('/api/upload', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${authToken}`
+            'Authorization': `Bearer ${currentToken}` // Usa o token novo (ou o atual se for válido)
           },
           body: formData
         });
 
-        // Se receber erro de autenticação, tenta renovar o token
         if (res.status === 401) {
+          // Mesmo após a verificação de expiração, pode haver outro problema de autenticação
+          const storedEmail = localStorage.getItem('admin_email');
+          const storedPassword = localStorage.getItem('admin_password');
+
+          if (!storedEmail || !storedPassword) {
+            alert(`Erro ao subir ${file.name}: Credenciais não encontradas. Por favor, faça login novamente.`);
+            handleLogout(); // Força logout se não tiver credenciais
+            return;
+          }
+
           // Faz login novamente para obter novo token
           const loginRes = await fetch('/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              email: localStorage.getItem('admin_email') || process.env.ADMIN_EMAIL || '',
-              password: localStorage.getItem('admin_password') || process.env.ADMIN_PASSWORD || ''
+              email: storedEmail,
+              password: storedPassword
             })
           });
 
@@ -207,12 +266,49 @@ export default function AdminPage() {
   const handleSave = async () => {
     setSaving(true);
     setMessage('');
+
+    let currentToken = authToken;
+
+    // Verifica se o token atual está expirado antes de tentar salvar
+    if (isTokenExpired(currentToken)) {
+      const storedEmail = localStorage.getItem('admin_email');
+      const storedPassword = localStorage.getItem('admin_password');
+
+      if (!storedEmail || !storedPassword) {
+        setMessage('❌ Erro de Segurança: Credenciais não encontradas. Faça login novamente.');
+        setTimeout(() => handleLogout(), 2000);
+        return;
+      }
+
+      // Renova o token antes de tentar salvar
+      const loginRes = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: storedEmail,
+          password: storedPassword
+        })
+      });
+
+      const loginData = await loginRes.json();
+
+      if (loginRes.ok && loginData.token) {
+        currentToken = loginData.token; // Atualiza localmente para o fetch abaixo
+        setAuthToken(loginData.token);
+        localStorage.setItem('oud_admin_cache', loginData.token);
+      } else {
+        setMessage('❌ Erro ao renovar token: ' + (loginData.error || 'Falha ao renovar o token'));
+        setTimeout(() => handleLogout(), 2000);
+        return;
+      }
+    }
+
     try {
       const res = await fetch('/api/products', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          'Authorization': `Bearer ${currentToken}`
         },
         body: JSON.stringify(products)
       });
@@ -225,13 +321,23 @@ export default function AdminPage() {
       }
 
       if (res.status === 401) {
+        // Verifica se temos credenciais armazenadas
+        const storedEmail = localStorage.getItem('admin_email');
+        const storedPassword = localStorage.getItem('admin_password');
+
+        if (!storedEmail || !storedPassword) {
+          setMessage('❌ Erro de Segurança: Credenciais não encontradas. Faça login novamente.');
+          setTimeout(() => handleLogout(), 2000);
+          return;
+        }
+
         // Tenta renovar o token e tentar novamente
         const loginRes = await fetch('/api/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            email: localStorage.getItem('admin_email') || process.env.ADMIN_EMAIL || '',
-            password: localStorage.getItem('admin_password') || process.env.ADMIN_PASSWORD || ''
+            email: storedEmail,
+            password: storedPassword
           })
         });
 
@@ -266,7 +372,7 @@ export default function AdminPage() {
             setMessage('❌ Erro ao salvar após renovação de token: ' + (data.error || 'Erro desconhecido.'));
           }
         } else {
-          setMessage('❌ Erro de Segurança: Sessão inválida e falha na renovação.');
+          setMessage('❌ Erro de Segurança: Sessão inválida e falha na renovação. ' + (loginData.error || ''));
           setTimeout(() => handleLogout(), 2000);
         }
       } else if (res.ok) {
