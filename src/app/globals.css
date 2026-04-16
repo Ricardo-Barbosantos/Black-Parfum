@@ -29,14 +29,12 @@ body {
 
 /* UI Premium Hero */
 .hero-banner {
-  background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('/photos/banner-bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-color: #111;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
   color: var(--color-white);
-  padding: 60px 20px;
+  padding: 80px 20px;
   text-align: center;
   position: relative;
+  border-bottom: 2px solid var(--color-gold);
 }
 
 .hero-banner h2 {
@@ -78,6 +76,7 @@ body {
   border-radius: 0;
   display: flex;
   flex-direction: column;
+  height: 100%; /* Forces cards in the same row to match height */
   position: relative;
   transition: all 0.3s ease;
 }
@@ -91,16 +90,17 @@ body {
   padding: 4px 8px;
   font-size: 11px;
   font-weight: 600;
-  z-index: 5;
+  z-index: 10;
 }
 
 .card-image-wrap {
-  aspect-ratio: 1/1;
+  height: 200px; /* Fixed height for image consistency */
   padding: 15px;
   display: flex;
   justify-content: center;
   align-items: center;
   background: #fff;
+  overflow: hidden;
 }
 
 .card-image-wrap img {
@@ -110,8 +110,11 @@ body {
 }
 
 .card-content {
-  padding: 10px 5px;
+  padding: 10px 10px 20px 10px;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* Fills available space to push button down */
 }
 
 .card-title {
@@ -121,7 +124,8 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
-  height: 2.5rem;
+  min-height: 2.5rem; /* Ensures space even for short titles */
+  max-height: 2.5rem;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -179,51 +183,46 @@ body {
   color: white;
   border: none;
   width: 100%;
-  padding: 12px;
+  padding: 15px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 2px;
   font-size: 0.8rem;
   cursor: pointer;
   transition: opacity 0.2s;
+  margin-top: auto; /* Pushes button to exactly the bottom of the card */
 }
 
 .btn-comprar:hover {
   opacity: 0.9;
 }
 
-/* Floating Elements */
+/* Floating Elements & Extras */
 .floating-whatsapp {
   position: fixed;
   bottom: 25px;
   right: 25px;
   background: #25D366;
-  width: 55px;
-  height: 55px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  z-index: 1000;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  z-index: 9999; /* Ensures it stays above EVERYTHING else */
+  cursor: pointer;
+  transition: transform 0.3s ease;
 }
 
-/* Extras */
-.floating-whatsapp {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  left: auto;
-  background-color: var(--color-whatsapp);
-  color: white;
-  padding: 15px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-  z-index: 100;
-  cursor: pointer;
+.floating-whatsapp:hover {
+  transform: scale(1.1);
+}
+
+.floating-whatsapp svg {
+  width: 32px;
+  height: 32px;
+  fill: white;
 }
 
 /* Responsive adjustments for mobile */

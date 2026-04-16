@@ -111,7 +111,7 @@ export default function Home() {
           </div>
           
           <div className="logo-text" style={{ textAlign: 'center', fontWeight: 'bold' }}>
-             <div style={{ fontSize: '1.4rem', letterSpacing: '4px', color: '#000', lineHeight: '1' }}>A R Ô M E</div>
+             <div style={{ fontSize: '1.4rem', letterSpacing: '4px', color: 'var(--color-gold)', lineHeight: '1' }}>A R Ô M E</div>
              <div style={{ fontSize: '8px', color: '#999', letterSpacing: '3px', textTransform: 'uppercase', marginTop: '4px' }}>DE CAPELIN</div>
           </div>
 
@@ -257,7 +257,7 @@ export default function Home() {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '40px', justifyContent: 'space-between' }}>
             {/* Coluna 1: Marca */}
             <div style={{ minWidth: '200px' }}>
-              <h3 style={{ fontFamily: 'Cinzel', fontSize: '1.3rem', letterSpacing: '3px', marginBottom: '10px', color: '#eab308' }}>A R Ô M E</h3>
+              <h3 style={{ fontFamily: 'Cinzel', fontSize: '1.3rem', letterSpacing: '3px', marginBottom: '10px', color: 'var(--color-gold)' }}>A R Ô M E</h3>
               <p style={{ fontSize: '0.85rem', color: '#999', lineHeight: '1.6' }}>A maior coleção de perfumes árabes exclusivos do Brasil. Sofisticação e qualidade.</p>
             </div>
             
