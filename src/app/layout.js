@@ -5,7 +5,7 @@ const cinzel = Cinzel({ subsets: ['latin'], variable: '--font-cinzel' });
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata = {
-  title: 'Oud Royale | Perfumes Árabes Premium',
+  title: 'Obsidian Parfums | Perfumes Árabes Premium',
   description: 'Descubra a essência do luxo. Perfumes árabes de alta fixação e elegância ímpar.',
 };
 

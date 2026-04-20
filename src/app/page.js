@@ -73,7 +73,7 @@ export default function Home() {
       }
     }
     
-    let text = `*NOVO PEDIDO - A R Ô M E*\n\n`;
+    let text = `*NOVO PEDIDO - OBSIDIAN PARFUMS*\n\n`;
     cart.forEach(item => {
       text += `🛒 ${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}\n`;
     });
@@ -118,8 +118,8 @@ export default function Home() {
           </div>
           
           <div className="logo-text" style={{ textAlign: 'center', fontWeight: 'bold' }}>
-             <div style={{ fontSize: '1.4rem', letterSpacing: '6px', color: 'var(--color-gold)', lineHeight: '1' }}>O U D  R O Y A L E</div>
-             <div style={{ fontSize: '8px', color: '#999', letterSpacing: '4px', textTransform: 'uppercase', marginTop: '4px' }}>B O U T I Q U E  D E  L U X O</div>
+             <div style={{ fontSize: '1.4rem', letterSpacing: '6px', color: 'var(--color-gold)', lineHeight: '1' }}>O B S I D I A N  P A R F U M S</div>
+             <div style={{ fontSize: '8px', color: '#999', letterSpacing: '2px', textTransform: 'uppercase', marginTop: '4px' }}>B O U T I Q U E  D E  L U X O</div>
           </div>
 
           <div onClick={() => setIsCartOpen(true)} style={{ position: 'relative', cursor: 'pointer' }}>
@@ -264,7 +264,7 @@ export default function Home() {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '40px', justifyContent: 'space-between' }}>
             {/* Coluna 1: Marca */}
             <div style={{ minWidth: '200px' }}>
-              <h3 style={{ fontFamily: 'Cinzel', fontSize: '1.3rem', letterSpacing: '3px', marginBottom: '10px', color: 'var(--color-gold)' }}>O U D  R O Y A L E</h3>
+              <h3 style={{ fontFamily: 'Cinzel', fontSize: '1.3rem', letterSpacing: '3px', marginBottom: '10px', color: 'var(--color-gold)' }}>O B S I D I A N  P A R F U M S</h3>
               <p style={{ fontSize: '0.85rem', color: '#999', lineHeight: '1.6' }}>A maior coleção de perfumes árabes exclusivos do Brasil. Sofisticação e qualidade.</p>
             </div>
             
