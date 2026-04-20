@@ -107,7 +107,7 @@ export default function Home() {
   });
 
   return (
-    <main style={{ backgroundColor: '#fcfcfc', minHeight: '100vh', paddingBottom: '30px', position: 'relative' }}>
+    <main style={{ backgroundColor: '#fcfcfc', minHeight: '100vh', position: 'relative' }}>
       
       <header style={{ background: '#fff', borderBottom: '1px solid #f0f0f0', position: 'sticky', top: 0, zIndex: 100 }}>
         <div className="container" style={{ padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -130,7 +130,7 @@ export default function Home() {
             </svg>
             <span style={{
               position: 'absolute', top: '-5px', right: '-10px', 
-              background: '#c5a67c', color: '#fff', fontSize: '10px', fontWeight: 'bold',
+              background: '#d4af37', color: '#fff', fontSize: '10px', fontWeight: 'bold',
               width: '18px', height: '18px', borderRadius: '50%', 
               display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
@@ -245,7 +245,7 @@ export default function Home() {
                   </div>
 
                   <button 
-                    className="btn-comprar shimmer-btn"
+                    className="btn-comprar"
                     onClick={() => addToCart(product)}
                   >
                     Comprar
