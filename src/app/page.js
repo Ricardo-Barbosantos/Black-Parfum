@@ -15,6 +15,12 @@ export default function Home() {
   // Cart State
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [toast, setToast] = useState({ visible: false, message: '' });
+
+  const showToast = (msg) => {
+    setToast({ visible: true, message: msg });
+    setTimeout(() => setToast({ visible: false, message: '' }), 2500);
+  };
   const [checkoutForm, setCheckoutForm] = useState({
      name: '', address: '', number: '', complement: '', city: '', zip: '', deliveryMethod: 'home'
   });
@@ -43,6 +49,7 @@ export default function Home() {
       }
       return [...prev, { ...product, quantity: 1 }];
     });
+    showToast(`${product.name} adicionado ao carrinho`);
     setIsCartOpen(true);
   };
 
@@ -111,8 +118,8 @@ export default function Home() {
           </div>
           
           <div className="logo-text" style={{ textAlign: 'center', fontWeight: 'bold' }}>
-             <div style={{ fontSize: '1.4rem', letterSpacing: '4px', color: 'var(--color-gold)', lineHeight: '1' }}>A R Ô M E</div>
-             <div style={{ fontSize: '8px', color: '#999', letterSpacing: '3px', textTransform: 'uppercase', marginTop: '4px' }}>DE CAPELIN</div>
+             <div style={{ fontSize: '1.4rem', letterSpacing: '6px', color: 'var(--color-gold)', lineHeight: '1' }}>O U D  R O Y A L E</div>
+             <div style={{ fontSize: '8px', color: '#999', letterSpacing: '4px', textTransform: 'uppercase', marginTop: '4px' }}>B O U T I Q U E  D E  L U X O</div>
           </div>
 
           <div onClick={() => setIsCartOpen(true)} style={{ position: 'relative', cursor: 'pointer' }}>
@@ -238,7 +245,7 @@ export default function Home() {
                   </div>
 
                   <button 
-                    className="btn-comprar"
+                    className="btn-comprar shimmer-btn"
                     onClick={() => addToCart(product)}
                   >
                     Comprar
@@ -257,7 +264,7 @@ export default function Home() {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '40px', justifyContent: 'space-between' }}>
             {/* Coluna 1: Marca */}
             <div style={{ minWidth: '200px' }}>
-              <h3 style={{ fontFamily: 'Cinzel', fontSize: '1.3rem', letterSpacing: '3px', marginBottom: '10px', color: 'var(--color-gold)' }}>A R Ô M E</h3>
+              <h3 style={{ fontFamily: 'Cinzel', fontSize: '1.3rem', letterSpacing: '3px', marginBottom: '10px', color: 'var(--color-gold)' }}>O U D  R O Y A L E</h3>
               <p style={{ fontSize: '0.85rem', color: '#999', lineHeight: '1.6' }}>A maior coleção de perfumes árabes exclusivos do Brasil. Sofisticação e qualidade.</p>
             </div>
             
@@ -302,6 +309,18 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* TOAST SYSTEM */}
+      {toast.visible && (
+        <div className="toast-container">
+          <div className="toast-gold">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            {toast.message}
+          </div>
+        </div>
+      )}
 
       {/* FLOATING WHATSAPP BUTTON */}
       <a 
