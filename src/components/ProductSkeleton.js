@@ -3,7 +3,7 @@
 export default function ProductSkeleton() {
   return (
     <div className="product-card" style={{ opacity: 0.6 }}>
-      <div className="card-image-wrap" style={{ backgroundColor: '#eee', height: '200px' }}>
+      <div className="card-image-wrap" style={{ backgroundColor: '#fff', height: '200px', position: 'relative', width: '100%' }}>
         <div style={{
           width: '100%',
           height: '100%',

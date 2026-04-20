@@ -13,13 +13,13 @@ export default function ProductCard({ product, onAddToCart }) {
         </div>
       )}
       
-      <div className="card-image-wrap">
+      <div className="card-image-wrap" style={{ position: 'relative', width: '100%', height: '200px' }}>
         <Image 
           src={product.image || '/photos/perfume.jpg'} 
           alt={product.name}
-          width={280}
-          height={200}
-          style={{ objectFit: 'contain' }}
+          fill
+          sizes="(max-width: 768px) 50vw, 280px"
+          style={{ objectFit: 'contain', padding: '10px' }}
         />
       </div>
 

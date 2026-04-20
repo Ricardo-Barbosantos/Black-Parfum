@@ -108,11 +108,15 @@ body {
 }
 
 /* Product Grid */
+.product-grid > * {
+  min-width: 0;
+}
+
 .product-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
-  padding: 0 5px;
+  gap: 12px;
+  padding: 0 10px;
 }
 
 @media (min-width: 1024px) {
