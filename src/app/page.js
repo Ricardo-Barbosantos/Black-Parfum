@@ -117,9 +117,9 @@ export default function Home() {
             </svg>
           </div>
           
-          <div className="logo-text" style={{ textAlign: 'center', fontWeight: 'bold' }}>
-             <div style={{ fontSize: '1.4rem', letterSpacing: '6px', color: 'var(--color-gold)', lineHeight: '1' }}>O B S I D I A N  P A R F U M S</div>
-             <div style={{ fontSize: '8px', color: '#999', letterSpacing: '2px', textTransform: 'uppercase', marginTop: '4px' }}>B O U T I Q U E  D E  L U X O</div>
+          <div className="logo-text" style={{ textAlign: 'center', fontWeight: 'bold', flex: 1 }}>
+             <div style={{ fontSize: '1.2rem', letterSpacing: '2px', color: 'var(--color-gold)', lineHeight: '1.2' }}>OBSIDIAN PARFUMS</div>
+             <div style={{ fontSize: '7px', color: '#999', letterSpacing: '2px', textTransform: 'uppercase' }}>BOUTIQUE DE LUXO</div>
           </div>
 
           <div onClick={() => setIsCartOpen(true)} style={{ position: 'relative', cursor: 'pointer' }}>
@@ -264,7 +264,7 @@ export default function Home() {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '40px', justifyContent: 'space-between' }}>
             {/* Coluna 1: Marca */}
             <div style={{ minWidth: '200px' }}>
-              <h3 style={{ fontFamily: 'Cinzel', fontSize: '1.3rem', letterSpacing: '3px', marginBottom: '10px', color: 'var(--color-gold)' }}>O B S I D I A N  P A R F U M S</h3>
+              <h3 style={{ fontFamily: 'Cinzel', fontSize: '1.2rem', letterSpacing: '2px', marginBottom: '10px', color: 'var(--color-gold)' }}>OBSIDIAN PARFUMS</h3>
               <p style={{ fontSize: '0.85rem', color: '#999', lineHeight: '1.6' }}>A maior coleção de perfumes árabes exclusivos do Brasil. Sofisticação e qualidade.</p>
             </div>
             
@@ -305,7 +305,7 @@ export default function Home() {
           </div>
 
           <div style={{ borderTop: '1px solid #222', paddingTop: '20px', textAlign: 'center' }}>
-            <p style={{ fontSize: '0.8rem', color: '#666' }}>© 2026 A R Ô M E — Vitória da Conquista, BA. Todos os direitos reservados.</p>
+            <p style={{ fontSize: '0.8rem', color: '#666' }}>© 2026 OBSIDIAN — Vitória da Conquista, BA. Todos os direitos reservados.</p>
           </div>
         </div>
       </footer>
@@ -480,7 +480,7 @@ export default function Home() {
             boxShadow: '10px 0 30px rgba(0,0,0,0.5)' 
           }}>
             <div style={{ padding: '20px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: '1.2rem', margin: 0, color: '#111', fontFamily: 'Cinzel' }}>A R Ô M E</h2>
+              <h2 style={{ fontSize: '1.2rem', margin: 0, color: '#111', fontFamily: 'Cinzel' }}>OBSIDIAN</h2>
               <button onClick={() => setIsMenuOpen(false)} style={{ background: 'none', border: 'none', fontSize: '2rem', cursor: 'pointer', color: '#111', lineHeight: '1' }}>×</button>
             </div>
             
