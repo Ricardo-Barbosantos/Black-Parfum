@@ -117,9 +117,9 @@ export default function Home() {
             </svg>
           </div>
           
-          <div className="logo-text" style={{ textAlign: 'center', fontWeight: 'bold', flex: 1 }}>
-             <div style={{ fontSize: '1.2rem', letterSpacing: '2px', color: 'var(--color-gold)', lineHeight: '1.2' }}>OBSIDIAN PARFUMS</div>
-             <div style={{ fontSize: '7px', color: '#999', letterSpacing: '2px', textTransform: 'uppercase' }}>BOUTIQUE DE LUXO</div>
+          <div className="logo-text" style={{ textAlign: 'center', flex: 1 }}>
+             <div className="brand-title">OBSIDIAN PARFUMS</div>
+             <div className="brand-subtitle">BOUTIQUE DE LUXO</div>
           </div>
 
           <div onClick={() => setIsCartOpen(true)} style={{ position: 'relative', cursor: 'pointer' }}>
@@ -264,7 +264,7 @@ export default function Home() {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '40px', justifyContent: 'space-between' }}>
             {/* Coluna 1: Marca */}
             <div style={{ minWidth: '200px' }}>
-              <h3 style={{ fontFamily: 'Cinzel', fontSize: '1.2rem', letterSpacing: '2px', marginBottom: '10px', color: 'var(--color-gold)' }}>OBSIDIAN PARFUMS</h3>
+              <h3 className="brand-title" style={{ marginBottom: '10px' }}>OBSIDIAN PARFUMS</h3>
               <p style={{ fontSize: '0.85rem', color: '#999', lineHeight: '1.6' }}>A maior coleção de perfumes árabes exclusivos do Brasil. Sofisticação e qualidade.</p>
             </div>
             

@@ -10,6 +10,25 @@
   --color-shimmer: rgba(255, 255, 255, 0.2);
 }
 
+/* Typography & Layout Consistency */
+.brand-title {
+  font-family: var(--font-cinzel), serif;
+  color: var(--color-gold);
+  line-height: 1.2;
+  font-weight: bold;
+  font-size: 1.8rem; /* Desktop size */
+  letter-spacing: 4px;
+  transition: all 0.3s ease;
+}
+
+.brand-subtitle {
+  font-size: 10px;
+  color: #999;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
 @keyframes shimmer {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
@@ -158,12 +177,12 @@ body {
 
 .card-title {
   font-family: var(--font-inter);
-  font-size: 0.85rem;
-  color: #333;
+  font-size: 1rem;
+  color: #111;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   margin-bottom: 8px;
-  min-height: 2.5rem; /* Ensures space even for short titles */
+  min-height: 3rem; /* Ensures space even for short titles */
   max-height: 2.5rem;
   overflow: hidden;
   display: -webkit-box;
@@ -381,6 +400,16 @@ body {
     padding: 12px;
     font-size: 0.85rem;
     letter-spacing: 1px;
+  }
+
+  .brand-title {
+    font-size: 1.2rem; /* Mobile size */
+    letter-spacing: 2px;
+  }
+
+  .brand-subtitle {
+    font-size: 7px;
+    letter-spacing: 1.5px;
   }
 
   .search-section .container {
