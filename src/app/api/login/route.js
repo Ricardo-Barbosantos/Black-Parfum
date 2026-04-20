@@ -5,9 +5,9 @@ export async function POST(request) {
     const body = await request.json();
     const { email, password } = body;
 
-    // Verificar credenciais com as variáveis de ambiente ou usar fallback (Normalizando para minúsculo no email)
-    const correctEmail = (process.env.ADMIN_EMAIL || 'admin@admin.enter').toLowerCase();
-    const correctPassword = process.env.ADMIN_PASSWORD || 'Blackparfum@2026';
+    // Verificar credenciais EXCLUSIVAMENTE via variáveis de ambiente por segurança
+    const correctEmail = process.env.ADMIN_EMAIL?.toLowerCase();
+    const correctPassword = process.env.ADMIN_PASSWORD;
 
     if (!correctEmail || !correctPassword) {
       console.error("ERRO: ADMIN_EMAIL ou ADMIN_PASSWORD não configurados no servidor.");
