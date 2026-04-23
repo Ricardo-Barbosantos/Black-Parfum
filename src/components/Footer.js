@@ -17,7 +17,7 @@ export default function Footer() {
             <h4 style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px', color: '#ccc' }}>📍 Onde Estamos</h4>
             <p style={{ fontSize: '0.85rem', color: '#999', lineHeight: '1.8' }}>
               Vitória da Conquista - BA<br />
-              Horário: Seg-Sáb 9h às 18h
+              Horário: Seg-Sáb 12h30 às 22h00
             </p>
           </div>
 
@@ -37,12 +37,12 @@ export default function Footer() {
                 (77) 99833-4081
               </a>
               <a 
-                href="https://www.instagram.com/obsidian.imports" 
+                href="https://www.instagram.com/obsidian.parfums_?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#E1306C', textDecoration: 'none', fontSize: '0.9rem', fontWeight: '500' }}
               >
-                📷 @obsidian.imports
+                📷 @obsidian.parfums_
               </a>
             </div>
           </div>

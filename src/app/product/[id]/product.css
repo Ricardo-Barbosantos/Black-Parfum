@@ -331,7 +331,7 @@
 .review-avatar {
   width: 40px;
   height: 40px;
-  background: var(--primary-gold);
+  background: var(--color-gold, #C9A84C);
   color: #fff;
   border-radius: 50%;
   display: flex;

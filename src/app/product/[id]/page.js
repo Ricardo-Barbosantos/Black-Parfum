@@ -197,7 +197,7 @@ export default function ProductPage() {
   if (!product) return <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#000' }}>Produto não encontrado.</div>;
 
   const pixPrice = product.price * 0.9;
-  const installmentPrice = product.price / 6;
+  const installmentPrice = product.price / 5;
   const sizesList = product.sizes ? product.sizes.split(',').map(s => s.trim()).filter(Boolean) : [];
   const imagesList = product.images?.length > 0 ? product.images : [product.image];
   if (product.videoUrl && !imagesList.includes(product.videoUrl)) {
@@ -295,7 +295,7 @@ export default function ProductPage() {
                 {product.compareAtPrice > 0 && <div className="old-price">De: R$ {product.compareAtPrice.toFixed(2).replace('.', ',')}</div>}
                 <div className="current-price">R$ {product.price.toFixed(2).replace('.', ',')}</div>
                 <div className="pix-price"><strong>R$ {pixPrice.toFixed(2).replace('.', ',')}</strong> com Pix (10% de desconto)</div>
-                <div className="installments-price">ou 6x de R$ {installmentPrice.toFixed(2).replace('.', ',')} sem juros</div>
+                <div className="installments-price">ou 5x de R$ {installmentPrice.toFixed(2).replace('.', ',')} sem juros</div>
              </div>
 
              {sizesList.length > 0 && (

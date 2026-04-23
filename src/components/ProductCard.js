@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export default function ProductCard({ product, onAddToCart, reviews = [] }) {
   const pixPrice = product.price * 0.9;
-  const installmentPrice = product.price / 6;
+  const installmentPrice = product.price / 5;
 
   const productReviews = reviews.filter(r => r.productId === product.id);
   const avgRating = productReviews.length > 0 
@@ -51,7 +51,7 @@ export default function ProductCard({ product, onAddToCart, reviews = [] }) {
         </div>
 
         <div className="card-installments-box">
-          6 x de R$ {installmentPrice.toFixed(2).replace('.', ',')} sem juros
+          5 x de R$ {installmentPrice.toFixed(2).replace('.', ',')} sem juros
         </div>
 
         <button 

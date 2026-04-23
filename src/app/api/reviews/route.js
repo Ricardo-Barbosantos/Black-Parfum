@@ -74,11 +74,20 @@ export async function PUT(request) {
         const { id, status, action } = payload;
         
         let reviews = await getReviews();
+        const initialCount = reviews.length;
+
         if (action === 'delete') {
             reviews = reviews.filter(r => r.id !== id);
+            if (reviews.length === initialCount) {
+                return new Response(JSON.stringify({ error: 'Review não encontrado para exclusão' }), { status: 404 });
+            }
         } else {
             const index = reviews.findIndex(r => r.id === id);
-            if (index > -1) reviews[index].status = status;
+            if (index > -1) {
+                reviews[index].status = status;
+            } else {
+                return new Response(JSON.stringify({ error: 'Review não encontrado para atualização' }), { status: 404 });
+            }
         }
 
         await saveReviews(reviews);
