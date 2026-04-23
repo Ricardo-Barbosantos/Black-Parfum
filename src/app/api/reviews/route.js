@@ -1,7 +1,7 @@
-import { kv } from '@vercel/kv';
-import Redis from 'ioredis';
+import { getReviews, saveReviews } from '@/lib/reviews';
+import { verifyAuthToken } from '@/lib/auth';
 import { z } from 'zod';
-import { verify } from 'jsonwebtoken';
+import { randomUUID } from 'crypto';
 
 const ReviewSchema = z.object({
   id: z.string().optional(),
@@ -9,42 +9,11 @@ const ReviewSchema = z.object({
   name: z.string().min(1),
   email: z.string().email(),
   rating: z.number().min(1).max(5),
-  title: z.string().min(1),
+  title: z.string().optional(),
   text: z.string().min(1),
   status: z.enum(['pending', 'approved', 'rejected']).default('pending'),
   date: z.string().optional()
 });
-
-let redis = null;
-if (process.env.REDIS_URL) {
-  try {
-    redis = new Redis(process.env.REDIS_URL);
-  } catch (e) { console.error("Erro ao iniciar Redis:", e); }
-}
-
-const getReviews = async () => {
-    let reviews = [];
-    if (process.env.KV_REST_API_URL) {
-        try { reviews = await kv.get('black_parfum_reviews') || []; } catch(e) {}
-    } else if (redis) {
-        try { 
-            const data = await redis.get('black_parfum_reviews'); 
-            if(data) reviews = JSON.parse(data);
-        } catch(e) {}
-    }
-    return reviews;
-}
-
-const saveReviews = async (reviews) => {
-    let saved = false;
-    if (process.env.KV_REST_API_URL) {
-        try { await kv.set('black_parfum_reviews', reviews); saved = true; } catch(e) {}
-    }
-    if (!saved && redis) {
-        try { await redis.set('black_parfum_reviews', JSON.stringify(reviews)); saved = true; } catch(e) {}
-    }
-    return saved;
-}
 
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
@@ -72,7 +41,7 @@ export async function POST(request) {
         
         const review = {
             ...validation.data,
-            id: `rev_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+            id: `rev_${randomUUID()}`,
             date: new Date().toISOString(),
             status: 'pending' // always pending initially
         };
@@ -90,7 +59,15 @@ export async function POST(request) {
 export async function PUT(request) {
     // Admin only for modifying reviews
     const authHeader = request.headers.get('authorization');
-    if (!authHeader) return new Response(JSON.stringify({ error: 'Não autorizado' }), { status: 401 });
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return new Response(JSON.stringify({ error: 'Não autorizado' }), { status: 401 });
+    }
+
+    const token = authHeader.substring(7);
+    const decoded = verifyAuthToken(token);
+    if (!decoded || decoded.role !== 'admin') {
+        return new Response(JSON.stringify({ error: 'Acesso negado' }), { status: 403 });
+    }
 
     try {
         const payload = await request.json();

@@ -32,8 +32,14 @@ export default function Home() {
 
   const showToast = (msg) => {
     setToast({ visible: true, message: msg });
-    setTimeout(() => setToast({ visible: false, message: '' }), 2500);
   };
+
+  useEffect(() => {
+    if (toast.visible) {
+      const timer = setTimeout(() => setToast({ visible: false, message: '' }), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [toast.visible]);
 
   useEffect(() => {
     fetch('/api/products?t=' + Date.now(), { cache: 'no-store' })
@@ -53,7 +59,16 @@ export default function Home() {
       .catch(err => console.error(err));
       
     const savedCart = localStorage.getItem('oud_cart');
-    if (savedCart) setCart(JSON.parse(savedCart));
+    if (savedCart) {
+      try {
+        const parsed = JSON.parse(savedCart);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setTimeout(() => setCart(parsed), 0);
+        }
+      } catch(e) {
+        console.error(e);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -218,7 +233,7 @@ export default function Home() {
 
       {/* HIGHLIGHT REVIEWS SECTION */}
       {reviews.length > 0 && (
-        <div className="container" style={{ marginTop: '60px', marginBottom: '40px' }}>
+        <div className="container" style={{ marginTop: '32px', marginBottom: '40px' }}>
           <h3 style={{ marginBottom: '25px', fontSize: '1.5rem', color: '#111', textAlign: 'center' }}>
             O que nossos clientes dizem
           </h3>
@@ -238,8 +253,7 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
-                  <h4 style={{ margin: '10px 0 5px 0', fontSize: '1.05rem', color: '#222' }}>{review.title}</h4>
-                  <p style={{ fontSize: '0.95rem', color: '#555', lineHeight: '1.5', fontStyle: 'italic' }}>"{review.text}"</p>
+                  <p style={{ fontSize: '0.95rem', color: '#555', lineHeight: '1.5', fontStyle: 'italic', marginTop: '10px' }}>&quot;{review.text}&quot;</p>
                   <div style={{ marginTop: '15px', fontSize: '0.85rem', color: '#C9A84C', fontWeight: 'bold' }}>
                     Perfume: {reviewProduct ? reviewProduct.name : 'Obsidian Parfums'}
                   </div>

@@ -29,44 +29,59 @@ export default function ProductPage() {
   });
 
   // Review Form
-  const [reviewForm, setReviewForm] = useState({ name: '', email: '', title: '', text: '', rating: 5 });
+  const [reviewForm, setReviewForm] = useState({ name: '', email: '', text: '', rating: 5 });
   const [submittingReview, setSubmittingReview] = useState(false);
 
-  // Swipe Handlers
+  // Swipe Handlers (Fluid)
   const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
+  const [translateX, setTranslateX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const minSwipeDistance = 50;
 
   const onTouchStart = (e) => {
-    setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
+    setIsDragging(true);
   };
   
   const onTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+    if (!touchStart) return;
+    const currentTouch = e.targetTouches[0].clientX;
+    const diff = currentTouch - touchStart;
+    setTranslateX(diff);
   };
   
   const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-    
+    setIsDragging(false);
     const imagesList = product.images?.length > 0 ? product.images : [product.image];
-    if (product.videoUrl && !imagesList.includes(product.videoUrl)) {
-       imagesList.push(product.videoUrl);
-    }
+    if (product.videoUrl && !imagesList.includes(product.videoUrl)) imagesList.push(product.videoUrl);
 
-    if (isLeftSwipe || isRightSwipe) {
+    if (Math.abs(translateX) > minSwipeDistance) {
       const currentIndex = imagesList.indexOf(selectedImage);
-      if (isLeftSwipe && currentIndex < imagesList.length - 1) { // deslizar para esquerda vai pra proxima foto
+      if (translateX < 0 && currentIndex < imagesList.length - 1) {
         setSelectedImage(imagesList[currentIndex + 1]);
-      }
-      if (isRightSwipe && currentIndex > 0) { // deslizar para direita vai pra foto anterior
+      } else if (translateX > 0 && currentIndex > 0) {
         setSelectedImage(imagesList[currentIndex - 1]);
       }
     }
+    setTranslateX(0);
+    setTouchStart(null);
   };
+
+  // Safe Cart Initialization
+  useEffect(() => {
+    const savedCart = localStorage.getItem('oud_cart');
+    if (savedCart) {
+      try {
+        const parsed = JSON.parse(savedCart);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Hydrate in next tick to avoid React 19 sync effect warning
+          setTimeout(() => setCart(parsed), 0);
+        }
+      } catch (e) {
+        console.error("Erro ao carregar carrinho:", e);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     fetch('/api/products')
@@ -89,9 +104,6 @@ export default function ProductPage() {
     fetch(`/api/reviews?productId=${id}`)
       .then(res => res.json())
       .then(data => setReviews(Array.isArray(data) ? data : []));
-
-    const savedCart = localStorage.getItem('oud_cart');
-    if (savedCart) setCart(JSON.parse(savedCart));
   }, [id]);
 
   useEffect(() => {
@@ -100,8 +112,14 @@ export default function ProductPage() {
 
   const showToast = (msg) => {
     setToast({ visible: true, message: msg });
-    setTimeout(() => setToast({ visible: false, message: '' }), 2500);
   };
+
+  useEffect(() => {
+    if (toast.visible) {
+      const timer = setTimeout(() => setToast({ visible: false, message: '' }), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [toast.visible]);
 
   const calculateCartFields = () => {
     const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -157,7 +175,7 @@ export default function ProductPage() {
     });
     alert('Avaliação enviada com sucesso! Aguardando aprovação.');
     setSubmittingReview(false);
-    setReviewForm({ name: '', email: '', title: '', text: '', rating: 5 });
+    setReviewForm({ name: '', email: '', text: '', rating: 5 });
   };
 
   if (loading) return <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}><div className="spinner"></div></div>;
@@ -224,8 +242,24 @@ export default function ProductPage() {
         <div className="product-grid-main">
           {/* Gallery View */}
           <div className="product-gallery">
-            <div className="main-image" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
-                {renderGalleryItem(selectedImage)}
+            <div 
+              className="main-image" 
+              onTouchStart={onTouchStart} 
+              onTouchMove={onTouchMove} 
+              onTouchEnd={onTouchEnd}
+              style={{ 
+                overflow: 'hidden', 
+                position: 'relative'
+              }}
+            >
+                <div style={{ 
+                  transform: `translateX(${translateX}px)`, 
+                  transition: isDragging ? 'none' : 'transform 0.3s ease',
+                  width: '100%',
+                  height: '100%'
+                }}>
+                  {renderGalleryItem(selectedImage)}
+                </div>
             </div>
             {imagesList.length > 1 && (
               <div className="thumbnails-wrapper">
@@ -274,15 +308,57 @@ export default function ProductPage() {
              <div className="actions-section">
                 <button className="btn-add-cart" onClick={handleAddToCart}>Adicionar ao Carrinho</button>
                 <button className="btn-buy-now" onClick={handleBuyNow}>Comprar Agora</button>
-             </div>
+              </div>
 
-             {product.description && (
-                <div className="description-text">
-                  <p>{product.description}</p>
-                  {product.olfactoryFamily && <p><strong>Família Olfativa:</strong> {product.olfactoryFamily}</p>}
+              {/* REVIEWS SECTION REPOSITIONED */}
+              <div className="reviews-section" style={{ borderTop: 'none', paddingTop: '20px', marginTop: '20px' }}>
+                <h2 className="section-title" style={{ fontSize: '1.4rem', textAlign: 'left', marginBottom: '20px' }}>O que nossos clientes dizem</h2>
+                <div className="reviews-layout">
+                   <div className="reviews-list">
+                     {reviews.length === 0 ? (
+                       <p style={{ color: '#555', fontSize: '0.9rem' }}>Nenhuma avaliação ainda. Seja o primeiro!</p>
+                     ) : (
+                       reviews.slice(0, 3).map(r => (
+                         <div className="review-card" key={r.id} style={{ padding: '15px', marginBottom: '10px' }}>
+                           <div className="review-header" style={{ marginBottom: '8px' }}>
+                              <div className="review-avatar" style={{ width: '30px', height: '30px', fontSize: '1rem' }}>{r.name.charAt(0).toUpperCase()}</div>
+                              <div>
+                                 <div className="review-name" style={{ fontSize: '0.9rem' }}>{r.name}</div>
+                                 <div className="review-stars-static" style={{ fontSize: '0.8rem' }}>{Array(r.rating).fill('⭐').join('')}</div>
+                              </div>
+                           </div>
+                           <p style={{ fontSize: '0.85rem', color: '#444', margin: 0 }}>{r.text}</p>
+                         </div>
+                       ))
+                     )}
+                   </div>
+                   
+                   <div className="review-form-box" style={{ padding: '20px', marginTop: '10px' }}>
+                      <form onSubmit={handleReviewSubmit}>
+                        <div style={{ marginBottom: '10px' }}>
+                          <label style={{ fontSize: '0.85rem' }}>Nota</label>
+                          <div className="rating-select">
+                            {[1,2,3,4,5].map(v => (
+                              <span key={v} style={{ cursor: 'pointer', fontSize: '1.2rem', filter: reviewForm.rating >= v ? 'none' : 'grayscale(100%) opacity(0.3)' }} onClick={() => setReviewForm(prev => ({...prev, rating: v}))}>⭐</span>
+                            ))}
+                          </div>
+                        </div>
+                        <input type="text" placeholder="Nome" required value={reviewForm.name} onChange={e => setReviewForm(prev => ({...prev, name: e.target.value}))} />
+                        <input type="email" placeholder="E-mail (não será exibido)" required value={reviewForm.email} onChange={e => setReviewForm(prev => ({...prev, email: e.target.value}))} />
+                        <textarea rows="3" placeholder="Sua experiência com o perfume" required value={reviewForm.text} onChange={e => setReviewForm(prev => ({...prev, text: e.target.value}))}></textarea>
+                        <button type="submit" disabled={submittingReview} className="review-submit-btn" style={{ padding: '10px' }}>{submittingReview ? 'Enviando...' : 'Enviar Avaliação'}</button>
+                      </form>
+                   </div>
                 </div>
-             )}
-          </div>
+              </div>
+
+              {product.description && (
+                 <div className="description-text">
+                   <p>{product.description}</p>
+                   {product.olfactoryFamily && <p><strong>Família Olfativa:</strong> {product.olfactoryFamily}</p>}
+                 </div>
+              )}
+           </div>
         </div>
 
         {/* OLFACTORY NOTES */}
@@ -332,54 +408,6 @@ export default function ProductPage() {
             </div>
           </div>
         )}
-
-        {/* REVIEWS SECTION */}
-        <div className="reviews-section">
-           <h2 className="section-title">Avaliações de Clientes</h2>
-           <div className="reviews-layout">
-              <div className="reviews-list">
-                {reviews.length === 0 ? (
-                  <p style={{ color: '#555' }}>Nenhuma avaliação ainda. Seja o primeiro a avaliar!</p>
-                ) : (
-                  reviews.map(r => (
-                    <div className="review-card" key={r.id}>
-                      <div className="review-header">
-                         <div className="review-avatar">{r.name.charAt(0).toUpperCase()}</div>
-                         <div>
-                            <div className="review-name">{r.name}</div>
-                            <div className="review-date">{new Date(r.date).toLocaleDateString()}</div>
-                         </div>
-                         <div className="review-stars-static">{Array(r.rating).fill('⭐').join('')}</div>
-                      </div>
-                      <div className="review-body">
-                         <h4>{r.title}</h4>
-                         <p>{r.text}</p>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-              
-              <div className="review-form-box">
-                 <h3>Deixe sua Avaliação</h3>
-                 <form onSubmit={handleReviewSubmit}>
-                   <div style={{ marginBottom: '10px' }}>
-                     <label>Nota</label>
-                     <div className="rating-select">
-                       {[1,2,3,4,5].map(v => (
-                         <span key={v} style={{ cursor: 'pointer', fontSize: '1.5rem', filter: reviewForm.rating >= v ? 'none' : 'grayscale(100%) opacity(0.3)' }} onClick={() => setReviewForm(prev => ({...prev, rating: v}))}>⭐</span>
-                       ))}
-                     </div>
-                   </div>
-                   <input type="text" placeholder="Título da Avaliação" required value={reviewForm.title} onChange={e => setReviewForm(prev => ({...prev, title: e.target.value}))} />
-                   <input type="text" placeholder="Nome" required value={reviewForm.name} onChange={e => setReviewForm(prev => ({...prev, name: e.target.value}))} />
-                   <input type="email" placeholder="E-mail (não será exibido)" required value={reviewForm.email} onChange={e => setReviewForm(prev => ({...prev, email: e.target.value}))} />
-                   <textarea rows="4" placeholder="Sua experiência com o perfume" required value={reviewForm.text} onChange={e => setReviewForm(prev => ({...prev, text: e.target.value}))}></textarea>
-                   <button type="submit" disabled={submittingReview} className="review-submit-btn">{submittingReview ? 'Enviando...' : 'Enviar Avaliação'}</button>
-                 </form>
-              </div>
-           </div>
-        </div>
       </div>
 
       <Footer />

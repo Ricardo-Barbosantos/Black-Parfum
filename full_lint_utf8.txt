@@ -1,0 +1,61 @@
+﻿
+C:\Users\marke\OneDrive\├ürea de Trabalho\claudio\.agent\get-shit-done\bin\lib\state.cjs
+  767:3  warning  Unused eslint-disable directive (no problems were reported from 'no-constant-condition')
+
+C:\Users\marke\OneDrive\├ürea de Trabalho\claudio\.claude\get-shit-done\bin\lib\state.cjs
+  767:3  warning  Unused eslint-disable directive (no problems were reported from 'no-constant-condition')
+
+C:\Users\marke\OneDrive\├ürea de Trabalho\claudio\.openclaude\get-shit-done\bin\lib\state.cjs
+  767:3  warning  Unused eslint-disable directive (no problems were reported from 'no-constant-condition')
+
+C:\Users\marke\OneDrive\├ürea de Trabalho\claudio\.opencode\get-shit-done\bin\lib\state.cjs
+  767:3  warning  Unused eslint-disable directive (no problems were reported from 'no-constant-condition')
+
+C:\Users\marke\OneDrive\├ürea de Trabalho\claudio\src\app\admin\page.js
+  516:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  548:33  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  548:35  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  745:73  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  745:88  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+
+C:\Users\marke\OneDrive\├ürea de Trabalho\claudio\src\app\page.js
+   62:20   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  60 |       
+  61 |     const savedCart = localStorage.getItem('oud_cart');
+> 62 |     if (savedCart) setCart(JSON.parse(savedCart));
+     |                    ^^^^^^^ Avoid calling setState() directly within an effect
+  63 |   }, []);
+  64 |
+  65 |   useEffect(() => {  react-hooks/set-state-in-effect
+  247:128  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    react/no-unescaped-entities
+  247:142  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    react/no-unescaped-entities
+
+C:\Users\marke\OneDrive\├ürea de Trabalho\claudio\src\app\product\[id]\page.js
+   77:11  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  75 |         const parsed = JSON.parse(savedCart);
+  76 |         if (Array.isArray(parsed) && parsed.length > 0) {
+> 77 |           setCart(parsed);
+     |           ^^^^^^^ Avoid calling setState() directly within an effect
+  78 |         }
+  79 |       } catch (e) {
+  80 |         console.error("Erro ao carregar carrinho:", e);  react-hooks/set-state-in-effect
+  206:12  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @next/next/no-img-element
+  222:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @next/next/no-img-element
+
+Ô£û 15 problems (8 errors, 7 warnings)
+  0 errors and 4 warnings potentially fixable with the `--fix` option.
+

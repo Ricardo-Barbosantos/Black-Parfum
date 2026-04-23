@@ -545,7 +545,7 @@ export default function AdminPage() {
                   />
 
                   <p style={{ fontSize: '0.6rem', color: '#555', lineHeight: '1.2', marginTop: '10px' }}>
-                    Dica: Use o "+" para subir fotos. O campo acima serve para links externos.
+                    Dica: Use o &quot;+&quot; para subir fotos. O campo acima serve para links externos.
                   </p>
 
                   <input 
@@ -742,7 +742,7 @@ export default function AdminPage() {
                       </div>
                     </div>
                     
-                    <h4 style={{ marginBottom: '10px', color: '#fff' }}>"{review.title}"</h4>
+                    <h4 style={{ marginBottom: '10px', color: '#fff' }}>&quot;{review.title}&quot;</h4>
                     <p style={{ color: '#ccc', fontSize: '1rem', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>{review.text}</p>
                     
                     <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>

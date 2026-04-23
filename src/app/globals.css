@@ -1,13 +1,21 @@
-:root {
   --color-black: #0a0a0a;
   --color-white: #ffffff;
-  --color-gold: #d4af37;
+  --color-gold: #C9A84C;
   --color-gold-light: #eaddca;
   --color-gray-bg: #fdfdfd;
   --color-border: #f0f0f0;
   --color-text-dim: #666666;
   --color-whatsapp: #25D366;
   --color-shimmer: rgba(255, 255, 255, 0.2);
+  
+  /* Spacing System */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
 }
 
 /* Typography & Layout Consistency */
@@ -71,6 +79,12 @@ body {
   background-color: var(--color-gray-bg);
   color: var(--color-black);
   font-family: var(--font-inter), sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+input, textarea, select {
+  font-family: inherit;
+  color: #1a1a1a;
 }
 
 .container {

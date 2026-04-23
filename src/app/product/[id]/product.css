@@ -297,15 +297,14 @@
 }
 
 .reviews-layout {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
 }
 
 @media(max-width: 900px) {
   .reviews-layout {
-    grid-template-columns: 1fr;
-    gap: 40px;
+    gap: 30px;
   }
 }
 
@@ -392,7 +391,13 @@
   border-radius: 4px;
   font-family: inherit;
   font-size: 1rem;
-  background: #fff;
+  background: #ffffff;
+  color: #1a1a1a !important;
+}
+
+.review-form-box input::placeholder,
+.review-form-box textarea::placeholder {
+  color: #999999;
 }
 
 .review-form-box button {
@@ -410,4 +415,15 @@
 
 .review-form-box button:hover {
   opacity: 0.85;
+}
+
+.review-form-box input, 
+.review-form-box textarea {
+  color: #1a1a1a !important;
+  background-color: #ffffff !important;
+}
+
+.review-form-box input::placeholder, 
+.review-form-box textarea::placeholder {
+  color: #999999 !important;
 }
