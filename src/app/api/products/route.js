@@ -94,7 +94,7 @@ export async function GET() {
     // 1. Tenta pegar do KV da Vercel (REST)
     if (process.env.KV_REST_API_URL) {
       try {
-        products = await kv.get('black_parfum_products');
+        products = await kv.get('obsidian_products') || await kv.get('black_parfum_products');
         if (products && Array.isArray(products)) source = 'kv';
       } catch (e) {}
     }
@@ -102,7 +102,8 @@ export async function GET() {
     // 2. Tenta pegar do Redis (Protocolo Redis) Caso o anterior falhe
     if (source === 'fallback' && redis) {
       try {
-        const data = await redis.get('black_parfum_products');
+        let data = await redis.get('obsidian_products');
+        if (!data) data = await redis.get('black_parfum_products');
         if (data) {
           products = JSON.parse(data);
           if (Array.isArray(products)) source = 'redis';
@@ -196,14 +197,14 @@ export async function PUT(request) {
     // Tenta salvar no KV (REST)
     if (process.env.KV_REST_API_URL) {
       try {
-        await kv.set('black_parfum_products', sanitizedProducts);
+        await kv.set('obsidian_products', sanitizedProducts);
         saved = true;
       } catch (e) {}
     }
 
     // Tenta salvar no Redis (Protocolo)
     if (!saved && redis) {
-       await redis.set('black_parfum_products', JSON.stringify(sanitizedProducts));
+       await redis.set('obsidian_products', JSON.stringify(sanitizedProducts));
        saved = true;
     }
 
