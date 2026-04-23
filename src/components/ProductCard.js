@@ -34,16 +34,12 @@ export default function ProductCard({ product, onAddToCart, reviews = [] }) {
           {product.name}
         </div>
         
-        <div className="card-rating" style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.85rem', marginBottom: '10px', marginTop: '5px' }}>
-             {avgRating > 0 ? (
-               <>
-                 <span style={{ color: '#C9A84C', letterSpacing: '-2px' }}>{Array(Math.round(avgRating)).fill('⭐').join('')}</span>
-                 <span style={{ color: '#777', fontSize: '0.8rem', marginLeft: '4px' }}>{avgRating} ({productReviews.length} avaliações)</span>
-               </>
-             ) : (
-               <span style={{ color: '#999', fontSize: '0.8rem' }}>Sem avaliações ainda</span>
-             )}
-        </div>
+        {avgRating > 0 && (
+          <div className="card-rating" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '0.75rem', marginBottom: '6px', marginTop: '-2px' }}>
+            <span style={{ color: '#C9A84C' }}>{Array(Math.round(avgRating)).fill('⭐').join('')}</span>
+            <span style={{ color: '#777' }}>{avgRating} ({productReviews.length})</span>
+          </div>
+        )}
         
         <div className="card-price-container">
           {product.compareAtPrice > 0 && (

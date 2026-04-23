@@ -232,12 +232,7 @@ export default function ProductPage() {
       <Header cartItemCount={cartItemCount} onCartClick={() => setIsCartOpen(true)} onMenuClick={() => setIsMenuOpen(true)} />
 
       <div className="product-page-container container">
-        <button 
-          onClick={() => router.back()} 
-          style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', color: 'var(--color-gold)', cursor: 'pointer', fontSize: '1rem', padding: '15px 0', minHeight: '44px', fontWeight: 'bold' }}
-        >
-          <span style={{ marginRight: '8px', fontSize: '1.2rem' }}>&larr;</span> Voltar
-        </button>
+
         {/* TOP SECTION: Gallery & Info */}
         <div className="product-grid-main">
           {/* Gallery View */}

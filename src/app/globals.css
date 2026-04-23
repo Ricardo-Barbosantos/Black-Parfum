@@ -199,9 +199,7 @@ input, textarea, select {
   color: #111;
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin-bottom: 8px;
-  min-height: 3rem; /* Ensures space even for short titles */
-  max-height: 2.5rem;
+  margin-bottom: 2px;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
