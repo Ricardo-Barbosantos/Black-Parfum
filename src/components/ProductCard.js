@@ -34,13 +34,6 @@ export default function ProductCard({ product, onAddToCart, reviews = [] }) {
           {product.name}
         </div>
         
-        {avgRating > 0 && (
-          <div className="card-rating" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '0.75rem', marginBottom: '6px', marginTop: '-2px' }}>
-            <span style={{ color: '#C9A84C' }}>{Array(Math.round(avgRating)).fill('⭐').join('')}</span>
-            <span style={{ color: '#777' }}>{avgRating} ({productReviews.length})</span>
-          </div>
-        )}
-        
         <div className="card-price-container">
           {product.compareAtPrice > 0 && (
             <span className="card-old-price">
@@ -64,13 +57,20 @@ export default function ProductCard({ product, onAddToCart, reviews = [] }) {
         <button 
           className="btn-comprar"
           onClick={(e) => {
-            e.preventDefault(); // Evita navegar ao clicar direto no botão se quisermos adicionar direto, mas o prompt pede página de detalhes.
-            // Para mantermos o fluxo novo, o botão apenas reforça o clique no link.
+            e.preventDefault();
             window.location.href = `/product/${product.id}`;
           }}
         >
-          Ver Detalhes
+          Comprar
         </button>
+
+        {avgRating > 0 && (
+          <div className="card-rating" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '0.75rem', marginTop: '12px' }}>
+            <span style={{ color: '#C9A84C' }}>{Array(Math.round(avgRating)).fill('⭐').join('')}</span>
+            <span style={{ color: '#777' }}>{avgRating} ({productReviews.length})</span>
+          </div>
+        )}
+
       </div>
     </Link>
   );
