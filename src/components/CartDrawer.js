@@ -115,27 +115,90 @@ export default function CartDrawer({
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-              <input type="text" placeholder="Nome Completo *" value={checkoutForm.name} onChange={e => onFormChange({...checkoutForm, name: e.target.value})} style={{ padding: '12px', border: '1px solid #ddd', borderRadius: '4px', width: '100%', fontSize: '0.9rem' }} />
+              <input 
+                type="text" 
+                placeholder="Nome Completo *" 
+                value={checkoutForm.name} 
+                onChange={e => onFormChange({...checkoutForm, name: e.target.value})} 
+                style={{ padding: '12px', border: '1px solid #ddd', borderRadius: '4px', width: '100%', fontSize: '1rem', color: '#111' }} 
+              />
               
               {checkoutForm.deliveryMethod === 'home' && (
                 <>
                   <div style={{ display: 'flex', gap: '10px' }}>
-                     <input type="text" placeholder="Rua / Av *" value={checkoutForm.address} onChange={e => onFormChange({...checkoutForm, address: e.target.value})} style={{ padding: '12px', border: '1px solid #ddd', borderRadius: '4px', flex: 2, fontSize: '0.9rem' }} />
-                     <input type="text" placeholder="Nº *" value={checkoutForm.number} onChange={e => onFormChange({...checkoutForm, number: e.target.value})} style={{ padding: '12px', border: '1px solid #ddd', borderRadius: '4px', flex: 1, fontSize: '0.9rem' }} />
+                    <input 
+                      type="text" 
+                      placeholder="CEP *" 
+                      value={checkoutForm.zip} 
+                      maxLength={8}
+                      onChange={async (e) => {
+                        const cep = e.target.value.replace(/\D/g, '');
+                        onFormChange({...checkoutForm, zip: cep});
+                        if (cep.length === 8) {
+                          try {
+                            const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                            const data = await res.json();
+                            if (!data.erro) {
+                              onFormChange({
+                                ...checkoutForm, 
+                                zip: cep,
+                                address: data.logradouro,
+                                city: `${data.bairro} / ${data.localidade}`
+                              });
+                            }
+                          } catch (err) {
+                            console.error("Erro ao buscar CEP", err);
+                          }
+                        }
+                      }} 
+                      style={{ padding: '12px', border: '1px solid #ddd', borderRadius: '4px', flex: 1, fontSize: '1rem', color: '#111' }} 
+                    />
+                    <input 
+                      type="text" 
+                      placeholder="Nº *" 
+                      value={checkoutForm.number} 
+                      onChange={e => onFormChange({...checkoutForm, number: e.target.value})} 
+                      style={{ padding: '12px', border: '1px solid #ddd', borderRadius: '4px', flex: 1, fontSize: '1rem', color: '#111' }} 
+                    />
                   </div>
+
+                  <input 
+                    type="text" 
+                    placeholder="Rua / Av *" 
+                    value={checkoutForm.address} 
+                    onChange={e => onFormChange({...checkoutForm, address: e.target.value})} 
+                    style={{ padding: '12px', border: '1px solid #ddd', borderRadius: '4px', width: '100%', fontSize: '1rem', color: '#111' }} 
+                  />
                   
-                  <input type="text" placeholder="Complemento (Apto)" value={checkoutForm.complement} onChange={e => onFormChange({...checkoutForm, complement: e.target.value})} style={{ padding: '12px', border: '1px solid #ddd', borderRadius: '4px', width: '100%', fontSize: '0.9rem' }} />
+                  <input 
+                    type="text" 
+                    placeholder="Complemento (Apto, Bloco...)" 
+                    value={checkoutForm.complement} 
+                    onChange={e => onFormChange({...checkoutForm, complement: e.target.value})} 
+                    style={{ padding: '12px', border: '1px solid #ddd', borderRadius: '4px', width: '100%', fontSize: '1rem', color: '#111' }} 
+                  />
                   
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                     <input type="text" placeholder="Bairro / Cidade *" value={checkoutForm.city} onChange={e => onFormChange({...checkoutForm, city: e.target.value})} style={{ padding: '12px', border: '1px solid #ddd', borderRadius: '4px', flex: 1, fontSize: '0.9rem' }} />
-                     <input type="text" placeholder="CEP" value={checkoutForm.zip} onChange={e => onFormChange({...checkoutForm, zip: e.target.value})} style={{ padding: '12px', border: '1px solid #ddd', borderRadius: '4px', flex: 1, fontSize: '0.9rem' }} />
-                  </div>
+                  <input 
+                    type="text" 
+                    placeholder="Bairro / Cidade *" 
+                    value={checkoutForm.city} 
+                    onChange={e => onFormChange({...checkoutForm, city: e.target.value})} 
+                    style={{ padding: '12px', border: '1px solid #ddd', borderRadius: '4px', width: '100%', fontSize: '1rem', color: '#111' }} 
+                  />
                 </>
               )}
             </div>
 
             <button 
-              onClick={onCheckout}
+              onClick={() => {
+                if (!checkoutForm.name) return alert("Por favor, preencha seu nome.");
+                if (checkoutForm.deliveryMethod === 'home') {
+                  if (!checkoutForm.address || !checkoutForm.number || !checkoutForm.city) {
+                    return alert("Por favor, preencha todos os campos obrigatórios do endereço.");
+                  }
+                }
+                onCheckout();
+              }}
               style={{ width: '100%', background: '#25D366', color: '#fff', padding: '15px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', boxShadow: '0 4px 15px rgba(37, 211, 102, 0.3)' }}
             >
               <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">

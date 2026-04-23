@@ -110,21 +110,21 @@ export default function Home() {
     
     let text = `*NOVO PEDIDO - OBSIDIAN PARFUMS*\n\n`;
     cart.forEach(item => {
-      text += `🛒 ${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}\n`;
+      text += `🛒 ${item.quantity}x ${item.name} ${item.selectedSize ? `(${item.selectedSize})` : ''} - R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}\n`;
     });
     
-    text += `\n*TOTAL DA COMPRA:* R$ ${cartTotal.toFixed(2).replace('.', ',')}\n\n`;
+    text += `\n*TOTAL DA COMPRA:* R$ ${cartTotal.toFixed(2).replace('.', ',')}${checkoutForm.deliveryMethod === 'home' ? ' + frete' : ''}\n\n`;
     
     if (checkoutForm.deliveryMethod === 'home') {
       text += `*📦 DADOS DE ENTREGA:*\n`;
-      text += `Nome: ${checkoutForm.name}\n`;
-      text += `Rua: ${checkoutForm.address}, ${checkoutForm.number}\n`;
-      if (checkoutForm.complement) text += `Complemento: ${checkoutForm.complement}\n`;
-      text += `Bairro/Cidade: ${checkoutForm.city}\n`;
-      if (checkoutForm.zip) text += `CEP: ${checkoutForm.zip}\n`;
+      text += `• Nome: ${checkoutForm.name}\n`;
+      text += `• Endereço: ${checkoutForm.address}, ${checkoutForm.number}\n`;
+      if (checkoutForm.complement) text += `• Comp: ${checkoutForm.complement}\n`;
+      text += `• Cidade/Bairro: ${checkoutForm.city}\n`;
+      if (checkoutForm.zip) text += `• CEP: ${checkoutForm.zip}\n`;
     } else {
       text += `*🛍️ RETIRADA NA LOJA*\n`;
-      text += `Nome: ${checkoutForm.name}\n`;
+      text += `• Cliente: ${checkoutForm.name}\n`;
     }
     
     const wppNumber = '5577998334081'; 
