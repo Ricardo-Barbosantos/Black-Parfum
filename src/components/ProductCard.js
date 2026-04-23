@@ -2,9 +2,14 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-export default function ProductCard({ product, onAddToCart }) {
+export default function ProductCard({ product, onAddToCart, reviews = [] }) {
   const pixPrice = product.price * 0.9;
   const installmentPrice = product.price / 6;
+
+  const productReviews = reviews.filter(r => r.productId === product.id);
+  const avgRating = productReviews.length > 0 
+    ? (productReviews.reduce((acc, curr) => acc + curr.rating, 0) / productReviews.length).toFixed(1)
+    : 0;
 
   return (
     <Link href={`/product/${product.id}`} className="product-card" style={{ textDecoration: 'none', display: 'block', color: 'inherit' }}>
@@ -27,6 +32,17 @@ export default function ProductCard({ product, onAddToCart }) {
       <div className="card-content">
         <div className="card-title">
           {product.name}
+        </div>
+        
+        <div className="card-rating" style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.85rem', marginBottom: '10px', marginTop: '5px' }}>
+             {avgRating > 0 ? (
+               <>
+                 <span style={{ color: '#C9A84C', letterSpacing: '-2px' }}>{Array(Math.round(avgRating)).fill('⭐').join('')}</span>
+                 <span style={{ color: '#777', fontSize: '0.8rem', marginLeft: '4px' }}>{avgRating} ({productReviews.length} avaliações)</span>
+               </>
+             ) : (
+               <span style={{ color: '#999', fontSize: '0.8rem' }}>Sem avaliações ainda</span>
+             )}
         </div>
         
         <div className="card-price-container">

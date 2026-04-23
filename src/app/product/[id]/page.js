@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CartDrawer from '@/components/CartDrawer';
+import NavigationMenu from '@/components/NavigationMenu';
 import './product.css';
 
 export default function ProductPage() {
@@ -21,6 +22,7 @@ export default function ProductPage() {
   // Cart
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [toast, setToast] = useState({ visible: false, message: '' });
   const [checkoutForm, setCheckoutForm] = useState({
      name: '', address: '', number: '', complement: '', city: '', zip: '', deliveryMethod: 'home'
@@ -29,6 +31,42 @@ export default function ProductPage() {
   // Review Form
   const [reviewForm, setReviewForm] = useState({ name: '', email: '', title: '', text: '', rating: 5 });
   const [submittingReview, setSubmittingReview] = useState(false);
+
+  // Swipe Handlers
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+  
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+  
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    const imagesList = product.images?.length > 0 ? product.images : [product.image];
+    if (product.videoUrl && !imagesList.includes(product.videoUrl)) {
+       imagesList.push(product.videoUrl);
+    }
+
+    if (isLeftSwipe || isRightSwipe) {
+      const currentIndex = imagesList.indexOf(selectedImage);
+      if (isLeftSwipe && currentIndex < imagesList.length - 1) { // deslizar para esquerda vai pra proxima foto
+        setSelectedImage(imagesList[currentIndex + 1]);
+      }
+      if (isRightSwipe && currentIndex > 0) { // deslizar para direita vai pra foto anterior
+        setSelectedImage(imagesList[currentIndex - 1]);
+      }
+    }
+  };
 
   useEffect(() => {
     fetch('/api/products')
@@ -173,14 +211,20 @@ export default function ProductPage() {
 
   return (
     <main style={{ backgroundColor: '#fcfcfc', minHeight: '100vh', position: 'relative' }}>
-      <Header cartItemCount={cartItemCount} onCartClick={() => setIsCartOpen(true)} onMenuClick={() => {}} />
+      <Header cartItemCount={cartItemCount} onCartClick={() => setIsCartOpen(true)} onMenuClick={() => setIsMenuOpen(true)} />
 
       <div className="product-page-container container">
+        <button 
+          onClick={() => router.back()} 
+          style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', color: 'var(--color-gold)', cursor: 'pointer', fontSize: '1rem', padding: '15px 0', minHeight: '44px', fontWeight: 'bold' }}
+        >
+          <span style={{ marginRight: '8px', fontSize: '1.2rem' }}>&larr;</span> Voltar
+        </button>
         {/* TOP SECTION: Gallery & Info */}
         <div className="product-grid-main">
           {/* Gallery View */}
           <div className="product-gallery">
-            <div className="main-image">
+            <div className="main-image" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
                 {renderGalleryItem(selectedImage)}
             </div>
             {imagesList.length > 1 && (
@@ -327,11 +371,11 @@ export default function ProductPage() {
                        ))}
                      </div>
                    </div>
+                   <input type="text" placeholder="Título da Avaliação" required value={reviewForm.title} onChange={e => setReviewForm(prev => ({...prev, title: e.target.value}))} />
                    <input type="text" placeholder="Nome" required value={reviewForm.name} onChange={e => setReviewForm(prev => ({...prev, name: e.target.value}))} />
                    <input type="email" placeholder="E-mail (não será exibido)" required value={reviewForm.email} onChange={e => setReviewForm(prev => ({...prev, email: e.target.value}))} />
-                   <input type="text" placeholder="Título da Avaliação" required value={reviewForm.title} onChange={e => setReviewForm(prev => ({...prev, title: e.target.value}))} />
                    <textarea rows="4" placeholder="Sua experiência com o perfume" required value={reviewForm.text} onChange={e => setReviewForm(prev => ({...prev, text: e.target.value}))}></textarea>
-                   <button type="submit" disabled={submittingReview}>{submittingReview ? 'Enviando...' : 'Enviar Avaliação'}</button>
+                   <button type="submit" disabled={submittingReview} className="review-submit-btn">{submittingReview ? 'Enviando...' : 'Enviar Avaliação'}</button>
                  </form>
               </div>
            </div>
@@ -340,7 +384,6 @@ export default function ProductPage() {
 
       <Footer />
 
-      {/* Cart Drawer from Layout */}
       <CartDrawer 
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
@@ -353,6 +396,16 @@ export default function ProductPage() {
         checkoutForm={checkoutForm}
         onFormChange={setCheckoutForm}
         onCheckout={handleCheckout}
+      />
+
+      <NavigationMenu 
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        onFilter={() => {
+           // On product page, filtering should take you to home with that filter.
+           // Setting simplified here to just go home.
+           router.push('/');
+        }}
       />
 
       {/* TOAST SYSTEM */}

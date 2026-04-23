@@ -398,16 +398,16 @@
 .review-form-box button {
   width: 100%;
   padding: 14px;
-  background: #111;
-  color: var(--primary-gold);
+  background: #000;
+  color: #fff;
   border: none;
   border-radius: 4px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: opacity 0.2s;
 }
 
 .review-form-box button:hover {
-  background: #333;
+  opacity: 0.85;
 }

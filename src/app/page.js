@@ -10,6 +10,7 @@ import ProductSkeleton from '@/components/ProductSkeleton';
 
 export default function Home() {
   const [products, setProducts] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -45,6 +46,11 @@ export default function Home() {
           console.error(err);
           setIsLoading(false);
       });
+      
+    fetch('/api/reviews?all=true')
+      .then(res => res.json())
+      .then(data => setReviews(Array.isArray(data) ? data : []))
+      .catch(err => console.error(err));
       
     const savedCart = localStorage.getItem('oud_cart');
     if (savedCart) setCart(JSON.parse(savedCart));
@@ -203,11 +209,46 @@ export default function Home() {
                 key={product.id} 
                 product={product} 
                 onAddToCart={addToCart} 
+                reviews={reviews}
               />
             ))}
           </div>
         )}
       </div>
+
+      {/* HIGHLIGHT REVIEWS SECTION */}
+      {reviews.length > 0 && (
+        <div className="container" style={{ marginTop: '60px', marginBottom: '40px' }}>
+          <h3 style={{ marginBottom: '25px', fontSize: '1.5rem', color: '#111', textAlign: 'center' }}>
+            O que nossos clientes dizem
+          </h3>
+          <div style={{ display: 'flex', gap: '20px', overflowX: 'auto', paddingBottom: '20px', scrollbarWidth: 'none' }}>
+            {reviews.slice(-3).reverse().map(review => {
+              const reviewProduct = products.find(p => p.id === review.productId);
+              return (
+                <div key={review.id} style={{ minWidth: '300px', flex: 1, background: '#fff', border: '1px solid #eaeaea', borderRadius: '8px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--color-gold, #C9A84C)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', marginRight: '12px' }}>
+                      {review.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 'bold', color: '#111' }}>{review.name}</div>
+                      <div style={{ fontSize: '0.85rem', color: '#888' }}>
+                         {Array(review.rating).fill('⭐').join('')}
+                      </div>
+                    </div>
+                  </div>
+                  <h4 style={{ margin: '10px 0 5px 0', fontSize: '1.05rem', color: '#222' }}>{review.title}</h4>
+                  <p style={{ fontSize: '0.95rem', color: '#555', lineHeight: '1.5', fontStyle: 'italic' }}>"{review.text}"</p>
+                  <div style={{ marginTop: '15px', fontSize: '0.85rem', color: '#C9A84C', fontWeight: 'bold' }}>
+                    Perfume: {reviewProduct ? reviewProduct.name : 'Obsidian Parfums'}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <Footer />
 

@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 
 export default function Header({ cartItemCount, onCartClick, onMenuClick }) {
   return (
@@ -10,10 +11,10 @@ export default function Header({ cartItemCount, onCartClick, onMenuClick }) {
           </svg>
         </div>
         
-        <div className="logo-text" style={{ textAlign: 'center', flex: 1 }}>
+        <Link href="/" className="logo-text" style={{ textAlign: 'center', flex: 1, textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
            <div className="brand-title">OBSIDIAN PARFUMS</div>
            <div className="brand-subtitle">BOUTIQUE DE LUXO</div>
-        </div>
+        </Link>
 
         <div onClick={onCartClick} style={{ position: 'relative', cursor: 'pointer' }}>
           <svg viewBox="0 0 24 24" width="26" height="26" stroke="#000" strokeWidth="1.2" fill="none">
