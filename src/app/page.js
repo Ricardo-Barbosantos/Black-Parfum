@@ -56,19 +56,20 @@ export default function Home() {
 
   const addToCart = (product) => {
     setCart(prev => {
-      const exist = prev.find(item => item.id === product.id);
+      const cartItemId = product.cartItemId || product.id;
+      const exist = prev.find(item => (item.cartItemId || item.id) === cartItemId);
       if (exist) {
-        return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
+        return prev.map(item => (item.cartItemId || item.id) === cartItemId ? { ...item, quantity: item.quantity + 1 } : item);
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [...prev, { ...product, quantity: 1, cartItemId }];
     });
     showToast(`${product.name} adicionado ao carrinho`);
     setIsCartOpen(true);
   };
 
-  const removeFromCart = (id) => setCart(prev => prev.filter(item => item.id !== id));
-  const increaseQty = (id) => setCart(prev => prev.map(item => item.id === id ? { ...item, quantity: item.quantity + 1 } : item));
-  const decreaseQty = (id) => setCart(prev => prev.map(item => item.id === id && item.quantity > 1 ? { ...item, quantity: item.quantity - 1 } : item));
+  const removeFromCart = (id) => setCart(prev => prev.filter(item => (item.cartItemId || item.id) !== id));
+  const increaseQty = (id) => setCart(prev => prev.map(item => (item.cartItemId || item.id) === id ? { ...item, quantity: item.quantity + 1 } : item));
+  const decreaseQty = (id) => setCart(prev => prev.map(item => (item.cartItemId || item.id) === id && item.quantity > 1 ? { ...item, quantity: item.quantity - 1 } : item));
 
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);

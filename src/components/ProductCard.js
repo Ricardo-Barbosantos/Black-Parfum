@@ -1,12 +1,13 @@
 'use client';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function ProductCard({ product, onAddToCart }) {
   const pixPrice = product.price * 0.9;
   const installmentPrice = product.price / 6;
 
   return (
-    <div className="product-card">
+    <Link href={`/product/${product.id}`} className="product-card" style={{ textDecoration: 'none', display: 'block', color: 'inherit' }}>
       {product.isOnSale && (
         <div className="card-badge">
           12% OFF
@@ -50,11 +51,15 @@ export default function ProductCard({ product, onAddToCart }) {
 
         <button 
           className="btn-comprar"
-          onClick={() => onAddToCart(product)}
+          onClick={(e) => {
+            e.preventDefault(); // Evita navegar ao clicar direto no botão se quisermos adicionar direto, mas o prompt pede página de detalhes.
+            // Para mantermos o fluxo novo, o botão apenas reforça o clique no link.
+            window.location.href = `/product/${product.id}`;
+          }}
         >
-          Comprar
+          Ver Detalhes
         </button>
       </div>
-    </div>
+    </Link>
   );
 }

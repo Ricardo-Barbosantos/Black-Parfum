@@ -13,7 +13,14 @@ const ProductSchema = z.object({
   isOnSale: z.boolean().optional(),
   brand: z.string().optional(),
   category: z.string().optional(),
-  gender: z.string().optional()
+  gender: z.string().optional(),
+  sizes: z.string().optional(),
+  description: z.string().optional(),
+  topNotes: z.string().optional(),
+  heartNotes: z.string().optional(),
+  baseNotes: z.string().optional(),
+  olfactoryFamily: z.string().optional(),
+  videoUrl: z.string().optional()
 });
 
 const ProductsArraySchema = z.array(ProductSchema);
@@ -174,7 +181,14 @@ export async function PUT(request) {
       name: sanitizeString(product.name),
       brand: sanitizeString(product.brand) || 'Outra',
       category: sanitizeString(product.category) || 'Perfume',
-      gender: sanitizeString(product.gender) || 'Unissex'
+      gender: sanitizeString(product.gender) || 'Unissex',
+      sizes: sanitizeString(product.sizes || ''),
+      description: sanitizeString(product.description || ''),
+      topNotes: sanitizeString(product.topNotes || ''),
+      heartNotes: sanitizeString(product.heartNotes || ''),
+      baseNotes: sanitizeString(product.baseNotes || ''),
+      olfactoryFamily: sanitizeString(product.olfactoryFamily || ''),
+      videoUrl: sanitizeString(product.videoUrl || '')
     }));
 
     let saved = false;

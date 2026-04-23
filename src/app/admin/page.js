@@ -6,6 +6,8 @@ import './page.css';
 
 export default function AdminPage() {
   const [products, setProducts] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [activeTab, setActiveTab] = useState('products');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -44,12 +46,14 @@ export default function AdminPage() {
       }
     }
 
-    fetch('/api/products')
-      .then(res => res.json())
-      .then(data => {
-        setProducts(data);
-        setLoading(false);
-      });
+    Promise.all([
+      fetch('/api/products').then(res => res.json()),
+      fetch('/api/reviews?all=true').then(res => res.json())
+    ]).then(([productsData, reviewsData]) => {
+      setProducts(productsData || []);
+      setReviews(Array.isArray(reviewsData) ? reviewsData : []);
+      setLoading(false);
+    });
   }, []);
 
   const handleLogin = async (e) => {
@@ -256,7 +260,14 @@ export default function AdminPage() {
       installments: "3x de R$ 0,00 s/ juros",
       category: "Perfume",
       brand: "Outra",
-      gender: "Unissex"
+      gender: "Unissex",
+      sizes: "50ml, 100ml",
+      description: "",
+      topNotes: "",
+      heartNotes: "",
+      baseNotes: "",
+      olfactoryFamily: "Amadeirado",
+      videoUrl: ""
     };
     setProducts([newProduct, ...products]);
   };
@@ -450,8 +461,11 @@ export default function AdminPage() {
           <p>Gestão Segura</p>
         </div>
         <nav className="admin-nav">
-          <div className="nav-item active">
+          <div className={`nav-item ${activeTab === 'products' ? 'active' : ''}`} onClick={() => setActiveTab('products')} style={{cursor: 'pointer'}}>
             Produtos e Preços
+          </div>
+          <div className={`nav-item ${activeTab === 'reviews' ? 'active' : ''}`} onClick={() => setActiveTab('reviews')} style={{cursor: 'pointer'}}>
+            Reviews Pendentes ({reviews.filter(r => r.status === 'pending').length})
           </div>
           <button onClick={handleAddProduct} className="btn-add">
             + Novo Produto
@@ -468,7 +482,7 @@ export default function AdminPage() {
 
       <main className="admin-main">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-          <h1>Gerenciamento de Produtos</h1>
+          <h1>{activeTab === 'products' ? 'Gerenciamento de Produtos' : 'Moderação de Reviews'}</h1>
           <button className="btn-gold" onClick={handleSave} disabled={saving} style={{ padding: '12px 24px', fontSize: '1rem' }}>
             {saving ? <span className="spinner" style={{ width: '20px', height: '20px' }}></span> : 'Salvar Alterações no Banco'}
           </button>
@@ -480,6 +494,7 @@ export default function AdminPage() {
           </div>
         )}
 
+        {activeTab === 'products' && (
         <div className="products-container">
           {products.map((product, index) => (
             <div key={product.id} style={{ display: 'flex', gap: '40px', alignItems: 'flex-start', borderBottom: '1px solid #222', paddingBottom: '30px', marginBottom: '30px', position: 'relative' }}>
@@ -531,6 +546,17 @@ export default function AdminPage() {
 
                   <p style={{ fontSize: '0.6rem', color: '#555', lineHeight: '1.2', marginTop: '10px' }}>
                     Dica: Use o "+" para subir fotos. O campo acima serve para links externos.
+                  </p>
+
+                  <input 
+                    type="text" 
+                    placeholder="URL do Vídeo (YouTube ou MP4)"
+                    value={product.videoUrl || ''}
+                    onChange={(e) => handleChange(index, 'videoUrl', e.target.value)}
+                    style={{ width: '100%', padding: '8px', background: '#000', border: '1px solid #333', color: '#888', borderRadius: '4px', fontSize: '0.7rem', marginTop: '15px' }}
+                  />
+                  <p style={{ fontSize: '0.6rem', color: '#555', lineHeight: '1.2', marginTop: '5px' }}>
+                    Adicione um link do YouTube ou arquivo .mp4 para a galeria.
                   </p>
                 </div>
               </div>
@@ -608,6 +634,72 @@ export default function AdminPage() {
                   />
                 </div>
 
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Tamanhos Disponíveis (separados por vírgula)</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ex: 50ml, 100ml, 150ml"
+                    value={product.sizes || ''}
+                    onChange={(e) => handleChange(index, 'sizes', e.target.value)}
+                    style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                  />
+                </div>
+
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Família Olfativa</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ex: Amadeirado, Floral, Oriental"
+                    value={product.olfactoryFamily || ''}
+                    onChange={(e) => handleChange(index, 'olfactoryFamily', e.target.value)}
+                    style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                  />
+                </div>
+
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Descrição do Perfume</label>
+                  <textarea 
+                    rows="3"
+                    placeholder="Descrição sobre o perfume..."
+                    value={product.description || ''}
+                    onChange={(e) => handleChange(index, 'description', e.target.value)}
+                    style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px', resize: 'vertical' }}
+                  />
+                </div>
+
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Notas de Topo (separadas por vírgula)</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ex: Limão, Abacaxi, Bergamota"
+                    value={product.topNotes || ''}
+                    onChange={(e) => handleChange(index, 'topNotes', e.target.value)}
+                    style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                  />
+                </div>
+
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Notas de Coração (separadas por vírgula)</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ex: Jasmim, Rosa, Vidoeiro"
+                    value={product.heartNotes || ''}
+                    onChange={(e) => handleChange(index, 'heartNotes', e.target.value)}
+                    style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                  />
+                </div>
+
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Notas de Base (separadas por vírgula)</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ex: Almíscar, Baunilha, Patchouli"
+                    value={product.baseNotes || ''}
+                    onChange={(e) => handleChange(index, 'baseNotes', e.target.value)}
+                    style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                  />
+                </div>
+
                 <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '15px', marginTop: '10px' }}>
                   <input 
                     type="checkbox" 
@@ -624,6 +716,62 @@ export default function AdminPage() {
             </div>
           ))}
         </div>
+        )}
+
+        {/* REVIEWS TAB */}
+        {activeTab === 'reviews' && (
+          <div className="reviews-container" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {reviews.length === 0 ? (
+              <p style={{ color: 'var(--text-dim)' }}>Nenhum review encontrado.</p>
+            ) : (
+              reviews.map((review) => {
+                const prod = products.find(p => p.id === review.productId);
+                return (
+                  <div key={review.id} style={{ background: '#0a0a0a', border: '1px solid #333', padding: '20px', borderRadius: '8px', position: 'relative' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+                      <div>
+                        <strong style={{ color: 'var(--primary-gold)', fontSize: '1.2rem' }}>{prod ? prod.name : 'Produto Desconhecido'}</strong>
+                        <div style={{ color: '#aaa', fontSize: '0.9rem', marginTop: '5px' }}>
+                          De: {review.name} ({review.email}) - {review.rating} ⭐
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '5px' }}>{new Date(review.date).toLocaleDateString()}</div>
+                      </div>
+                      <div>
+                        {review.status === 'pending' && <span style={{ padding: '4px 8px', background: 'orange', color: '#000', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold' }}>PENDENTE</span>}
+                        {review.status === 'approved' && <span style={{ padding: '4px 8px', background: '#4ade80', color: '#000', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold' }}>APROVADO</span>}
+                      </div>
+                    </div>
+                    
+                    <h4 style={{ marginBottom: '10px', color: '#fff' }}>"{review.title}"</h4>
+                    <p style={{ color: '#ccc', fontSize: '1rem', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>{review.text}</p>
+                    
+                    <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
+                      {review.status !== 'approved' && (
+                        <button 
+                          onClick={async () => {
+                            await fetch('/api/reviews', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` }, body: JSON.stringify({ id: review.id, status: 'approved', action: 'update' }) });
+                            setReviews(reviews.map(r => r.id === review.id ? {...r, status: 'approved'} : r));
+                          }}
+                          style={{ background: '#4ade80', color: '#000', padding: '8px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                          Aprovar ✔️
+                        </button>
+                      )}
+                      <button 
+                        onClick={async () => {
+                          if (!confirm("Tem certeza que deseja excluir esse review?")) return;
+                          await fetch('/api/reviews', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` }, body: JSON.stringify({ id: review.id, action: 'delete' }) });
+                          setReviews(reviews.filter(r => r.id !== review.id));
+                        }}
+                        style={{ background: '#f87171', color: '#fff', padding: '8px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                        Excluir 🗑️
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
       </main>
     </div>
   );
