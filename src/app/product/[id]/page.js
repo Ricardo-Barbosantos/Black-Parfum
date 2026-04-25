@@ -8,6 +8,38 @@ import CartDrawer from '@/components/CartDrawer';
 import NavigationMenu from '@/components/NavigationMenu';
 import './product.css';
 
+const NoteImage = ({ note }) => {
+  const [imgUrl, setImgUrl] = useState(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    fetch(`https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(note.trim())}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.thumbnail && data.thumbnail.source) {
+          setImgUrl(data.thumbnail.source);
+        } else {
+           fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(note.trim())}`)
+            .then(res => res.json())
+            .then(enData => {
+               if (enData.thumbnail && enData.thumbnail.source) {
+                 setImgUrl(enData.thumbnail.source);
+               } else {
+                 setError(true);
+               }
+            }).catch(() => setError(true));
+        }
+      })
+      .catch(() => setError(true));
+  }, [note]);
+
+  return (
+    <div className="note-image-container">
+      {imgUrl && !error ? <img src={imgUrl} alt={note} /> : <span className="note-fallback-icon">🌿</span>}
+    </div>
+  );
+};
+
 export default function ProductPage() {
   const params = useParams();
   const router = useRouter();
@@ -208,12 +240,18 @@ export default function ProductPage() {
 
   const renderGalleryItem = (item) => {
     // Detect se é vídeo
-    const isVideo = item.includes('youtube.com') || item.includes('youtu.be') || item.endsWith('.mp4');
+    const isVideo = item.includes('youtube.com') || item.includes('youtu.be') || item.endsWith('.mp4') || item.includes('drive.google.com');
     
     if (isVideo) {
       if (item.includes('youtu')) {
          const videoId = item.split('v=')[1]?.split('&')[0] || item.split('youtu.be/')[1];
          return <iframe style={{ width: '100%', height: '100%', border: 'none' }} src={`https://www.youtube.com/embed/${videoId}?autoplay=0`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>;
+      } else if (item.includes('drive.google.com')) {
+         const driveMatch = item.match(/\/d\/([a-zA-Z0-9_-]+)/);
+         const driveId = driveMatch ? driveMatch[1] : null;
+         if (driveId) {
+             return <iframe src={`https://drive.google.com/file/d/${driveId}/preview`} className="drive-iframe" allow="autoplay" allowFullScreen frameBorder="0"></iframe>;
+         }
       } else {
          return <video src={item} controls style={{ width: '100%', height: '100%', objectFit: 'contain' }} />;
       }
@@ -223,8 +261,10 @@ export default function ProductPage() {
   };
 
   const renderThumbItem = (item) => {
-    const isVideo = item.includes('youtube.com') || item.includes('youtu.be') || item.endsWith('.mp4');
+    const isVideo = item.includes('youtube.com') || item.includes('youtu.be') || item.endsWith('.mp4') || item.includes('drive.google.com');
     let thumbSrc = item;
+    let isDrive = item.includes('drive.google.com');
+    
     if (isVideo && item.includes('youtu')) {
       const videoId = item.split('v=')[1]?.split('&')[0] || item.split('youtu.be/')[1];
       thumbSrc = `https://img.youtube.com/vi/${videoId}/default.jpg`;
@@ -232,12 +272,16 @@ export default function ProductPage() {
     
     return (
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-         {isVideo && !item.includes('youtu') ? (
+         {isVideo && !item.includes('youtu') && !isDrive ? (
             <video src={item} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+         ) : isDrive ? (
+            <div style={{ width: '100%', height: '100%', backgroundColor: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+               <span style={{ color: '#fff', fontSize: '1.5rem' }}>▶️</span>
+            </div>
          ) : (
             <img src={thumbSrc} alt="thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
          )}
-         {isVideo && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(0,0,0,0.5)', borderRadius: '50%', padding: '5px' }}>▶️</div>}
+         {isVideo && !isDrive && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(0,0,0,0.5)', borderRadius: '50%', padding: '5px' }}>▶️</div>}
       </div>
     );
   };
@@ -286,10 +330,12 @@ export default function ProductPage() {
           <div className="product-info-panel">
              <div className="brand-label">{product.brand || 'Obsidian Parfums'}</div>
              <h1 className="product-name">{product.name}</h1>
-             <div className="product-rating-overview">
-                <span>{Array(Math.round(avgRating) || 5).fill('⭐').join('')}</span>
-                <span className="rating-text">{avgRating > 0 ? `${avgRating} - ${reviews.length} avaliações` : `127 avaliações`}</span>
-             </div>
+             {reviews.length > 0 && (
+                <div className="product-rating-overview">
+                   <span>{Array(Math.round(avgRating) || 5).fill('⭐').join('')}</span>
+                   <span className="rating-text">{avgRating > 0 ? `${avgRating} - ${reviews.length} avaliações` : `${reviews.length} avaliações`}</span>
+                </div>
+             )}
 
              <div className="price-section">
                 {product.compareAtPrice > 0 && <div className="old-price">De: R$ {product.compareAtPrice.toFixed(2).replace('.', ',')}</div>}
@@ -373,16 +419,16 @@ export default function ProductPage() {
 
         {/* OLFACTORY NOTES */}
         {(product.topNotes || product.heartNotes || product.baseNotes) && (
-          <div className="olfactory-section">
+          <div className="olfactory-section container">
             <h2 className="section-title">Pirâmide Olfativa</h2>
             <div className="notes-container">
                {product.topNotes && (
-                 <div className="notes-block">
-                    <h4>Top</h4>
-                    <div className="notes-list">
+                 <div className="notes-card">
+                    <h4 className="notes-card-title">TOP</h4>
+                    <div className="notes-grid">
                       {product.topNotes.split(',').map((n, i) => (
-                        <div className="note-item" key={i}>
-                          <span className="note-icon">🍋</span>
+                        <div className="note-item-real" key={i}>
+                          <NoteImage note={n} />
                           <span className="note-name">{n.trim()}</span>
                         </div>
                       ))}
@@ -390,12 +436,12 @@ export default function ProductPage() {
                  </div>
                )}
                {product.heartNotes && (
-                 <div className="notes-block">
-                    <h4>Coração</h4>
-                    <div className="notes-list">
+                 <div className="notes-card">
+                    <h4 className="notes-card-title">CORAÇÃO</h4>
+                    <div className="notes-grid">
                       {product.heartNotes.split(',').map((n, i) => (
-                        <div className="note-item" key={i}>
-                          <span className="note-icon">🌸</span>
+                        <div className="note-item-real" key={i}>
+                          <NoteImage note={n} />
                           <span className="note-name">{n.trim()}</span>
                         </div>
                       ))}
@@ -403,12 +449,12 @@ export default function ProductPage() {
                  </div>
                )}
                {product.baseNotes && (
-                 <div className="notes-block">
-                    <h4>Fundo</h4>
-                    <div className="notes-list">
+                 <div className="notes-card">
+                    <h4 className="notes-card-title">FUNDO</h4>
+                    <div className="notes-grid">
                       {product.baseNotes.split(',').map((n, i) => (
-                        <div className="note-item" key={i}>
-                          <span className="note-icon">🪵</span>
+                        <div className="note-item-real" key={i}>
+                          <NoteImage note={n} />
                           <span className="note-name">{n.trim()}</span>
                         </div>
                       ))}

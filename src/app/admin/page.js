@@ -550,13 +550,14 @@ export default function AdminPage() {
 
                   <input 
                     type="text" 
-                    placeholder="URL do Vídeo (YouTube ou MP4)"
+                    placeholder="URL do Vídeo (Google Drive, YouTube ou MP4)"
                     value={product.videoUrl || ''}
                     onChange={(e) => handleChange(index, 'videoUrl', e.target.value)}
                     style={{ width: '100%', padding: '8px', background: '#000', border: '1px solid #333', color: '#888', borderRadius: '4px', fontSize: '0.7rem', marginTop: '15px' }}
                   />
                   <p style={{ fontSize: '0.6rem', color: '#555', lineHeight: '1.2', marginTop: '5px' }}>
-                    Adicione um link do YouTube ou arquivo .mp4 para a galeria.
+                    Adicione um link do Google Drive, YouTube ou arquivo .mp4. 
+                    <br/><strong style={{ color: '#d4af37' }}>⚠️ O vídeo no Google Drive deve estar com acesso público ('Qualquer pessoa com o link').</strong>
                   </p>
                 </div>
               </div>
@@ -610,6 +611,8 @@ export default function AdminPage() {
                     <option value="Armaf">Armaf</option>
                     <option value="Afnan">Afnan</option>
                     <option value="Paris Elysees">Paris Elysees</option>
+                    <option value="Rasasi">Rasasi</option>
+                    <option value="Creme">Creme</option>
                     <option value="Outra">Outra</option>
                   </select>
                 </div>
