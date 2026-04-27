@@ -147,6 +147,7 @@
   padding: 10px 20px;
   border: 1px solid #ddd;
   background: #fff;
+  color: #111;
   border-radius: 4px;
   cursor: pointer;
   font-weight: 600;
@@ -190,7 +191,7 @@
   padding: 16px;
   background: #111;
   border: 1px solid #111;
-  color: #var(--primary-gold);
+  color: var(--primary-gold);
   font-size: 1rem;
   font-weight: 600;
   text-transform: uppercase;
