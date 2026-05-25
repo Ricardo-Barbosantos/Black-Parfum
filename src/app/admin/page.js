@@ -557,7 +557,7 @@ export default function AdminPage() {
                   />
                   <p style={{ fontSize: '0.6rem', color: '#555', lineHeight: '1.2', marginTop: '5px' }}>
                     Adicione um link do Google Drive, YouTube ou arquivo .mp4. 
-                    <br/><strong style={{ color: '#d4af37' }}>⚠️ O vídeo no Google Drive deve estar com acesso público ('Qualquer pessoa com o link').</strong>
+                    <br/><strong style={{ color: '#d4af37' }}>⚠️ O vídeo no Google Drive deve estar com acesso público (&apos;Qualquer pessoa com o link&apos;).</strong>
                   </p>
                 </div>
               </div>

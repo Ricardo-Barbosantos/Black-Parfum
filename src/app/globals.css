@@ -1,443 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
-  --color-black: #0a0a0a;
-  --color-white: #ffffff;
-  --color-gold: #C9A84C;
-  --color-gold-light: #eaddca;
-  --color-gray-bg: #fdfdfd;
-  --color-border: #f0f0f0;
-  --color-text-dim: #666666;
-  --color-whatsapp: #25D366;
-  --color-shimmer: rgba(255, 255, 255, 0.2);
-  
-  /* Spacing System */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-  --spacing-2xl: 48px;
-  --spacing-3xl: 64px;
-}
-
-/* Typography & Layout Consistency */
-.brand-title {
-  font-family: var(--font-cinzel), serif;
-  color: var(--color-gold);
-  line-height: 1.2;
-  font-weight: bold;
-  font-size: 1.8rem; /* Desktop size */
-  letter-spacing: 4px;
-  transition: all 0.3s ease;
-}
-
-.brand-subtitle {
-  font-size: 10px;
-  color: #999;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  margin-top: 4px;
-}
-
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-.shimmer-btn {
-  position: relative;
-  overflow: hidden;
-}
-
-.shimmer-btn::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--color-shimmer),
-    transparent
-  );
-  animation: shimmer 2s infinite;
+  --background: #070707;
+  --foreground: #f7f1df;
 }
 
 * {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
-html, body {
-  max-width: 100% !important;
-  overflow-x: hidden !important;
-  width: 100%;
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background-color: var(--color-gray-bg);
-  color: var(--color-black);
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(201, 168, 76, 0.12), transparent 34rem),
+    linear-gradient(135deg, #050505 0%, #101010 46%, #060606 100%);
+  color: var(--foreground);
   font-family: var(--font-inter), sans-serif;
-  -webkit-font-smoothing: antialiased;
 }
 
-input, textarea, select {
-  font-family: inherit;
-  color: #1a1a1a;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
-  padding: 0 20px;
-}
-
-/* UI Premium Hero */
-.hero-banner {
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-  color: var(--color-white);
-  padding: 80px 20px;
-  text-align: center;
-  position: relative;
-  border-bottom: 2px solid var(--color-gold);
-}
-
-.hero-banner h2 {
-  font-family: var(--font-cinzel), serif;
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: 4px;
-  margin-bottom: 15px;
-  text-transform: uppercase;
-}
-
-.hero-banner p {
-  font-size: 14px;
-  color: #ddd;
-  max-width: 600px;
-  margin: 0 auto;
-  line-height: 1.6;
-}
-
-/* Product Grid */
-.product-grid > * {
-  min-width: 0;
-}
-
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  padding: 0 10px;
-}
-
-@media (min-width: 1024px) {
-  .product-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 30px;
-  }
-}
-
-/* Luxurious Product Card */
-.product-card {
-  background: white;
-  border: none;
-  border-radius: 0;
-  display: flex;
-  flex-direction: column;
-  height: 100%; /* Forces cards in the same row to match height */
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-.product-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-}
-
-.card-badge {
-  position: absolute;
-  top: 0;
-  left: 0;
-  background: var(--color-gold);
-  color: white;
-  padding: 4px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  z-index: 10;
-}
-
-.card-image-wrap {
-  height: 200px; /* Fixed height for image consistency */
-  padding: 15px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #fff;
-  overflow: hidden;
-}
-
-.card-image-wrap img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.card-content {
-  padding: 10px 10px 20px 10px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1; /* Fills available space to push button down */
-}
-
-.card-title {
-  font-family: var(--font-inter);
-  font-size: 1rem;
-  color: #111;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 2px;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-
-.card-price-container {
-  margin-bottom: 10px;
-}
-
-.card-old-price {
-  color: #999;
-  text-decoration: line-through;
-  font-size: 0.8rem;
-}
-
-.card-old-price::after {
-  content: " | ";
-  margin: 0 4px;
+a {
+  color: inherit;
   text-decoration: none;
-  display: inline-block;
 }
 
-.card-new-price {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--color-black);
+button,
+input,
+select {
+  font: inherit;
 }
 
-.card-pix-row {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-gold);
-  margin-top: 2px;
+img {
+  max-width: 100%;
 }
 
-.card-pix-row span {
-  color: #aaa;
-  font-weight: 400;
-  font-size: 0.75rem;
-  margin-left: 2px;
-}
-
-.card-installments-box {
-  border: 1px solid var(--color-gold-light);
-  padding: 6px;
-  margin: 10px 0;
-  font-size: 0.75rem;
-  color: var(--color-gold);
-  font-weight: 600;
-}
-
-.btn-comprar {
-  background: var(--color-gold);
-  color: white;
-  border: none;
-  width: 100%;
-  padding: 15px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  margin-top: auto; /* Pushes button to exactly the bottom of the card */
-}
-
-.btn-comprar:hover {
-  opacity: 0.9;
-}
-
-/* Toast Premium Styles */
-.toast-container {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10000;
-  pointer-events: none;
-}
-
-.toast-gold {
-  background: #0a0a0a;
-  color: var(--color-gold);
-  border: 1px solid var(--color-gold);
-  padding: 12px 24px;
-  border-radius: 4px;
-  font-family: var(--font-cinzel), serif;
-  font-size: 0.9rem;
-  letter-spacing: 1px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  animation: slideInDown 0.4s easeOutBack forwards, fadeOut 0.4s ease forwards 2.1s;
-}
-
-@keyframes slideInDown {
-  from { transform: translateY(-100%); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes fadeOut {
-  to { opacity: 0; transform: translateY(-10px); }
-}
-
-/* Floating Elements & Extras */
-.floating-whatsapp {
-  position: fixed;
-  bottom: 25px;
-  right: 25px;
-  background: #25D366;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  z-index: 9999; /* Ensures it stays above EVERYTHING else */
-  cursor: pointer;
-  transition: transform 0.3s ease;
-}
-
-.floating-whatsapp:hover {
-  transform: scale(1.1);
-}
-
-.floating-whatsapp svg {
-  width: 32px;
-  height: 32px;
-  fill: white;
-}
-
-/* Responsive adjustments for mobile */
-@media (max-width: 768px) {
-  .hero-banner {
-    padding: 40px 15px;
+@layer components {
+  .luxury-panel {
+    @apply border border-white/10 bg-white/[0.04] shadow-luxury backdrop-blur;
   }
 
-  .hero-banner h2 {
-    font-size: 20px;
-    letter-spacing: 2px;
+  .gold-button {
+    @apply inline-flex items-center justify-center rounded-md bg-gold px-5 py-3 text-sm font-bold text-black transition hover:bg-champagne disabled:cursor-not-allowed disabled:opacity-50;
   }
 
-  .hero-banner p {
-    font-size: 12px;
-    max-width: 100%;
+  .ghost-button {
+    @apply inline-flex items-center justify-center rounded-md border border-white/15 px-4 py-2 text-sm font-semibold text-champagne transition hover:border-gold hover:text-gold;
   }
 
-  .product-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 10px !important;
-    padding: 0;
+  .field {
+    @apply w-full rounded-md border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/35 focus:border-gold;
   }
 
-  .container {
-    padding: 0 15px;
-  }
-
-  /* Adjust header for mobile */
-  header .container {
-    padding: 15px;
-  }
-
-  .logo-text > div:first-child {
-    font-size: 1.2rem;
-    letter-spacing: 2px;
-  }
-
-  .logo-text > div:last-child {
-    font-size: 7px;
-    letter-spacing: 2px;
-  }
-
-  /* Floating button positioning adjustment */
-  .floating-whatsapp {
-    bottom: 15px;
-    right: 15px;
-    width: 50px;
-    height: 50px;
-  }
-}
-
-/* Tablet adjustments */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .product-grid {
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 20px !important;
-  }
-
-  .hero-banner h2 {
-    font-size: 22px;
-  }
-}
-
-/* Adjustments for very small screens */
-@media (max-width: 480px) {
-  .product-card {
-    margin-bottom: 15px;
-  }
-
-  .card-title {
-    font-size: 0.9rem;
-    height: 3rem;
-    font-weight: 500;
-  }
-
-  .card-new-price {
-    font-size: 1.1rem;
-  }
-
-  .btn-comprar {
-    padding: 12px;
-    font-size: 0.85rem;
-    letter-spacing: 1px;
-  }
-
-  .brand-title {
-    font-size: 1.2rem; /* Mobile size */
-    letter-spacing: 2px;
-  }
-
-  .brand-subtitle {
-    font-size: 7px;
-    letter-spacing: 1.5px;
-  }
-
-  .search-section .container {
-    padding: 0 10px;
-  }
-
-  .search-bar {
-    padding: 10px 15px;
-  }
-
-  input[type="text"] {
-    font-size: 0.9rem;
+  .label {
+    @apply mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-white/55;
   }
 }
