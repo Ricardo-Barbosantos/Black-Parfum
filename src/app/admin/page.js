@@ -246,10 +246,10 @@ export default function AdminPage() {
     setProducts(newProducts);
   };
 
-  const handleAddProduct = () => {
+  const handleAddProduct = (category = 'Perfume') => {
     const newProduct = {
       id: String(Date.now()),
-      name: "Novo Perfume (Edite)",
+      name: category === 'Decante' ? "Novo Decante (Edite)" : category === 'Combo Decantes' ? "Novo Combo de Decantes (Edite)" : "Novo Perfume (Edite)",
       price: 0,
       compareAtPrice: 0,
       image: "/photos/perfume.jpg",
@@ -258,10 +258,10 @@ export default function AdminPage() {
       rating: 5,
       discountPercent: 0,
       installments: "3x de R$ 0,00 s/ juros",
-      category: "Perfume",
+      category,
       brand: "Outra",
       gender: "Unissex",
-      sizes: "50ml, 100ml",
+      sizes: category === 'Decante' ? "5ml, 10ml" : category === 'Combo Decantes' ? "Combo com 3 decantes" : "50ml, 100ml",
       description: "",
       topNotes: "",
       heartNotes: "",
@@ -453,6 +453,22 @@ export default function AdminPage() {
     );
   }
 
+  const displayedProducts = products
+    .map((product, index) => ({ product, index }))
+    .filter(({ product }) => {
+      if (activeTab === 'decants') return product.category === 'Decante';
+      if (activeTab === 'combos') return product.category === 'Combo Decantes';
+      return activeTab === 'products';
+    });
+
+  const sectionTitle = activeTab === 'reviews'
+    ? 'Moderação de Reviews'
+    : activeTab === 'decants'
+      ? 'Gerenciamento de Decantes'
+      : activeTab === 'combos'
+        ? 'Gerenciamento de Combos de Decantes'
+        : 'Gerenciamento de Produtos';
+
   return (
     <div className="admin-layout">
       <aside className="admin-sidebar">
@@ -464,11 +480,17 @@ export default function AdminPage() {
           <div className={`nav-item ${activeTab === 'products' ? 'active' : ''}`} onClick={() => setActiveTab('products')} style={{cursor: 'pointer'}}>
             Produtos e Preços
           </div>
+          <div className={`nav-item ${activeTab === 'decants' ? 'active' : ''}`} onClick={() => setActiveTab('decants')} style={{cursor: 'pointer'}}>
+            Decantes
+          </div>
+          <div className={`nav-item ${activeTab === 'combos' ? 'active' : ''}`} onClick={() => setActiveTab('combos')} style={{cursor: 'pointer'}}>
+            Combos Decantes
+          </div>
           <div className={`nav-item ${activeTab === 'reviews' ? 'active' : ''}`} onClick={() => setActiveTab('reviews')} style={{cursor: 'pointer'}}>
             Reviews Pendentes ({reviews.filter(r => r.status === 'pending').length})
           </div>
-          <button onClick={handleAddProduct} className="btn-add">
-            + Novo Produto
+          <button onClick={() => handleAddProduct(activeTab === 'decants' ? 'Decante' : activeTab === 'combos' ? 'Combo Decantes' : 'Perfume')} className="btn-add">
+            {activeTab === 'decants' ? '+ Novo Decante' : activeTab === 'combos' ? '+ Novo Combo' : '+ Novo Produto'}
           </button>
           <Link href="/" className="nav-link">
             Ver Loja
@@ -482,7 +504,7 @@ export default function AdminPage() {
 
       <main className="admin-main">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-          <h1>{activeTab === 'products' ? 'Gerenciamento de Produtos' : 'Moderação de Reviews'}</h1>
+          <h1>{sectionTitle}</h1>
           <button className="btn-gold" onClick={handleSave} disabled={saving} style={{ padding: '12px 24px', fontSize: '1rem' }}>
             {saving ? <span className="spinner" style={{ width: '20px', height: '20px' }}></span> : 'Salvar Alterações no Banco'}
           </button>
@@ -494,9 +516,9 @@ export default function AdminPage() {
           </div>
         )}
 
-        {activeTab === 'products' && (
+        {['products', 'decants', 'combos'].includes(activeTab) && (
         <div className="products-container">
-          {products.map((product, index) => (
+          {displayedProducts.map(({ product, index }) => (
             <div key={product.id} style={{ display: 'flex', gap: '40px', alignItems: 'flex-start', borderBottom: '1px solid #222', paddingBottom: '30px', marginBottom: '30px', position: 'relative' }}>
               
               <button 
@@ -557,7 +579,7 @@ export default function AdminPage() {
                   />
                   <p style={{ fontSize: '0.6rem', color: '#555', lineHeight: '1.2', marginTop: '5px' }}>
                     Adicione um link do Google Drive, YouTube ou arquivo .mp4. 
-                    <br/><strong style={{ color: '#d4af37' }}>⚠️ O vídeo no Google Drive deve estar com acesso público ('Qualquer pessoa com o link').</strong>
+                    <br/><strong style={{ color: '#d4af37' }}>⚠️ O vídeo no Google Drive deve estar com acesso público (&apos;Qualquer pessoa com o link&apos;).</strong>
                   </p>
                 </div>
               </div>
@@ -582,6 +604,7 @@ export default function AdminPage() {
                   >
                     <option value="Perfume">Perfume (Frasco)</option>
                     <option value="Decante">Decante</option>
+                    <option value="Combo Decantes">Combo Decantes</option>
                   </select>
                 </div>
 

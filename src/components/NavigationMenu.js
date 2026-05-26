@@ -37,6 +37,11 @@ export default function NavigationMenu({
             Decantes
           </button>
           <button 
+            onClick={() => { onFilter('Combo Decantes', Infinity); onClose(); }} 
+            style={{ textAlign: 'left', background: 'none', border: 'none', fontSize: '1.1rem', color: '#111', cursor: 'pointer', fontWeight: '500' }}>
+            Combos Decantes
+          </button>
+          <button 
             onClick={() => { onFilter('Todos', 99); onClose(); }} 
             style={{ textAlign: 'left', background: 'none', border: 'none', fontSize: '1.1rem', color: '#111', cursor: 'pointer', fontWeight: '500' }}>
             Até R$ 99

@@ -55,9 +55,10 @@ export default function ProductPage() {
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [toast, setToast] = useState({ visible: false, message: '' });
   const [checkoutForm, setCheckoutForm] = useState({
-     name: '', address: '', number: '', complement: '', city: '', zip: '', deliveryMethod: 'home'
+     name: '', email: '', address: '', number: '', complement: '', city: '', zip: '', deliveryMethod: 'home'
   });
 
   // Review Form
@@ -186,30 +187,46 @@ export default function ProductPage() {
   const increaseQty = (cartItemId) => setCart(prev => prev.map(item => item.cartItemId === cartItemId ? { ...item, quantity: item.quantity + 1 } : item));
   const decreaseQty = (cartItemId) => setCart(prev => prev.map(item => item.cartItemId === cartItemId && item.quantity > 1 ? { ...item, quantity: item.quantity - 1 } : item));
 
-  const handleCheckout = () => {
-    let text = `*NOVO PEDIDO - OBSIDIAN PARFUMS*\n\n`;
-    cart.forEach(item => {
-      text += `🛒 ${item.quantity}x ${item.name} ${item.selectedSize ? `(${item.selectedSize})` : ''} - R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}\n`;
-    });
-    
-    const { cartTotal } = calculateCartFields();
-    text += `\n*TOTAL DA COMPRA:* R$ ${cartTotal.toFixed(2).replace('.', ',')}${checkoutForm.deliveryMethod === 'home' ? ' + frete' : ''}\n\n`;
-    
-    if (checkoutForm.deliveryMethod === 'home') {
-      text += `*📦 DADOS DE ENTREGA:*\n`;
-      text += `• Nome: ${checkoutForm.name}\n`;
-      text += `• Endereço: ${checkoutForm.address}, ${checkoutForm.number}\n`;
-      if (checkoutForm.complement) text += `• Comp: ${checkoutForm.complement}\n`;
-      text += `• Cidade/Bairro: ${checkoutForm.city}\n`;
-      if (checkoutForm.zip) text += `• CEP: ${checkoutForm.zip}\n`;
-    } else {
-      text += `*🛍️ RETIRADA NA LOJA*\n`;
-      text += `• Cliente: ${checkoutForm.name}\n`;
+  const handleCheckout = async () => {
+    if (!checkoutForm.name) {
+      alert("Por favor, preencha o seu nome.");
+      return;
     }
-    
-    const wppNumber = '5577998334081'; 
-    const encode = encodeURIComponent(text);
-    window.open(`https://wa.me/${wppNumber}?text=${encode}`, '_blank');
+
+    if (!checkoutForm.email) {
+      alert("Por favor, preencha seu e-mail.");
+      return;
+    }
+
+    if (checkoutForm.deliveryMethod === 'home' && (!checkoutForm.address || !checkoutForm.number || !checkoutForm.city)) {
+      alert("Por favor, preencha todos os campos obrigatórios do endereço.");
+      return;
+    }
+
+    setCheckoutLoading(true);
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cart: cart.map(item => ({
+            id: item.id,
+            cartItemId: item.cartItemId || item.id,
+            selectedSize: item.selectedSize || '',
+            quantity: item.quantity
+          })),
+          customer: checkoutForm
+        })
+      });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || 'Erro ao iniciar pagamento.');
+      window.location.href = data.init_point || data.sandbox_init_point;
+    } catch (error) {
+      alert(error.message || 'Erro ao iniciar pagamento.');
+    } finally {
+      setCheckoutLoading(false);
+    }
   };
 
   const handleReviewSubmit = async (e) => {
@@ -480,6 +497,7 @@ export default function ProductPage() {
         checkoutForm={checkoutForm}
         onFormChange={setCheckoutForm}
         onCheckout={handleCheckout}
+        checkoutLoading={checkoutLoading}
       />
 
       <NavigationMenu 

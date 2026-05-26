@@ -24,10 +24,11 @@ export default function Home() {
   // Cart State
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [toast, setToast] = useState({ visible: false, message: '' });
 
   const [checkoutForm, setCheckoutForm] = useState({
-     name: '', address: '', number: '', complement: '', city: '', zip: '', deliveryMethod: 'home'
+     name: '', email: '', address: '', number: '', complement: '', city: '', zip: '', deliveryMethod: 'home'
   });
 
   const showToast = (msg) => {
@@ -95,41 +96,46 @@ export default function Home() {
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  const handleCheckout = () => {
-    if (checkoutForm.deliveryMethod === 'home') {
-      if (!checkoutForm.name || !checkoutForm.address || !checkoutForm.number || !checkoutForm.city) {
-         alert("Por favor, preencha os dados obrigatórios do endereço (Nome, Rua, Número e Cidade).");
-         return;
-      }
-    } else {
-      if (!checkoutForm.name) {
-         alert("Por favor, preencha o seu nome.");
-         return;
-      }
+  const handleCheckout = async () => {
+    if (!checkoutForm.name) {
+      alert("Por favor, preencha o seu nome.");
+      return;
     }
-    
-    let text = `*NOVO PEDIDO - OBSIDIAN PARFUMS*\n\n`;
-    cart.forEach(item => {
-      text += `🛒 ${item.quantity}x ${item.name} ${item.selectedSize ? `(${item.selectedSize})` : ''} - R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}\n`;
-    });
-    
-    text += `\n*TOTAL DA COMPRA:* R$ ${cartTotal.toFixed(2).replace('.', ',')}${checkoutForm.deliveryMethod === 'home' ? ' + frete' : ''}\n\n`;
-    
-    if (checkoutForm.deliveryMethod === 'home') {
-      text += `*📦 DADOS DE ENTREGA:*\n`;
-      text += `• Nome: ${checkoutForm.name}\n`;
-      text += `• Endereço: ${checkoutForm.address}, ${checkoutForm.number}\n`;
-      if (checkoutForm.complement) text += `• Comp: ${checkoutForm.complement}\n`;
-      text += `• Cidade/Bairro: ${checkoutForm.city}\n`;
-      if (checkoutForm.zip) text += `• CEP: ${checkoutForm.zip}\n`;
-    } else {
-      text += `*🛍️ RETIRADA NA LOJA*\n`;
-      text += `• Cliente: ${checkoutForm.name}\n`;
+
+    if (!checkoutForm.email) {
+      alert("Por favor, preencha seu e-mail.");
+      return;
     }
-    
-    const wppNumber = '5577998334081'; 
-    const encode = encodeURIComponent(text);
-    window.open(`https://wa.me/${wppNumber}?text=${encode}`, '_blank');
+
+    if (checkoutForm.deliveryMethod === 'home' && (!checkoutForm.address || !checkoutForm.number || !checkoutForm.city)) {
+      alert("Por favor, preencha os dados obrigatórios do endereço (Nome, Rua, Número e Cidade).");
+      return;
+    }
+
+    setCheckoutLoading(true);
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cart: cart.map(item => ({
+            id: item.id,
+            cartItemId: item.cartItemId || item.id,
+            selectedSize: item.selectedSize || '',
+            quantity: item.quantity
+          })),
+          customer: checkoutForm
+        })
+      });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || 'Erro ao iniciar pagamento.');
+      window.location.href = data.init_point || data.sandbox_init_point;
+    } catch (error) {
+      alert(error.message || 'Erro ao iniciar pagamento.');
+    } finally {
+      setCheckoutLoading(false);
+    }
   };
 
   const filteredProducts = useMemo(() => {
@@ -192,6 +198,16 @@ export default function Home() {
               style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', whiteSpace: 'nowrap', border: '1px solid #ddd', background: selectedGender === 'Masculino' ? '#111' : '#fff', color: selectedGender === 'Masculino' ? '#fff' : '#111', cursor: 'pointer' }}>
               Masculino
             </button>
+            <button 
+              onClick={() => setSelectedCategory(selectedCategory === 'Decante' ? 'Todos' : 'Decante')}
+              style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', whiteSpace: 'nowrap', border: '1px solid #ddd', background: selectedCategory === 'Decante' ? '#111' : '#fff', color: selectedCategory === 'Decante' ? '#fff' : '#111', cursor: 'pointer' }}>
+              Decantes
+            </button>
+            <button 
+              onClick={() => setSelectedCategory(selectedCategory === 'Combo Decantes' ? 'Todos' : 'Combo Decantes')}
+              style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', whiteSpace: 'nowrap', border: '1px solid #ddd', background: selectedCategory === 'Combo Decantes' ? '#111' : '#fff', color: selectedCategory === 'Combo Decantes' ? '#fff' : '#111', cursor: 'pointer' }}>
+              Combos Decantes
+            </button>
             {brands.map(brand => (
               <button 
                 key={brand}
@@ -206,7 +222,7 @@ export default function Home() {
 
       <div className="container" style={{ marginTop: '20px' }}>
         <h3 style={{ marginBottom: '15px', fontSize: '1.2rem', color: '#111' }}>
-          {selectedCategory === 'Decante' ? 'Nossos Decantes' : maxPrice < 100 ? 'Perfumes até R$ 99' : 'Destaques'}
+          {selectedCategory === 'Combo Decantes' ? 'Combos de Decantes' : selectedCategory === 'Decante' ? 'Vitrine de Decantes' : maxPrice < 100 ? 'Perfumes até R$ 99' : 'Destaques'}
         </h3>
         
         {isLoading ? (
@@ -303,6 +319,7 @@ export default function Home() {
         checkoutForm={checkoutForm}
         onFormChange={setCheckoutForm}
         onCheckout={handleCheckout}
+        checkoutLoading={checkoutLoading}
       />
 
       <NavigationMenu 
