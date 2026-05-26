@@ -19,7 +19,9 @@ const CheckoutSchema = z.object({
     number: z.string().optional(),
     address: z.string().optional(),
     complement: z.string().optional(),
+    neighborhood: z.string().optional(),
     city: z.string().optional(),
+    state: z.string().optional(),
   }),
   shippingServiceId: z.string().optional(),
 });
@@ -120,7 +122,11 @@ export async function POST(request) {
 
     const { cart, customer, shippingServiceId } = validation.data;
 
-    if (customer.deliveryMethod === 'home' && (!customer.address || !customer.number || !customer.city)) {
+    const zip = String(customer.zip || '').replace(/\D/g, '');
+    if (
+      customer.deliveryMethod === 'home' &&
+      (!customer.address || !customer.number || !customer.neighborhood || !customer.city || !customer.state || zip.length !== 8)
+    ) {
       return new Response(JSON.stringify({ error: 'Preencha todos os dados de entrega.' }), { status: 400 });
     }
 
@@ -158,7 +164,9 @@ export async function POST(request) {
           address: customer.address || '',
           number: customer.number || '',
           complement: customer.complement || '',
+          neighborhood: customer.neighborhood || '',
           city: customer.city || '',
+          state: customer.state || '',
           zip: customer.zip || '',
         },
         back_urls: {

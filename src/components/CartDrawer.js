@@ -10,6 +10,19 @@ function isFreeShippingRegion(city = '') {
     .includes('vitoria da conquista');
 }
 
+function cleanZip(value = '') {
+  return value.replace(/\D/g, '').slice(0, 8);
+}
+
+function getLookupZip(value = '') {
+  const zip = cleanZip(value);
+
+  if (zip.length === 8) return zip;
+  if (zip.length === 6 && zip.endsWith('000')) return `${zip}00`;
+
+  return '';
+}
+
 export default function CartDrawer({
   isOpen,
   onClose,
@@ -27,33 +40,73 @@ export default function CartDrawer({
   const [shippingOptions, setShippingOptions] = useState([]);
   const [shippingLoading, setShippingLoading] = useState(false);
   const [shippingError, setShippingError] = useState('');
-  const [touchedFields, setTouchedFields] = useState({});
-  const [validationMessage, setValidationMessage] = useState('');
+  const [cepLoading, setCepLoading] = useState(false);
+  const [cepMessage, setCepMessage] = useState('');
+  const [submitted, setSubmitted] = useState(false);
 
   if (!isOpen) return null;
 
   const isFreeDelivery = checkoutForm.deliveryMethod === 'pickup' || isFreeShippingRegion(checkoutForm.city || '');
   const requiredFields = checkoutForm.deliveryMethod === 'home'
-    ? ['name', 'email', 'zip', 'number', 'address', 'city']
+    ? ['name', 'email', 'zip', 'address', 'number', 'neighborhood', 'city', 'state']
     : ['name', 'email'];
-  const missingFields = requiredFields.filter(field => !String(checkoutForm[field] || '').trim());
+  const isFieldMissing = (field) => {
+    if (field === 'zip') return cleanZip(checkoutForm.zip || '').length !== 8;
+    return !String(checkoutForm[field] || '').trim();
+  };
+  const missingFields = requiredFields.filter(isFieldMissing);
 
-  const fieldStyle = (field, extra = {}) => ({
+  const inputStyle = (extra = {}) => ({
     padding: '10px 12px',
-    border: `1px solid ${touchedFields[field] && !String(checkoutForm[field] || '').trim() ? '#ef4444' : '#ddd'}`,
+    border: '1px solid #ddd',
     borderRadius: '4px',
     fontSize: '1rem',
     color: '#111',
-    background: touchedFields[field] && !String(checkoutForm[field] || '').trim() ? '#fff5f5' : '#fff',
+    background: '#fff',
     ...extra
   });
 
-  const markTouched = (field) => {
-    setTouchedFields(current => ({ ...current, [field]: true }));
+  const labelStyle = {
+    color: '#555',
+    fontSize: '0.78rem',
+    fontWeight: 600,
+    letterSpacing: '0.02em',
   };
 
-  const loadShippingOptions = async ({ zip, city }) => {
-    if (!zip || zip.length !== 8 || isFreeShippingRegion(city || '')) {
+  const fieldWrapStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '5px',
+  };
+
+  const errorStyle = {
+    color: '#dc2626',
+    fontSize: '0.78rem',
+    lineHeight: 1.35,
+  };
+
+  const sectionTitleStyle = {
+    fontSize: '0.78rem',
+    margin: '2px 0 0',
+    color: '#666',
+    textTransform: 'uppercase',
+    letterSpacing: '1px',
+  };
+
+  const fieldError = (field) => {
+    if (!submitted || !isFieldMissing(field)) return null;
+
+    return (
+      <span style={errorStyle}>
+        {field === 'zip' ? 'Informe um CEP válido.' : 'Campo obrigatório.'}
+      </span>
+    );
+  };
+
+  const loadShippingOptions = async ({ zip, city, form = checkoutForm }) => {
+    const normalizedZip = cleanZip(zip || '');
+
+    if (!normalizedZip || normalizedZip.length !== 8 || isFreeShippingRegion(city || '')) {
       setShippingOptions([]);
       setShippingError('');
       return;
@@ -68,19 +121,70 @@ export default function CartDrawer({
         body: JSON.stringify({
           deliveryMethod: checkoutForm.deliveryMethod,
           city,
-          zip,
+          zip: normalizedZip,
           subtotal: cartTotal
         })
       });
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.error || 'Não foi possível calcular o frete.');
-      setShippingOptions(Array.isArray(data.options) ? data.options : []);
+      const options = Array.isArray(data.options) ? data.options : [];
+      setShippingOptions(options);
+
+      if (options.length > 0 && !form.shippingServiceId) {
+        onFormChange({ ...form, shippingServiceId: options[0].id });
+      }
     } catch (error) {
       setShippingOptions([]);
       setShippingError(error.message || 'Não foi possível calcular o frete.');
     } finally {
       setShippingLoading(false);
+    }
+  };
+
+  const lookupZip = async (rawZip, baseForm = checkoutForm) => {
+    const lookupValue = getLookupZip(rawZip);
+
+    if (!lookupValue) {
+      setShippingOptions([]);
+      setShippingError('');
+      setCepMessage('');
+      return;
+    }
+
+    setCepLoading(true);
+    setCepMessage('');
+
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${lookupValue}/json/`);
+      const data = await response.json();
+
+      if (!response.ok || data.erro) {
+        throw new Error('CEP não encontrado.');
+      }
+
+      const nextForm = {
+        ...baseForm,
+        zip: lookupValue,
+        address: data.logradouro || '',
+        neighborhood: data.bairro || '',
+        city: data.localidade || baseForm.city || '',
+        state: data.uf || baseForm.state || '',
+        shippingServiceId: '',
+      };
+
+      onFormChange(nextForm);
+      loadShippingOptions({ zip: lookupValue, city: nextForm.city, form: nextForm });
+
+      if (!data.logradouro || !data.bairro) {
+        setCepMessage('CEP encontrado. Complete rua e bairro manualmente.');
+      }
+    } catch (error) {
+      setShippingOptions([]);
+      setShippingError('');
+      setCepMessage(error.message || 'Não encontramos esse CEP. Confira os números.');
+    } finally {
+      setCepLoading(false);
     }
   };
 
@@ -156,69 +260,100 @@ export default function CartDrawer({
               </label>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '9px', marginBottom: '16px' }}>
-              <input type="text" placeholder="Nome Completo (obrigatório)" value={checkoutForm.name} onBlur={() => markTouched('name')} onChange={e => onFormChange({...checkoutForm, name: e.target.value})} style={fieldStyle('name', { width: '100%' })} />
-              <input type="email" placeholder="E-mail para pagamento (obrigatório)" value={checkoutForm.email || ''} onBlur={() => markTouched('email')} onChange={e => onFormChange({...checkoutForm, email: e.target.value})} style={fieldStyle('email', { width: '100%' })} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+              <h3 style={sectionTitleStyle}>Dados de contato</h3>
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>Nome completo</label>
+                <input type="text" placeholder="Digite seu nome completo" value={checkoutForm.name} onChange={e => onFormChange({...checkoutForm, name: e.target.value})} style={inputStyle({ width: '100%' })} />
+                {fieldError('name')}
+              </div>
+
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>E-mail</label>
+                <input type="email" placeholder="email@exemplo.com" value={checkoutForm.email || ''} onChange={e => onFormChange({...checkoutForm, email: e.target.value})} style={inputStyle({ width: '100%' })} />
+                {fieldError('email')}
+              </div>
 
               {checkoutForm.deliveryMethod === 'home' && (
                 <>
-                  <div style={{ display: 'flex', gap: '10px' }}>
+                  <h3 style={{ ...sectionTitleStyle, marginTop: '6px' }}>Endereço de entrega</h3>
+
+                  <div style={fieldWrapStyle}>
+                    <label style={labelStyle}>CEP</label>
                     <input
                       type="text"
-                      placeholder="CEP (obrigatório)"
+                      placeholder="00000-000"
                       value={checkoutForm.zip}
                       maxLength={8}
-                      onBlur={() => markTouched('zip')}
                       onChange={async (e) => {
-                        const cep = e.target.value.replace(/\D/g, '');
-                        onFormChange({...checkoutForm, zip: cep});
-                        if (cep.length === 8) {
-                          try {
-                            const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                            const data = await res.json();
-                            if (!data.erro) {
-                              const nextForm = {
-                                ...checkoutForm,
-                                zip: cep,
-                                address: data.logradouro,
-                                city: `${data.bairro} / ${data.localidade}`
-                              };
-                              onFormChange(nextForm);
-                              loadShippingOptions({ zip: cep, city: nextForm.city });
-                            }
-                          } catch (err) {
-                            console.error('Erro ao buscar CEP', err);
-                          }
-                        } else {
-                          setShippingOptions([]);
-                          setShippingError('');
-                        }
+                        const zip = cleanZip(e.target.value);
+                        const nextForm = { ...checkoutForm, zip, shippingServiceId: '' };
+                        onFormChange(nextForm);
+                        lookupZip(zip, nextForm);
                       }}
-                      style={fieldStyle('zip', { flex: 1 })}
+                      style={inputStyle({ width: '100%' })}
                     />
-                    <input type="text" placeholder="Nº (obrigatório)" value={checkoutForm.number} onBlur={() => markTouched('number')} onChange={e => onFormChange({...checkoutForm, number: e.target.value})} style={fieldStyle('number', { flex: 1 })} />
+                    {cepLoading && <span style={{ color: '#666', fontSize: '0.78rem' }}>Buscando endereço...</span>}
+                    {cepMessage && <span style={{ color: cepMessage.includes('encontrado') ? '#666' : '#dc2626', fontSize: '0.78rem', lineHeight: 1.35 }}>{cepMessage}</span>}
+                    {fieldError('zip')}
                   </div>
 
-                  <input type="text" placeholder="Rua / Av (obrigatório)" value={checkoutForm.address} onBlur={() => markTouched('address')} onChange={e => onFormChange({...checkoutForm, address: e.target.value})} style={fieldStyle('address', { width: '100%' })} />
-                  <input type="text" placeholder="Complemento (Apto, Bloco...)" value={checkoutForm.complement} onChange={e => onFormChange({...checkoutForm, complement: e.target.value})} style={{ padding: '10px 12px', border: '1px solid #ddd', borderRadius: '4px', width: '100%', fontSize: '1rem', color: '#111' }} />
-                  <input
-                    type="text"
-                    placeholder="Bairro / Cidade (obrigatório)"
-                    value={checkoutForm.city}
-                    onBlur={() => markTouched('city')}
-                    onChange={e => {
-                      const nextCity = e.target.value;
-                      onFormChange({...checkoutForm, city: nextCity});
-                      loadShippingOptions({ zip: checkoutForm.zip, city: nextCity });
-                    }}
-                    style={fieldStyle('city', { width: '100%' })}
-                  />
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 112px', gap: '10px' }}>
+                    <div style={fieldWrapStyle}>
+                      <label style={labelStyle}>Rua ou avenida</label>
+                      <input type="text" placeholder="Rua, avenida ou estrada" value={checkoutForm.address} onChange={e => onFormChange({...checkoutForm, address: e.target.value})} style={inputStyle({ width: '100%' })} />
+                      {fieldError('address')}
+                    </div>
+
+                    <div style={fieldWrapStyle}>
+                      <label style={labelStyle}>Número</label>
+                      <input type="text" placeholder="Nº" value={checkoutForm.number} onChange={e => onFormChange({...checkoutForm, number: e.target.value})} style={inputStyle({ width: '100%' })} />
+                      {fieldError('number')}
+                    </div>
+                  </div>
+
+                  <div style={fieldWrapStyle}>
+                    <label style={labelStyle}>Complemento</label>
+                    <input type="text" placeholder="Apto, bloco, casa..." value={checkoutForm.complement} onChange={e => onFormChange({...checkoutForm, complement: e.target.value})} style={inputStyle({ width: '100%' })} />
+                  </div>
+
+                  <div style={fieldWrapStyle}>
+                    <label style={labelStyle}>Bairro</label>
+                    <input type="text" placeholder="Seu bairro" value={checkoutForm.neighborhood || ''} onChange={e => onFormChange({...checkoutForm, neighborhood: e.target.value})} style={inputStyle({ width: '100%' })} />
+                    {fieldError('neighborhood')}
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 86px', gap: '10px' }}>
+                    <div style={fieldWrapStyle}>
+                      <label style={labelStyle}>Cidade</label>
+                      <input
+                        type="text"
+                        placeholder="Cidade"
+                        value={checkoutForm.city}
+                        onChange={e => {
+                          const nextCity = e.target.value;
+                          const nextForm = { ...checkoutForm, city: nextCity, shippingServiceId: '' };
+                          onFormChange(nextForm);
+                          loadShippingOptions({ zip: checkoutForm.zip, city: nextCity, form: nextForm });
+                        }}
+                        style={inputStyle({ width: '100%' })}
+                      />
+                      {fieldError('city')}
+                    </div>
+
+                    <div style={fieldWrapStyle}>
+                      <label style={labelStyle}>UF</label>
+                      <input type="text" placeholder="UF" value={checkoutForm.state || ''} maxLength={2} onChange={e => onFormChange({...checkoutForm, state: e.target.value.toUpperCase()})} style={inputStyle({ width: '100%', textTransform: 'uppercase' })} />
+                      {fieldError('state')}
+                    </div>
+                  </div>
+
                   {isFreeDelivery && (
                     <div style={{ fontSize: '0.85rem', color: '#16a34a', lineHeight: '1.4' }}>
                       Frete grátis para Vitória da Conquista.
                     </div>
                   )}
-                  {!isFreeDelivery && checkoutForm.zip?.length === 8 && (
+                  {!isFreeDelivery && cleanZip(checkoutForm.zip || '').length === 8 && (
                     <div style={{ border: '1px solid #e5e7eb', borderRadius: '4px', background: '#fff', padding: '10px', color: '#111' }}>
                       <div style={{ fontSize: '0.78rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
                         Opções de frete
@@ -250,23 +385,13 @@ export default function CartDrawer({
               )}
             </div>
 
-            {validationMessage && (
-              <div style={{ color: '#dc2626', background: '#fff5f5', border: '1px solid #fecaca', borderRadius: '4px', padding: '9px 10px', fontSize: '0.86rem', marginBottom: '12px' }}>
-                {validationMessage}
-              </div>
-            )}
-
             <button
               onClick={() => {
                 if (missingFields.length > 0) {
-                  setTouchedFields(current => ({
-                    ...current,
-                    ...missingFields.reduce((acc, field) => ({ ...acc, [field]: true }), {})
-                  }));
-                  setValidationMessage('Preencha os campos obrigatórios destacados em vermelho.');
+                  setSubmitted(true);
                   return;
                 }
-                setValidationMessage('');
+                setSubmitted(false);
                 onCheckout();
               }}
               disabled={checkoutLoading}

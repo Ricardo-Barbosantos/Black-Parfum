@@ -28,7 +28,7 @@ export default function Home() {
   const [toast, setToast] = useState({ visible: false, message: '' });
 
   const [checkoutForm, setCheckoutForm] = useState({
-     name: '', email: '', address: '', number: '', complement: '', city: '', zip: '', deliveryMethod: 'home'
+     name: '', email: '', address: '', number: '', complement: '', neighborhood: '', city: '', state: '', zip: '', deliveryMethod: 'home', shippingServiceId: ''
   });
 
   const showToast = (msg) => {
@@ -97,18 +97,15 @@ export default function Home() {
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleCheckout = async () => {
-    if (!checkoutForm.name) {
-      alert("Por favor, preencha o seu nome.");
+    const zip = String(checkoutForm.zip || '').replace(/\D/g, '');
+    if (!checkoutForm.name || !checkoutForm.email) {
       return;
     }
 
-    if (!checkoutForm.email) {
-      alert("Por favor, preencha seu e-mail.");
-      return;
-    }
-
-    if (checkoutForm.deliveryMethod === 'home' && (!checkoutForm.address || !checkoutForm.number || !checkoutForm.city)) {
-      alert("Por favor, preencha os dados obrigatórios do endereço (Nome, Rua, Número e Cidade).");
+    if (
+      checkoutForm.deliveryMethod === 'home' &&
+      (!checkoutForm.address || !checkoutForm.number || !checkoutForm.neighborhood || !checkoutForm.city || !checkoutForm.state || zip.length !== 8)
+    ) {
       return;
     }
 
@@ -124,7 +121,8 @@ export default function Home() {
             selectedSize: item.selectedSize || '',
             quantity: item.quantity
           })),
-          customer: checkoutForm
+          customer: checkoutForm,
+          shippingServiceId: checkoutForm.shippingServiceId || undefined
         })
       });
       const data = await res.json();
@@ -132,7 +130,7 @@ export default function Home() {
       if (!res.ok) throw new Error(data.error || 'Erro ao iniciar pagamento.');
       window.location.href = data.init_point || data.sandbox_init_point;
     } catch (error) {
-      alert(error.message || 'Erro ao iniciar pagamento.');
+      showToast(error.message || 'Erro ao iniciar pagamento.');
     } finally {
       setCheckoutLoading(false);
     }
