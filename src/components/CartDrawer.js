@@ -1,5 +1,6 @@
 'use client';
 import Image from 'next/image';
+import { useState } from 'react';
 
 function isFreeShippingRegion(city = '') {
   return city
@@ -23,9 +24,45 @@ export default function CartDrawer({
   onCheckout,
   checkoutLoading = false
 }) {
+  const [shippingOptions, setShippingOptions] = useState([]);
+  const [shippingLoading, setShippingLoading] = useState(false);
+  const [shippingError, setShippingError] = useState('');
+
   if (!isOpen) return null;
 
   const isFreeDelivery = checkoutForm.deliveryMethod === 'pickup' || isFreeShippingRegion(checkoutForm.city || '');
+
+  const loadShippingOptions = async ({ zip, city }) => {
+    if (!zip || zip.length !== 8 || isFreeShippingRegion(city || '')) {
+      setShippingOptions([]);
+      setShippingError('');
+      return;
+    }
+
+    setShippingLoading(true);
+    setShippingError('');
+    try {
+      const response = await fetch('/api/shipping/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deliveryMethod: checkoutForm.deliveryMethod,
+          city,
+          zip,
+          subtotal: cartTotal
+        })
+      });
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.error || 'Não foi possível calcular o frete.');
+      setShippingOptions(Array.isArray(data.options) ? data.options : []);
+    } catch (error) {
+      setShippingOptions([]);
+      setShippingError(error.message || 'Não foi possível calcular o frete.');
+    } finally {
+      setShippingLoading(false);
+    }
+  };
 
   return (
     <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 999 }}>
@@ -81,15 +118,9 @@ export default function CartDrawer({
               <span>Subtotal:</span>
               <span>R$ {cartTotal.toFixed(2).replace('.', ',')}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: '#555', marginBottom: '12px' }}>
-              <span>Entrega:</span>
-              <span style={{ color: isFreeDelivery ? '#16a34a' : '#eab308', fontWeight: '600' }}>
-                {isFreeDelivery ? 'Grátis ✓' : 'Calcular frete'}
-              </span>
-            </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: '600', marginBottom: '14px', color: '#111', borderTop: '1px solid #eee', paddingTop: '12px' }}>
               <span>Total:</span>
-              <span>R$ {cartTotal.toFixed(2).replace('.', ',')}{isFreeDelivery ? '' : ' + frete'}</span>
+              <span>R$ {cartTotal.toFixed(2).replace('.', ',')}</span>
             </div>
 
             <h3 style={{ fontSize: '0.8rem', marginBottom: '10px', color: '#666', textTransform: 'uppercase', letterSpacing: '1px' }}>Forma de Entrega</h3>
@@ -125,16 +156,21 @@ export default function CartDrawer({
                             const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
                             const data = await res.json();
                             if (!data.erro) {
-                              onFormChange({
+                              const nextForm = {
                                 ...checkoutForm,
                                 zip: cep,
                                 address: data.logradouro,
                                 city: `${data.bairro} / ${data.localidade}`
-                              });
+                              };
+                              onFormChange(nextForm);
+                              loadShippingOptions({ zip: cep, city: nextForm.city });
                             }
                           } catch (err) {
                             console.error('Erro ao buscar CEP', err);
                           }
+                        } else {
+                          setShippingOptions([]);
+                          setShippingError('');
                         }
                       }}
                       style={{ padding: '10px 12px', border: '1px solid #ddd', borderRadius: '4px', flex: 1, fontSize: '1rem', color: '#111' }}
@@ -144,10 +180,50 @@ export default function CartDrawer({
 
                   <input type="text" placeholder="Rua / Av *" value={checkoutForm.address} onChange={e => onFormChange({...checkoutForm, address: e.target.value})} style={{ padding: '10px 12px', border: '1px solid #ddd', borderRadius: '4px', width: '100%', fontSize: '1rem', color: '#111' }} />
                   <input type="text" placeholder="Complemento (Apto, Bloco...)" value={checkoutForm.complement} onChange={e => onFormChange({...checkoutForm, complement: e.target.value})} style={{ padding: '10px 12px', border: '1px solid #ddd', borderRadius: '4px', width: '100%', fontSize: '1rem', color: '#111' }} />
-                  <input type="text" placeholder="Bairro / Cidade *" value={checkoutForm.city} onChange={e => onFormChange({...checkoutForm, city: e.target.value})} style={{ padding: '10px 12px', border: '1px solid #ddd', borderRadius: '4px', width: '100%', fontSize: '1rem', color: '#111' }} />
-                  <div style={{ fontSize: '0.85rem', color: isFreeShippingRegion(checkoutForm.city || '') ? '#16a34a' : '#777', lineHeight: '1.4' }}>
-                    {isFreeShippingRegion(checkoutForm.city || '') ? 'Frete grátis para Vitória da Conquista.' : 'Fora de Vitória da Conquista, o frete será calculado pelo Melhor Envio.'}
-                  </div>
+                  <input
+                    type="text"
+                    placeholder="Bairro / Cidade *"
+                    value={checkoutForm.city}
+                    onChange={e => {
+                      const nextCity = e.target.value;
+                      onFormChange({...checkoutForm, city: nextCity});
+                      loadShippingOptions({ zip: checkoutForm.zip, city: nextCity });
+                    }}
+                    style={{ padding: '10px 12px', border: '1px solid #ddd', borderRadius: '4px', width: '100%', fontSize: '1rem', color: '#111' }}
+                  />
+                  {isFreeDelivery && (
+                    <div style={{ fontSize: '0.85rem', color: '#16a34a', lineHeight: '1.4' }}>
+                      Frete grátis para Vitória da Conquista.
+                    </div>
+                  )}
+                  {!isFreeDelivery && checkoutForm.zip?.length === 8 && (
+                    <div style={{ border: '1px solid #e5e7eb', borderRadius: '4px', background: '#fff', padding: '10px', color: '#111' }}>
+                      <div style={{ fontSize: '0.78rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
+                        Opções de frete
+                      </div>
+                      {shippingLoading && <div style={{ fontSize: '0.9rem', color: '#666' }}>Calculando frete...</div>}
+                      {shippingError && <div style={{ fontSize: '0.9rem', color: '#dc2626' }}>{shippingError}</div>}
+                      {!shippingLoading && !shippingError && shippingOptions.length === 0 && (
+                        <div style={{ fontSize: '0.9rem', color: '#666' }}>Informe um CEP válido para calcular o frete.</div>
+                      )}
+                      {shippingOptions.map(option => (
+                        <label key={option.id} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', padding: '8px 0', borderTop: '1px solid #f3f4f6', fontSize: '0.9rem' }}>
+                          <input
+                            type="radio"
+                            name="shippingOption"
+                            checked={checkoutForm.shippingServiceId === option.id}
+                            onChange={() => onFormChange({...checkoutForm, shippingServiceId: option.id})}
+                            style={{ marginTop: '3px' }}
+                          />
+                          <span>
+                            <strong>{option.label}</strong><br />
+                            R$ {Number(option.price || 0).toFixed(2).replace('.', ',')}
+                            {option.deliveryTime ? ` - ${option.deliveryTime} dias úteis` : ''}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
                 </>
               )}
             </div>
