@@ -27,10 +27,30 @@ export default function CartDrawer({
   const [shippingOptions, setShippingOptions] = useState([]);
   const [shippingLoading, setShippingLoading] = useState(false);
   const [shippingError, setShippingError] = useState('');
+  const [touchedFields, setTouchedFields] = useState({});
+  const [validationMessage, setValidationMessage] = useState('');
 
   if (!isOpen) return null;
 
   const isFreeDelivery = checkoutForm.deliveryMethod === 'pickup' || isFreeShippingRegion(checkoutForm.city || '');
+  const requiredFields = checkoutForm.deliveryMethod === 'home'
+    ? ['name', 'email', 'zip', 'number', 'address', 'city']
+    : ['name', 'email'];
+  const missingFields = requiredFields.filter(field => !String(checkoutForm[field] || '').trim());
+
+  const fieldStyle = (field, extra = {}) => ({
+    padding: '10px 12px',
+    border: `1px solid ${touchedFields[field] && !String(checkoutForm[field] || '').trim() ? '#ef4444' : '#ddd'}`,
+    borderRadius: '4px',
+    fontSize: '1rem',
+    color: '#111',
+    background: touchedFields[field] && !String(checkoutForm[field] || '').trim() ? '#fff5f5' : '#fff',
+    ...extra
+  });
+
+  const markTouched = (field) => {
+    setTouchedFields(current => ({ ...current, [field]: true }));
+  };
 
   const loadShippingOptions = async ({ zip, city }) => {
     if (!zip || zip.length !== 8 || isFreeShippingRegion(city || '')) {
@@ -137,17 +157,18 @@ export default function CartDrawer({
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '9px', marginBottom: '16px' }}>
-              <input type="text" placeholder="Nome Completo *" value={checkoutForm.name} onChange={e => onFormChange({...checkoutForm, name: e.target.value})} style={{ padding: '10px 12px', border: '1px solid #ddd', borderRadius: '4px', width: '100%', fontSize: '1rem', color: '#111' }} />
-              <input type="email" placeholder="E-mail para pagamento *" value={checkoutForm.email || ''} onChange={e => onFormChange({...checkoutForm, email: e.target.value})} style={{ padding: '10px 12px', border: '1px solid #ddd', borderRadius: '4px', width: '100%', fontSize: '1rem', color: '#111' }} />
+              <input type="text" placeholder="Nome Completo (obrigatório)" value={checkoutForm.name} onBlur={() => markTouched('name')} onChange={e => onFormChange({...checkoutForm, name: e.target.value})} style={fieldStyle('name', { width: '100%' })} />
+              <input type="email" placeholder="E-mail para pagamento (obrigatório)" value={checkoutForm.email || ''} onBlur={() => markTouched('email')} onChange={e => onFormChange({...checkoutForm, email: e.target.value})} style={fieldStyle('email', { width: '100%' })} />
 
               {checkoutForm.deliveryMethod === 'home' && (
                 <>
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <input
                       type="text"
-                      placeholder="CEP *"
+                      placeholder="CEP (obrigatório)"
                       value={checkoutForm.zip}
                       maxLength={8}
+                      onBlur={() => markTouched('zip')}
                       onChange={async (e) => {
                         const cep = e.target.value.replace(/\D/g, '');
                         onFormChange({...checkoutForm, zip: cep});
@@ -173,23 +194,24 @@ export default function CartDrawer({
                           setShippingError('');
                         }
                       }}
-                      style={{ padding: '10px 12px', border: '1px solid #ddd', borderRadius: '4px', flex: 1, fontSize: '1rem', color: '#111' }}
+                      style={fieldStyle('zip', { flex: 1 })}
                     />
-                    <input type="text" placeholder="Nº *" value={checkoutForm.number} onChange={e => onFormChange({...checkoutForm, number: e.target.value})} style={{ padding: '10px 12px', border: '1px solid #ddd', borderRadius: '4px', flex: 1, fontSize: '1rem', color: '#111' }} />
+                    <input type="text" placeholder="Nº (obrigatório)" value={checkoutForm.number} onBlur={() => markTouched('number')} onChange={e => onFormChange({...checkoutForm, number: e.target.value})} style={fieldStyle('number', { flex: 1 })} />
                   </div>
 
-                  <input type="text" placeholder="Rua / Av *" value={checkoutForm.address} onChange={e => onFormChange({...checkoutForm, address: e.target.value})} style={{ padding: '10px 12px', border: '1px solid #ddd', borderRadius: '4px', width: '100%', fontSize: '1rem', color: '#111' }} />
+                  <input type="text" placeholder="Rua / Av (obrigatório)" value={checkoutForm.address} onBlur={() => markTouched('address')} onChange={e => onFormChange({...checkoutForm, address: e.target.value})} style={fieldStyle('address', { width: '100%' })} />
                   <input type="text" placeholder="Complemento (Apto, Bloco...)" value={checkoutForm.complement} onChange={e => onFormChange({...checkoutForm, complement: e.target.value})} style={{ padding: '10px 12px', border: '1px solid #ddd', borderRadius: '4px', width: '100%', fontSize: '1rem', color: '#111' }} />
                   <input
                     type="text"
-                    placeholder="Bairro / Cidade *"
+                    placeholder="Bairro / Cidade (obrigatório)"
                     value={checkoutForm.city}
+                    onBlur={() => markTouched('city')}
                     onChange={e => {
                       const nextCity = e.target.value;
                       onFormChange({...checkoutForm, city: nextCity});
                       loadShippingOptions({ zip: checkoutForm.zip, city: nextCity });
                     }}
-                    style={{ padding: '10px 12px', border: '1px solid #ddd', borderRadius: '4px', width: '100%', fontSize: '1rem', color: '#111' }}
+                    style={fieldStyle('city', { width: '100%' })}
                   />
                   {isFreeDelivery && (
                     <div style={{ fontSize: '0.85rem', color: '#16a34a', lineHeight: '1.4' }}>
@@ -228,13 +250,23 @@ export default function CartDrawer({
               )}
             </div>
 
+            {validationMessage && (
+              <div style={{ color: '#dc2626', background: '#fff5f5', border: '1px solid #fecaca', borderRadius: '4px', padding: '9px 10px', fontSize: '0.86rem', marginBottom: '12px' }}>
+                {validationMessage}
+              </div>
+            )}
+
             <button
               onClick={() => {
-                if (!checkoutForm.name) return alert('Por favor, preencha seu nome.');
-                if (!checkoutForm.email) return alert('Por favor, preencha seu e-mail.');
-                if (checkoutForm.deliveryMethod === 'home' && (!checkoutForm.address || !checkoutForm.number || !checkoutForm.city)) {
-                  return alert('Por favor, preencha todos os campos obrigatórios do endereço.');
+                if (missingFields.length > 0) {
+                  setTouchedFields(current => ({
+                    ...current,
+                    ...missingFields.reduce((acc, field) => ({ ...acc, [field]: true }), {})
+                  }));
+                  setValidationMessage('Preencha os campos obrigatórios destacados em vermelho.');
+                  return;
                 }
+                setValidationMessage('');
                 onCheckout();
               }}
               disabled={checkoutLoading}
