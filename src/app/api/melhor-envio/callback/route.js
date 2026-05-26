@@ -1,10 +1,4 @@
-function getBaseUrl() {
-  return process.env.NEXT_PUBLIC_SITE_URL || 'https://www.obsidianparfums.site';
-}
-
-function getRedirectUri() {
-  return process.env.MELHOR_ENVIO_REDIRECT_URI || `${getBaseUrl()}/api/melhor-envio/callback`;
-}
+import { exchangeMelhorEnvioCode, getMelhorEnvioRedirectUri, saveMelhorEnvioToken } from '@/lib/melhorEnvioAuth';
 
 function htmlResponse(body, status = 200) {
   return new Response(body, {
@@ -59,7 +53,7 @@ export async function GET(request) {
     return htmlResponse(renderPage({
       title: 'Callback do Melhor Envio ativo',
       intro: 'Use esta URL como redirecionamento após autorização no cadastro do aplicativo Melhor Envio.',
-      codeBlock: getRedirectUri(),
+      codeBlock: getMelhorEnvioRedirectUri(),
     }));
   }
 
@@ -76,40 +70,18 @@ export async function GET(request) {
   }
 
   try {
-    const apiUrl = process.env.MELHOR_ENVIO_API_URL || 'https://www.melhorenvio.com.br';
-    const response = await fetch(`${apiUrl}/oauth/token`, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        grant_type: 'authorization_code',
-        client_id: clientId,
-        client_secret: clientSecret,
-        redirect_uri: getRedirectUri(),
-        code,
-      }),
-    });
-
-    const data = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      return htmlResponse(renderPage({
-        title: 'Erro ao gerar token',
-        intro: 'O Melhor Envio retornou erro ao trocar o código por token.',
-        codeBlock: JSON.stringify(data, null, 2),
-      }), 500);
-    }
+    const data = await exchangeMelhorEnvioCode(code);
+    const { payload, saved } = await saveMelhorEnvioToken(data);
 
     return htmlResponse(renderPage({
-      title: 'Token do Melhor Envio gerado',
-      intro: 'Copie estas variáveis para a Vercel como Sensitive. Depois faça redeploy.',
-      warning: 'Trate estes valores como senha. Não envie por WhatsApp, print ou GitHub.',
-      codeBlock: `MELHOR_ENVIO_TOKEN=${data.access_token || ''}
-MELHOR_ENVIO_REFRESH_TOKEN=${data.refresh_token || ''}
-MELHOR_ENVIO_TOKEN_TYPE=${data.token_type || 'Bearer'}
-MELHOR_ENVIO_TOKEN_EXPIRES_IN=${data.expires_in || ''}`,
+      title: saved ? 'Melhor Envio autorizado' : 'Token do Melhor Envio gerado',
+      intro: saved
+        ? 'Pronto. O token foi salvo no KV/Redis e o frete já pode ser calculado no checkout.'
+        : 'O token foi gerado, mas não encontrei KV/Redis para salvar automaticamente. Copie estas variáveis para a Vercel como Sensitive e faça redeploy.',
+      warning: saved ? '' : 'Trate estes valores como senha. Não envie por WhatsApp, print ou GitHub.',
+      codeBlock: saved ? 'Você pode fechar esta página.' : `MELHOR_ENVIO_TOKEN=${payload.access_token || ''}
+MELHOR_ENVIO_REFRESH_TOKEN=${payload.refresh_token || ''}
+MELHOR_ENVIO_TOKEN_TYPE=${payload.token_type || 'Bearer'}`,
     }));
   } catch (callbackError) {
     return htmlResponse(renderPage({

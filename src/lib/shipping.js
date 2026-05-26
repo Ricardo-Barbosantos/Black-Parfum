@@ -1,3 +1,5 @@
+import { getMelhorEnvioAccessToken } from './melhorEnvioAuth';
+
 export const FREE_SHIPPING_CITY = 'Vitória da Conquista';
 
 function normalizeText(value = '') {
@@ -37,7 +39,7 @@ export function getLocalShippingQuote({ deliveryMethod, city }) {
 }
 
 export async function calculateMelhorEnvioShipping({ destinationZip, subtotal }) {
-  const token = process.env.MELHOR_ENVIO_TOKEN;
+  const token = await getMelhorEnvioAccessToken();
   const originZip = normalizeZip(process.env.MELHOR_ENVIO_ORIGIN_ZIP || '');
   const userAgent = process.env.MELHOR_ENVIO_USER_AGENT || 'Obsidian Parfums (contato@obsidianparfums.site)';
   const apiUrl = process.env.MELHOR_ENVIO_API_URL || 'https://www.melhorenvio.com.br';
