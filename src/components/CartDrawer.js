@@ -47,6 +47,12 @@ export default function CartDrawer({
   if (!isOpen) return null;
 
   const isFreeDelivery = checkoutForm.deliveryMethod === 'pickup' || isFreeShippingRegion(checkoutForm.city || '');
+  const hasValidZip = cleanZip(checkoutForm.zip || '').length === 8;
+  const selectedShippingOption = isFreeDelivery
+    ? null
+    : shippingOptions.find(option => option.id === checkoutForm.shippingServiceId) || shippingOptions[0] || null;
+  const shippingCost = isFreeDelivery ? 0 : Number(selectedShippingOption?.price || 0);
+  const orderTotal = Number((cartTotal + shippingCost).toFixed(2));
   const requiredFields = checkoutForm.deliveryMethod === 'home'
     ? ['name', 'email', 'zip', 'address', 'number', 'neighborhood', 'city', 'state']
     : ['name', 'email'];
@@ -136,7 +142,7 @@ export default function CartDrawer({
       }
     } catch (error) {
       setShippingOptions([]);
-      setShippingError(error.message || 'Não foi possível calcular o frete.');
+      setShippingError('Não conseguimos carregar as opções de frete agora.');
     } finally {
       setShippingLoading(false);
     }
@@ -242,9 +248,17 @@ export default function CartDrawer({
               <span>Subtotal:</span>
               <span>R$ {cartTotal.toFixed(2).replace('.', ',')}</span>
             </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: '#555', marginBottom: '8px' }}>
+              <span>Frete:</span>
+              <span>
+                {shippingLoading
+                  ? 'Calculando...'
+                  : `R$ ${shippingCost.toFixed(2).replace('.', ',')}`}
+              </span>
+            </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: '600', marginBottom: '14px', color: '#111', borderTop: '1px solid #eee', paddingTop: '12px' }}>
               <span>Total:</span>
-              <span>R$ {cartTotal.toFixed(2).replace('.', ',')}</span>
+              <span>R$ {orderTotal.toFixed(2).replace('.', ',')}</span>
             </div>
 
             <h3 style={{ fontSize: '0.8rem', marginBottom: '10px', color: '#666', textTransform: 'uppercase', letterSpacing: '1px' }}>Forma de Entrega</h3>
@@ -353,29 +367,56 @@ export default function CartDrawer({
                       Frete grátis para Vitória da Conquista.
                     </div>
                   )}
-                  {!isFreeDelivery && cleanZip(checkoutForm.zip || '').length === 8 && (
+                  {!isFreeDelivery && (
                     <div style={{ border: '1px solid #e5e7eb', borderRadius: '4px', background: '#fff', padding: '10px', color: '#111' }}>
                       <div style={{ fontSize: '0.78rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
                         Opções de frete
                       </div>
                       {shippingLoading && <div style={{ fontSize: '0.9rem', color: '#666' }}>Calculando frete...</div>}
-                      {shippingError && <div style={{ fontSize: '0.9rem', color: '#dc2626' }}>{shippingError}</div>}
-                      {!shippingLoading && !shippingError && shippingOptions.length === 0 && (
-                        <div style={{ fontSize: '0.9rem', color: '#666' }}>Informe um CEP válido para calcular o frete.</div>
+                      {!hasValidZip && !shippingLoading && (
+                        <div style={{ fontSize: '0.9rem', color: '#666' }}>Informe o CEP para ver as opções de envio.</div>
+                      )}
+                      {hasValidZip && shippingError && (
+                        <div style={{ fontSize: '0.9rem', color: '#dc2626' }}>{shippingError}</div>
+                      )}
+                      {hasValidZip && !shippingLoading && !shippingError && shippingOptions.length === 0 && (
+                        <div style={{ fontSize: '0.9rem', color: '#666' }}>Nenhuma opção de frete encontrada para esse CEP.</div>
                       )}
                       {shippingOptions.map(option => (
-                        <label key={option.id} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', padding: '8px 0', borderTop: '1px solid #f3f4f6', fontSize: '0.9rem' }}>
+                        <label
+                          key={option.id}
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: '18px 1fr auto',
+                            gap: '10px',
+                            alignItems: 'center',
+                            padding: '10px',
+                            marginTop: '8px',
+                            border: `1px solid ${(checkoutForm.shippingServiceId ? checkoutForm.shippingServiceId === option.id : selectedShippingOption?.id === option.id) ? '#111827' : '#e5e7eb'}`,
+                            borderRadius: '6px',
+                            background: (checkoutForm.shippingServiceId ? checkoutForm.shippingServiceId === option.id : selectedShippingOption?.id === option.id) ? '#f8fafc' : '#fff',
+                            fontSize: '0.9rem',
+                            cursor: 'pointer'
+                          }}
+                        >
                           <input
                             type="radio"
                             name="shippingOption"
-                            checked={checkoutForm.shippingServiceId === option.id}
+                            checked={checkoutForm.shippingServiceId ? checkoutForm.shippingServiceId === option.id : selectedShippingOption?.id === option.id}
                             onChange={() => onFormChange({...checkoutForm, shippingServiceId: option.id})}
-                            style={{ marginTop: '3px' }}
+                            style={{ accentColor: '#111' }}
                           />
                           <span>
-                            <strong>{option.label}</strong><br />
+                            <strong>{option.label}</strong>
+                            {option.deliveryTime ? (
+                              <>
+                                <br />
+                                <span style={{ color: '#666' }}>Prazo: {option.deliveryTime} dias úteis</span>
+                              </>
+                            ) : null}
+                          </span>
+                          <span style={{ fontWeight: 700 }}>
                             R$ {Number(option.price || 0).toFixed(2).replace('.', ',')}
-                            {option.deliveryTime ? ` - ${option.deliveryTime} dias úteis` : ''}
                           </span>
                         </label>
                       ))}

@@ -190,8 +190,12 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error('Erro no checkout Mercado Pago:', error);
+    const publicMessage = error.message?.includes('Melhor Envio')
+      ? 'Não foi possível calcular o frete agora.'
+      : error.message || 'Erro ao iniciar pagamento.';
+
     return new Response(JSON.stringify({
-      error: error.message || 'Erro ao iniciar pagamento.',
+      error: publicMessage,
     }), { status: 500 });
   }
 }

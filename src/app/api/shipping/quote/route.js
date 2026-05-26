@@ -23,8 +23,9 @@ export async function POST(request) {
 
     return new Response(JSON.stringify({ options }), { status: 200 });
   } catch (error) {
+    console.error('Erro ao calcular frete:', error);
     return new Response(JSON.stringify({
-      error: error.message || 'Erro ao calcular frete.',
+      error: 'Não foi possível calcular o frete agora.',
     }), { status: 500 });
   }
 }
