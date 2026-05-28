@@ -3,6 +3,7 @@ import Redis from 'ioredis';
 
 const TOKEN_KEY = 'obsidian_melhor_envio_token';
 const TOKEN_REFRESH_MARGIN_MS = 5 * 60 * 1000;
+const DEFAULT_API_URL = 'https://melhorenvio.com.br';
 
 let redis = null;
 
@@ -15,7 +16,18 @@ if (process.env.REDIS_URL) {
 }
 
 export function getMelhorEnvioApiUrl() {
-  return process.env.MELHOR_ENVIO_API_URL || 'https://www.melhorenvio.com.br';
+  const rawUrl = process.env.MELHOR_ENVIO_API_URL || DEFAULT_API_URL;
+
+  try {
+    const url = new URL(rawUrl.trim());
+    if (url.hostname === 'www.melhorenvio.com.br') {
+      url.hostname = 'melhorenvio.com.br';
+    }
+    url.pathname = url.pathname.replace(/\/+$/, '');
+    return url.toString().replace(/\/$/, '');
+  } catch {
+    return DEFAULT_API_URL;
+  }
 }
 
 export function getMelhorEnvioRedirectUri() {

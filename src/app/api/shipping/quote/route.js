@@ -1,5 +1,18 @@
 import { calculateMelhorEnvioShipping, getLocalShippingQuote } from '@/lib/shipping';
 
+function getErrorStatus(message = '') {
+  if (message.includes('CEP inválido')) return 400;
+  if (
+    message.includes('não está configurado') ||
+    message.includes('não foi autorizado') ||
+    message.includes('expirado')
+  ) {
+    return 503;
+  }
+
+  return 500;
+}
+
 export async function POST(request) {
   try {
     const { deliveryMethod, city, zip, subtotal } = await request.json();
@@ -24,8 +37,13 @@ export async function POST(request) {
     return new Response(JSON.stringify({ options }), { status: 200 });
   } catch (error) {
     console.error('Erro ao calcular frete:', error);
+    const message = error.message || 'Não foi possível calcular o frete agora.';
+
     return new Response(JSON.stringify({
-      error: 'Não foi possível calcular o frete agora.',
-    }), { status: 500 });
+      error: message,
+    }), {
+      status: getErrorStatus(message),
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }

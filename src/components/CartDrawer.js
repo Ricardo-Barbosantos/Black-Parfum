@@ -14,10 +14,17 @@ function cleanZip(value = '') {
   return value.replace(/\D/g, '').slice(0, 8);
 }
 
+function formatZip(value = '') {
+  const zip = cleanZip(value);
+  if (zip.length <= 5) return zip;
+  return `${zip.slice(0, 5)}-${zip.slice(5)}`;
+}
+
 function getLookupZip(value = '') {
   const zip = cleanZip(value);
 
   if (zip.length === 8) return zip;
+  if (zip.length === 7 && zip.endsWith('000')) return `${zip}0`;
   if (zip.length === 6 && zip.endsWith('000')) return `${zip}00`;
 
   return '';
@@ -125,7 +132,7 @@ export default function CartDrawer({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          deliveryMethod: checkoutForm.deliveryMethod,
+          deliveryMethod: form.deliveryMethod,
           city,
           zip: normalizedZip,
           subtotal: cartTotal
@@ -142,7 +149,7 @@ export default function CartDrawer({
       }
     } catch (error) {
       setShippingOptions([]);
-      setShippingError('Não conseguimos carregar as opções de frete agora.');
+      setShippingError(error.message || 'Não conseguimos carregar as opções de frete agora.');
     } finally {
       setShippingLoading(false);
     }
@@ -171,9 +178,9 @@ export default function CartDrawer({
 
       const nextForm = {
         ...baseForm,
-        zip: lookupValue,
-        address: data.logradouro || '',
-        neighborhood: data.bairro || '',
+        zip: formatZip(lookupValue),
+        address: data.logradouro || baseForm.address || '',
+        neighborhood: data.bairro || baseForm.neighborhood || '',
         city: data.localidade || baseForm.city || '',
         state: data.uf || baseForm.state || '',
         shippingServiceId: '',
@@ -297,10 +304,10 @@ export default function CartDrawer({
                     <input
                       type="text"
                       placeholder="00000-000"
-                      value={checkoutForm.zip}
-                      maxLength={8}
+                      value={formatZip(checkoutForm.zip)}
+                      maxLength={9}
                       onChange={async (e) => {
-                        const zip = cleanZip(e.target.value);
+                        const zip = formatZip(e.target.value);
                         const nextForm = { ...checkoutForm, zip, shippingServiceId: '' };
                         onFormChange(nextForm);
                         lookupZip(zip, nextForm);
