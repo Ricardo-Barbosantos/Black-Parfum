@@ -19,7 +19,14 @@ function getApiErrorMessage(data) {
   if (typeof data === 'string') return data;
 
   if (Array.isArray(data)) {
-    return [...new Set(data.map((item) => item?.error).filter(Boolean))]
+    return [...new Set(data.map((item) => {
+      if (!item?.error) return '';
+      if (typeof item.error === 'string') return item.error;
+      if (typeof item.error === 'object') {
+        return Object.values(item.error).flat().filter(Boolean).join(' ');
+      }
+      return String(item.error);
+    }).filter(Boolean))]
       .slice(0, 3)
       .join(' ');
   }
@@ -33,6 +40,13 @@ function getApiErrorMessage(data) {
   }
 
   return data.message || data.error || '';
+}
+
+function getServicePrice(service) {
+  const value = service.custom_price ?? service.price;
+  const price = Number(value);
+
+  return Number.isFinite(price) && price > 0 ? price : null;
 }
 
 export function isFreeShippingRegion(city = '') {
@@ -112,14 +126,18 @@ export async function calculateMelhorEnvioShipping({ destinationZip, subtotal })
 
   const quotes = Array.isArray(data) ? data : [];
   const options = quotes
-    .filter((service) => service.price && !service.error)
     .map((service) => ({
-      id: String(service.id),
-      name: service.name,
-      company: service.company?.name || 'Transportadora',
-      price: Number(service.price),
-      deliveryTime: service.delivery_time,
-      label: `${service.company?.name || 'Transportadora'} - ${service.name}`,
+      service,
+      price: getServicePrice(service),
+    }))
+    .filter((quote) => quote.price && !quote.service.error)
+    .map((quote) => ({
+      id: String(quote.service.id),
+      name: quote.service.name,
+      company: quote.service.company?.name || 'Transportadora',
+      price: quote.price,
+      deliveryTime: quote.service.custom_delivery_time ?? quote.service.delivery_time,
+      label: `${quote.service.company?.name || 'Transportadora'} - ${quote.service.name}`,
     }))
     .sort((a, b) => a.price - b.price);
 
