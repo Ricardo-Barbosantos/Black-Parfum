@@ -14,6 +14,16 @@ function normalizeZip(value = '') {
   return value.replace(/\D/g, '');
 }
 
+function getQuoteZip(value = '') {
+  const zip = normalizeZip(value);
+
+  if (zip.length === 8) return zip;
+  if (zip.length === 7 && zip.endsWith('000')) return `${zip}0`;
+  if (zip.length === 6 && zip.endsWith('000')) return `${zip}00`;
+
+  return zip;
+}
+
 function getApiErrorMessage(data) {
   if (!data) return '';
   if (typeof data === 'string') return data;
@@ -75,13 +85,17 @@ export function getLocalShippingQuote({ deliveryMethod, city }) {
 
 export async function calculateMelhorEnvioShipping({ destinationZip, subtotal }) {
   const token = await getMelhorEnvioAccessToken();
-  const originZip = normalizeZip(process.env.MELHOR_ENVIO_ORIGIN_ZIP || '');
+  const originZip = getQuoteZip(process.env.MELHOR_ENVIO_ORIGIN_ZIP || '');
   const userAgent = process.env.MELHOR_ENVIO_USER_AGENT || 'Obsidian Parfums (contato@obsidianparfums.site)';
   const apiUrl = getMelhorEnvioApiUrl();
-  const cleanDestinationZip = normalizeZip(destinationZip);
+  const cleanDestinationZip = getQuoteZip(destinationZip);
 
-  if (!token || !originZip) {
+  if (!token || !process.env.MELHOR_ENVIO_ORIGIN_ZIP) {
     throw new Error('Melhor Envio ainda não está configurado.');
+  }
+
+  if (originZip.length !== 8) {
+    throw new Error('CEP de origem do Melhor Envio inválido. Confira MELHOR_ENVIO_ORIGIN_ZIP na Vercel.');
   }
 
   if (cleanDestinationZip.length !== 8) {
