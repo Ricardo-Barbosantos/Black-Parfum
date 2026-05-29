@@ -59,6 +59,33 @@ function getServicePrice(service) {
   return Number.isFinite(price) && price > 0 ? price : null;
 }
 
+function getConfiguredServices() {
+  return (process.env.MELHOR_ENVIO_SERVICES || '1,2,3,4,17')
+    .split(',')
+    .map((service) => service.trim())
+    .filter(Boolean)
+    .join(',');
+}
+
+function getEmptyQuoteMessage(quotes) {
+  const apiMessage = getApiErrorMessage(quotes);
+  if (apiMessage) return apiMessage;
+
+  if (!quotes.length) {
+    return 'O Melhor Envio não retornou serviços para esse frete. Confira se o aplicativo está autorizado com shipping-calculate e se Correios/Jadlog estão ativos na configuração do app.';
+  }
+
+  const returnedServices = quotes
+    .map((service) => `${service.company?.name || 'Transportadora'} ${service.name || service.id || ''}`.trim())
+    .filter(Boolean)
+    .slice(0, 5)
+    .join(', ');
+
+  return returnedServices
+    ? `O Melhor Envio retornou serviços sem preço válido: ${returnedServices}. Confira as transportadoras ativas e as dimensões do pacote.`
+    : 'Nenhuma opção de frete encontrada para esse CEP.';
+}
+
 export function isFreeShippingRegion(city = '') {
   return normalizeText(city).includes(normalizeText(FREE_SHIPPING_CITY));
 }
@@ -89,6 +116,7 @@ export async function calculateMelhorEnvioShipping({ destinationZip, subtotal })
   const userAgent = process.env.MELHOR_ENVIO_USER_AGENT || 'Obsidian Parfums (contato@obsidianparfums.site)';
   const apiUrl = getMelhorEnvioApiUrl();
   const cleanDestinationZip = getQuoteZip(destinationZip);
+  const services = getConfiguredServices();
 
   if (!token || !process.env.MELHOR_ENVIO_ORIGIN_ZIP) {
     throw new Error('Melhor Envio ainda não está configurado.');
@@ -113,6 +141,7 @@ export async function calculateMelhorEnvioShipping({ destinationZip, subtotal })
     body: JSON.stringify({
       from: { postal_code: originZip },
       to: { postal_code: cleanDestinationZip },
+      ...(services ? { services } : {}),
       products: [
         {
           id: 'pedido-obsidian',
@@ -156,7 +185,7 @@ export async function calculateMelhorEnvioShipping({ destinationZip, subtotal })
     .sort((a, b) => a.price - b.price);
 
   if (!options.length) {
-    throw new Error(getApiErrorMessage(quotes) || 'Nenhuma opção de frete encontrada para esse CEP.');
+    throw new Error(getEmptyQuoteMessage(quotes));
   }
 
   return options;
