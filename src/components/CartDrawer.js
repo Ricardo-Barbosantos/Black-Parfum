@@ -76,7 +76,7 @@ export default function CartDrawer({
   const couponDiscount = getCouponDiscount(cartTotal, appliedCoupon);
   const orderTotal = Number((cartTotal - couponDiscount + shippingCost).toFixed(2));
   const requiredFields = checkoutForm.deliveryMethod === 'home'
-    ? ['name', 'email', 'zip', 'address', 'number', 'neighborhood', 'city', 'state']
+    ? ['name', 'email', 'zip', 'address', 'number', 'neighborhood', 'city']
     : ['name', 'email'];
   const isFieldMissing = (field) => {
     if (field === 'zip') return cleanZip(checkoutForm.zip || '').length !== 8;
@@ -85,10 +85,12 @@ export default function CartDrawer({
   const missingFields = requiredFields.filter(isFieldMissing);
 
   const inputStyle = (extra = {}) => ({
-    padding: '10px 12px',
+    padding: '8px 10px',
     border: '1px solid #ddd',
     borderRadius: '4px',
-    fontSize: '1rem',
+    fontSize: '0.95rem',
+    minHeight: '38px',
+    lineHeight: 1.2,
     color: '#111',
     background: '#fff',
     ...extra
@@ -96,7 +98,7 @@ export default function CartDrawer({
 
   const labelStyle = {
     color: '#555',
-    fontSize: '0.78rem',
+    fontSize: '0.72rem',
     fontWeight: 600,
     letterSpacing: '0.02em',
   };
@@ -104,7 +106,7 @@ export default function CartDrawer({
   const fieldWrapStyle = {
     display: 'flex',
     flexDirection: 'column',
-    gap: '5px',
+    gap: '3px',
   };
 
   const errorStyle = {
@@ -114,8 +116,8 @@ export default function CartDrawer({
   };
 
   const sectionTitleStyle = {
-    fontSize: '0.78rem',
-    margin: '2px 0 0',
+    fontSize: '0.72rem',
+    margin: 0,
     color: '#666',
     textTransform: 'uppercase',
     letterSpacing: '1px',
@@ -359,21 +361,21 @@ export default function CartDrawer({
               <span>R$ {formatMoney(orderTotal)}</span>
             </div>
 
-            <h3 style={{ fontSize: '0.8rem', marginBottom: '10px', color: '#666', textTransform: 'uppercase', letterSpacing: '1px' }}>Forma de Entrega</h3>
+            <h3 style={{ fontSize: '0.72rem', marginBottom: '8px', color: '#666', textTransform: 'uppercase', letterSpacing: '1px' }}>Forma de Entrega</h3>
 
-            <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', color: '#111' }}>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '10px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.86rem', color: '#111' }}>
                 <input type="radio" name="deliveryMethod" value="home" checked={checkoutForm.deliveryMethod === 'home'} onChange={() => onFormChange({...checkoutForm, deliveryMethod: 'home'})} style={{ accentColor: '#111' }} />
                 Receber em Casa
               </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', color: '#111' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.86rem', color: '#111' }}>
                 <input type="radio" name="deliveryMethod" value="pickup" checked={checkoutForm.deliveryMethod === 'pickup'} onChange={() => onFormChange({...checkoutForm, deliveryMethod: 'pickup'})} style={{ accentColor: '#111' }} />
                 Retirar na Loja
               </label>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
-              <h3 style={sectionTitleStyle}>Dados de contato</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
+              <h3 style={sectionTitleStyle}>Contato</h3>
               <div style={fieldWrapStyle}>
                 <label style={labelStyle}>Nome completo</label>
                 <input type="text" placeholder="Digite seu nome completo" value={checkoutForm.name} onChange={e => onFormChange({...checkoutForm, name: e.target.value})} style={inputStyle({ width: '100%' })} />
@@ -388,7 +390,7 @@ export default function CartDrawer({
 
               {checkoutForm.deliveryMethod === 'home' && (
                 <>
-                  <h3 style={{ ...sectionTitleStyle, marginTop: '6px' }}>Endereço de entrega</h3>
+                  <h3 style={{ ...sectionTitleStyle, marginTop: '4px' }}>Entrega</h3>
 
                   <div style={fieldWrapStyle}>
                     <label style={labelStyle}>CEP</label>
@@ -410,115 +412,108 @@ export default function CartDrawer({
                     {fieldError('zip')}
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 112px', gap: '10px' }}>
-                    <div style={fieldWrapStyle}>
-                      <label style={labelStyle}>Rua ou avenida</label>
-                      <input type="text" placeholder="Rua, avenida ou estrada" value={checkoutForm.address} onChange={e => onFormChange({...checkoutForm, address: e.target.value})} style={inputStyle({ width: '100%' })} />
-                      {fieldError('address')}
-                    </div>
+                  {hasValidZip && (
+                    <>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 96px', gap: '8px' }}>
+                        <div style={fieldWrapStyle}>
+                          <label style={labelStyle}>Rua</label>
+                          <input type="text" placeholder="Rua ou avenida" value={checkoutForm.address} onChange={e => onFormChange({...checkoutForm, address: e.target.value})} style={inputStyle({ width: '100%' })} />
+                          {fieldError('address')}
+                        </div>
 
-                    <div style={fieldWrapStyle}>
-                      <label style={labelStyle}>Número</label>
-                      <input type="text" placeholder="Nº" value={checkoutForm.number} onChange={e => onFormChange({...checkoutForm, number: e.target.value})} style={inputStyle({ width: '100%' })} />
-                      {fieldError('number')}
-                    </div>
-                  </div>
-
-                  <div style={fieldWrapStyle}>
-                    <label style={labelStyle}>Complemento</label>
-                    <input type="text" placeholder="Apto, bloco, casa..." value={checkoutForm.complement} onChange={e => onFormChange({...checkoutForm, complement: e.target.value})} style={inputStyle({ width: '100%' })} />
-                  </div>
-
-                  <div style={fieldWrapStyle}>
-                    <label style={labelStyle}>Bairro</label>
-                    <input type="text" placeholder="Seu bairro" value={checkoutForm.neighborhood || ''} onChange={e => onFormChange({...checkoutForm, neighborhood: e.target.value})} style={inputStyle({ width: '100%' })} />
-                    {fieldError('neighborhood')}
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 86px', gap: '10px' }}>
-                    <div style={fieldWrapStyle}>
-                      <label style={labelStyle}>Cidade</label>
-                      <input
-                        type="text"
-                        placeholder="Cidade"
-                        value={checkoutForm.city}
-                        onChange={e => {
-                          const nextCity = e.target.value;
-                          const nextForm = { ...checkoutForm, city: nextCity, shippingServiceId: '' };
-                          onFormChange(nextForm);
-                          loadShippingOptions({ zip: checkoutForm.zip, city: nextCity, form: nextForm });
-                        }}
-                        style={inputStyle({ width: '100%' })}
-                      />
-                      {fieldError('city')}
-                    </div>
-
-                    <div style={fieldWrapStyle}>
-                      <label style={labelStyle}>UF</label>
-                      <input type="text" placeholder="UF" value={checkoutForm.state || ''} maxLength={2} onChange={e => onFormChange({...checkoutForm, state: e.target.value.toUpperCase()})} style={inputStyle({ width: '100%', textTransform: 'uppercase' })} />
-                      {fieldError('state')}
-                    </div>
-                  </div>
-
-                  {isFreeDelivery && (
-                    <div style={{ fontSize: '0.85rem', color: '#16a34a', lineHeight: '1.4' }}>
-                      Frete grátis para Vitória da Conquista.
-                    </div>
-                  )}
-                  {!isFreeDelivery && (
-                    <div style={{ border: '1px solid #e5e7eb', borderRadius: '4px', background: '#fff', padding: '10px', color: '#111' }}>
-                      <div style={{ fontSize: '0.78rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
-                        Opções de frete
+                        <div style={fieldWrapStyle}>
+                          <label style={labelStyle}>Número</label>
+                          <input type="text" placeholder="Nº" value={checkoutForm.number} onChange={e => onFormChange({...checkoutForm, number: e.target.value})} style={inputStyle({ width: '100%' })} />
+                          {fieldError('number')}
+                        </div>
                       </div>
-                      {shippingLoading && <div style={{ fontSize: '0.9rem', color: '#666' }}>Calculando frete...</div>}
-                      {!hasValidZip && !shippingLoading && (
-                        <div style={{ fontSize: '0.9rem', color: '#666' }}>Informe o CEP para ver as opções de envio.</div>
-                      )}
-                      {hasValidZip && shippingError && (
-                        <div style={{ fontSize: '0.9rem', color: '#dc2626' }}>{shippingError}</div>
-                      )}
-                      {hasValidZip && !shippingLoading && !shippingError && shippingOptions.length === 0 && (
-                        <div style={{ fontSize: '0.9rem', color: '#666' }}>Nenhuma opção de frete encontrada para esse CEP.</div>
-                      )}
-                      {shippingOptions.map(option => (
-                        <label
-                          key={option.id}
-                          style={{
-                            display: 'grid',
-                            gridTemplateColumns: '18px 1fr auto',
-                            gap: '10px',
-                            alignItems: 'center',
-                            padding: '10px',
-                            marginTop: '8px',
-                            border: `1px solid ${(checkoutForm.shippingServiceId ? checkoutForm.shippingServiceId === option.id : selectedShippingOption?.id === option.id) ? '#111827' : '#e5e7eb'}`,
-                            borderRadius: '6px',
-                            background: (checkoutForm.shippingServiceId ? checkoutForm.shippingServiceId === option.id : selectedShippingOption?.id === option.id) ? '#f8fafc' : '#fff',
-                            fontSize: '0.9rem',
-                            cursor: 'pointer'
+
+                      <div style={fieldWrapStyle}>
+                        <label style={labelStyle}>Complemento <span style={{ color: '#999', fontWeight: 400 }}>(opcional)</span></label>
+                        <input type="text" placeholder="Apto, bloco, casa..." value={checkoutForm.complement} onChange={e => onFormChange({...checkoutForm, complement: e.target.value})} style={inputStyle({ width: '100%' })} />
+                      </div>
+
+                      <div style={fieldWrapStyle}>
+                        <label style={labelStyle}>Bairro</label>
+                        <input type="text" placeholder="Seu bairro" value={checkoutForm.neighborhood || ''} onChange={e => onFormChange({...checkoutForm, neighborhood: e.target.value})} style={inputStyle({ width: '100%' })} />
+                        {fieldError('neighborhood')}
+                      </div>
+
+                      <div style={fieldWrapStyle}>
+                        <label style={labelStyle}>Cidade</label>
+                        <input
+                          type="text"
+                          placeholder="Cidade"
+                          value={checkoutForm.city}
+                          onChange={e => {
+                            const nextCity = e.target.value;
+                            const nextForm = { ...checkoutForm, city: nextCity, shippingServiceId: '' };
+                            onFormChange(nextForm);
+                            loadShippingOptions({ zip: checkoutForm.zip, city: nextCity, form: nextForm });
                           }}
-                        >
-                          <input
-                            type="radio"
-                            name="shippingOption"
-                            checked={checkoutForm.shippingServiceId ? checkoutForm.shippingServiceId === option.id : selectedShippingOption?.id === option.id}
-                            onChange={() => onFormChange({...checkoutForm, shippingServiceId: option.id})}
-                            style={{ accentColor: '#111' }}
-                          />
-                          <span>
-                            <strong>{option.label}</strong>
-                            {option.deliveryTime ? (
-                              <>
-                                <br />
-                                <span style={{ color: '#666' }}>Prazo: {option.deliveryTime} dias úteis</span>
-                              </>
-                            ) : null}
-                          </span>
-                          <span style={{ fontWeight: 700 }}>
-                            R$ {Number(option.price || 0).toFixed(2).replace('.', ',')}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
+                          style={inputStyle({ width: '100%' })}
+                        />
+                        {fieldError('city')}
+                      </div>
+
+                      {isFreeDelivery && (
+                        <div style={{ fontSize: '0.85rem', color: '#16a34a', lineHeight: '1.4' }}>
+                          Frete grátis para Vitória da Conquista.
+                        </div>
+                      )}
+                      {!isFreeDelivery && (
+                        <div style={{ border: '1px solid #e5e7eb', borderRadius: '4px', background: '#fff', padding: '9px', color: '#111' }}>
+                          <div style={{ fontSize: '0.72rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
+                            Opções de frete
+                          </div>
+                          {shippingLoading && <div style={{ fontSize: '0.85rem', color: '#666' }}>Calculando frete...</div>}
+                          {shippingError && (
+                            <div style={{ fontSize: '0.85rem', color: '#dc2626' }}>{shippingError}</div>
+                          )}
+                          {!shippingLoading && !shippingError && shippingOptions.length === 0 && (
+                            <div style={{ fontSize: '0.85rem', color: '#666' }}>Nenhuma opção de frete encontrada para esse CEP.</div>
+                          )}
+                          {shippingOptions.map(option => (
+                            <label
+                              key={option.id}
+                              style={{
+                                display: 'grid',
+                                gridTemplateColumns: '18px 1fr auto',
+                                gap: '8px',
+                                alignItems: 'center',
+                                padding: '8px',
+                                marginTop: '6px',
+                                border: `1px solid ${(checkoutForm.shippingServiceId ? checkoutForm.shippingServiceId === option.id : selectedShippingOption?.id === option.id) ? '#111827' : '#e5e7eb'}`,
+                                borderRadius: '6px',
+                                background: (checkoutForm.shippingServiceId ? checkoutForm.shippingServiceId === option.id : selectedShippingOption?.id === option.id) ? '#f8fafc' : '#fff',
+                                fontSize: '0.86rem',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <input
+                                type="radio"
+                                name="shippingOption"
+                                checked={checkoutForm.shippingServiceId ? checkoutForm.shippingServiceId === option.id : selectedShippingOption?.id === option.id}
+                                onChange={() => onFormChange({...checkoutForm, shippingServiceId: option.id})}
+                                style={{ accentColor: '#111' }}
+                              />
+                              <span>
+                                <strong>{option.label}</strong>
+                                {option.deliveryTime ? (
+                                  <>
+                                    <br />
+                                    <span style={{ color: '#666' }}>Prazo: {option.deliveryTime} dias úteis</span>
+                                  </>
+                                ) : null}
+                              </span>
+                              <span style={{ fontWeight: 700 }}>
+                                R$ {Number(option.price || 0).toFixed(2).replace('.', ',')}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </>
                   )}
                 </>
               )}

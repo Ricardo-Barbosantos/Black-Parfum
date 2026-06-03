@@ -104,7 +104,7 @@ export default function Home() {
 
     if (
       checkoutForm.deliveryMethod === 'home' &&
-      (!checkoutForm.address || !checkoutForm.number || !checkoutForm.neighborhood || !checkoutForm.city || !checkoutForm.state || zip.length !== 8)
+      (!checkoutForm.address || !checkoutForm.number || !checkoutForm.neighborhood || !checkoutForm.city || zip.length !== 8)
     ) {
       return;
     }

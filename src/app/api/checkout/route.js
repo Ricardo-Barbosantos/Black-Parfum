@@ -192,7 +192,7 @@ export async function POST(request) {
     const zip = String(customer.zip || '').replace(/\D/g, '');
     if (
       customer.deliveryMethod === 'home' &&
-      (!customer.address || !customer.number || !customer.neighborhood || !customer.city || !customer.state || zip.length !== 8)
+      (!customer.address || !customer.number || !customer.neighborhood || !customer.city || zip.length !== 8)
     ) {
       return new Response(JSON.stringify({ error: 'Preencha todos os dados de entrega.' }), { status: 400 });
     }
