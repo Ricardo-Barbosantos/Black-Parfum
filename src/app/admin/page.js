@@ -276,6 +276,7 @@ export default function AdminPage() {
       image: "/photos/perfume.jpg",
       images: ["/photos/perfume.jpg"],
       isOnSale: false,
+      soldOut: false,
       rating: 5,
       discountPercent: 0,
       installments: "3x de R$ 0,00 s/ juros",
@@ -835,6 +836,19 @@ export default function AdminPage() {
                   />
                   <label htmlFor={`promo-${product.id}`} style={{ fontSize: '1.1rem', cursor: 'pointer', color: product.isOnSale ? 'var(--primary-gold)' : 'var(--text-dim)' }}>
                     Ativar Etiqueta de PROMOÇÃO
+                  </label>
+                </div>
+
+                <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <input
+                    type="checkbox"
+                    id={`sold-out-${product.id}`}
+                    checked={product.soldOut || false}
+                    onChange={(e) => handleChange(index, 'soldOut', e.target.checked)}
+                    style={{ width: '20px', height: '20px', accentColor: '#f87171', cursor: 'pointer' }}
+                  />
+                  <label htmlFor={`sold-out-${product.id}`} style={{ fontSize: '1.1rem', cursor: 'pointer', color: product.soldOut ? '#f87171' : 'var(--text-dim)' }}>
+                    Marcar como ESGOTADO
                   </label>
                 </div>
               </div>

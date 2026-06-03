@@ -72,6 +72,10 @@ function buildValidatedItems(cart, products) {
       throw new Error(`Produto não encontrado: ${cartItem.id}`);
     }
 
+    if (product.soldOut) {
+      throw new Error(`Produto esgotado: ${product.name}`);
+    }
+
     const quantity = Number(cartItem.quantity);
     const unitPrice = Number(product.price);
 

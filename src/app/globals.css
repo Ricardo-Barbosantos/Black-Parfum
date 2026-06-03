@@ -158,6 +158,16 @@ input, textarea, select {
   box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 
+.product-card-sold-out {
+  opacity: 0.62;
+  filter: grayscale(1);
+}
+
+.product-card-sold-out:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 .card-badge {
   position: absolute;
   top: 0;
@@ -168,6 +178,10 @@ input, textarea, select {
   font-size: 11px;
   font-weight: 600;
   z-index: 10;
+}
+
+.card-badge-sold-out {
+  background: #6b7280;
 }
 
 .card-image-wrap {
@@ -256,6 +270,14 @@ input, textarea, select {
 
 .btn-comprar:hover {
   opacity: 0.9;
+}
+
+.btn-comprar-sold-out,
+.btn-comprar-sold-out:hover {
+  background: #9ca3af;
+  color: #fff;
+  cursor: not-allowed;
+  opacity: 1;
 }
 
 /* Toast Premium Styles */

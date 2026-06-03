@@ -11,6 +11,7 @@ const ProductSchema = z.object({
   image: z.string().min(1),
   images: z.array(z.string()).optional(),
   isOnSale: z.boolean().optional(),
+  soldOut: z.boolean().optional(),
   brand: z.string().optional(),
   category: z.string().optional(),
   gender: z.string().optional(),
@@ -44,6 +45,7 @@ const INITIAL_PRODUCTS = [
     "image": "/photos/1775830308715_Gemini_Generated_Image_4ftic54ftic54fti.png",
     "images": ["/photos/1775830308715_Gemini_Generated_Image_4ftic54ftic54fti.png"],
     "isOnSale": false,
+    "soldOut": false,
     "rating": 5,
     "discountPercent": 20,
     "installments": "ou 8x de R$ 94,76",
@@ -59,6 +61,7 @@ const INITIAL_PRODUCTS = [
     "image": "/perfume.jpg",
     "images": ["/perfume.jpg"],
     "isOnSale": true,
+    "soldOut": false,
     "rating": 5,
     "discountPercent": 8,
     "installments": "ou 8x de R$ 39,06",
@@ -180,7 +183,8 @@ export async function PUT(request) {
       heartNotes: sanitizeString(product.heartNotes || ''),
       baseNotes: sanitizeString(product.baseNotes || ''),
       olfactoryFamily: sanitizeString(product.olfactoryFamily || ''),
-      videoUrl: sanitizeString(product.videoUrl || '')
+      videoUrl: sanitizeString(product.videoUrl || ''),
+      soldOut: Boolean(product.soldOut)
     }));
 
     let saved = false;

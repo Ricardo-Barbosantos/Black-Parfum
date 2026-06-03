@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 export default function ProductCard({ product, onAddToCart, reviews = [] }) {
   const installmentPrice = product.price / 5;
+  const isSoldOut = Boolean(product.soldOut);
 
   const productReviews = reviews.filter(r => r.productId === product.id);
   const avgRating = productReviews.length > 0 
@@ -11,8 +12,13 @@ export default function ProductCard({ product, onAddToCart, reviews = [] }) {
     : 0;
 
   return (
-    <Link href={`/product/${product.id}`} className="product-card" style={{ textDecoration: 'none', display: 'block', color: 'inherit' }}>
-      {product.isOnSale && (
+    <Link href={`/product/${product.id}`} className={`product-card ${isSoldOut ? 'product-card-sold-out' : ''}`} style={{ textDecoration: 'none', display: 'block', color: 'inherit' }} aria-disabled={isSoldOut}>
+      {isSoldOut && (
+        <div className="card-badge card-badge-sold-out">
+          ESGOTADO
+        </div>
+      )}
+      {!isSoldOut && product.isOnSale && (
         <div className="card-badge">
           12% OFF
         </div>
@@ -50,13 +56,15 @@ export default function ProductCard({ product, onAddToCart, reviews = [] }) {
         </div>
 
         <button 
-          className="btn-comprar"
+          className={`btn-comprar ${isSoldOut ? 'btn-comprar-sold-out' : ''}`}
+          disabled={isSoldOut}
           onClick={(e) => {
             e.preventDefault();
+            if (isSoldOut) return;
             window.location.href = `/product/${product.id}`;
           }}
         >
-          Comprar
+          {isSoldOut ? 'Esgotado' : 'Comprar'}
         </button>
 
         {avgRating > 0 && (

@@ -163,6 +163,10 @@ export default function ProductPage() {
 
   const handleAddToCart = () => {
     if (!product) return;
+    if (product.soldOut) {
+      showToast('Produto esgotado no momento.');
+      return;
+    }
     setCart(prev => {
       // Diferenciar o produto pelo tamanho selecionado
       const cartItemId = `${product.id}-${selectedSize}`;
@@ -178,6 +182,10 @@ export default function ProductPage() {
 
   const handleBuyNow = () => {
     if (!product) return;
+    if (product.soldOut) {
+      showToast('Produto esgotado no momento.');
+      return;
+    }
     // se não houver um item igual no carrinho, adicione-o
     handleAddToCart();
     setIsCartOpen(true);
@@ -245,6 +253,7 @@ export default function ProductPage() {
   if (!product) return <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#000' }}>Produto não encontrado.</div>;
 
   const installmentPrice = product.price / 5;
+  const isSoldOut = Boolean(product.soldOut);
   const sizesList = product.sizes ? product.sizes.split(',').map(s => s.trim()).filter(Boolean) : [];
   const imagesList = product.images?.length > 0 ? product.images : [product.image];
   if (product.videoUrl && !imagesList.includes(product.videoUrl)) {
@@ -310,7 +319,7 @@ export default function ProductPage() {
         {/* TOP SECTION: Gallery & Info */}
         <div className="product-grid-main">
           {/* Gallery View */}
-          <div className="product-gallery">
+          <div className={`product-gallery ${isSoldOut ? 'product-gallery-sold-out' : ''}`}>
             <div 
               className="main-image" 
               onTouchStart={onTouchStart} 
@@ -352,11 +361,12 @@ export default function ProductPage() {
                 </div>
              )}
 
-             <div className="price-section">
-                {product.compareAtPrice > 0 && <div className="old-price">De: R$ {product.compareAtPrice.toFixed(2).replace('.', ',')}</div>}
-                <div className="current-price">R$ {product.price.toFixed(2).replace('.', ',')}</div>
-                <div className="installments-price">ou 5x de R$ {installmentPrice.toFixed(2).replace('.', ',')} sem juros</div>
-             </div>
+              <div className="price-section">
+                 {product.compareAtPrice > 0 && <div className="old-price">De: R$ {product.compareAtPrice.toFixed(2).replace('.', ',')}</div>}
+                 <div className="current-price">R$ {product.price.toFixed(2).replace('.', ',')}</div>
+                 <div className="installments-price">ou 5x de R$ {installmentPrice.toFixed(2).replace('.', ',')} sem juros</div>
+                 {isSoldOut && <div className="sold-out-pill">Produto esgotado</div>}
+              </div>
 
              {sizesList.length > 0 && (
                <div className="sizes-section">
@@ -364,10 +374,11 @@ export default function ProductPage() {
                  <div className="sizes-options">
                    {sizesList.map(s => (
                      <button 
-                       key={s} 
-                       className={`size-btn ${selectedSize === s ? 'active' : ''}`}
-                       onClick={() => setSelectedSize(s)}
-                     >
+                        key={s}
+                        className={`size-btn ${selectedSize === s ? 'active' : ''}`}
+                        onClick={() => setSelectedSize(s)}
+                        disabled={isSoldOut}
+                      >
                        {s}
                      </button>
                    ))}
@@ -375,9 +386,13 @@ export default function ProductPage() {
                </div>
              )}
 
-             <div className="actions-section">
-                <button className="btn-add-cart" onClick={handleAddToCart}>Adicionar ao Carrinho</button>
-                <button className="btn-buy-now" onClick={handleBuyNow}>Comprar Agora</button>
+              <div className="actions-section">
+                 <button className="btn-add-cart" onClick={handleAddToCart} disabled={isSoldOut}>
+                   {isSoldOut ? 'Produto esgotado' : 'Adicionar ao Carrinho'}
+                 </button>
+                 <button className="btn-buy-now" onClick={handleBuyNow} disabled={isSoldOut}>
+                   {isSoldOut ? 'Indisponivel' : 'Comprar Agora'}
+                 </button>
               </div>
 
               {/* REVIEWS SECTION REPOSITIONED */}

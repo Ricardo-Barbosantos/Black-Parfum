@@ -25,6 +25,11 @@
   gap: 15px;
 }
 
+.product-gallery-sold-out {
+  filter: grayscale(1);
+  opacity: 0.65;
+}
+
 .main-image {
   width: 100%;
   aspect-ratio: 1/1;
@@ -116,6 +121,19 @@
   color: #666;
 }
 
+.sold-out-pill {
+  width: fit-content;
+  margin-top: 8px;
+  padding: 7px 12px;
+  border-radius: 4px;
+  background: #e5e7eb;
+  color: #374151;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
 .sizes-section {
   display: flex;
   flex-direction: column;
@@ -150,6 +168,11 @@
   background: var(--primary-gold);
   color: #fff;
   border-color: var(--primary-gold);
+}
+
+.size-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .actions-section {
@@ -194,6 +217,16 @@
 
 .btn-buy-now:hover {
   background: #222;
+}
+
+.btn-add-cart:disabled,
+.btn-buy-now:disabled,
+.btn-add-cart:disabled:hover,
+.btn-buy-now:disabled:hover {
+  background: #9ca3af;
+  border-color: #9ca3af;
+  color: #fff;
+  cursor: not-allowed;
 }
 
 .description-text {
