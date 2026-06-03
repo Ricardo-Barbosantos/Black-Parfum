@@ -1,5 +1,5 @@
 import { getReviews, saveReviews } from '@/lib/reviews';
-import { verifyAuthToken } from '@/lib/auth';
+import { getAdminFromRequest, verifyAuthToken } from '@/lib/auth';
 import { z } from 'zod';
 import { randomUUID } from 'crypto';
 
@@ -21,10 +21,15 @@ export async function GET(request) {
     const all = searchParams.get('all'); // admin flag
 
     let reviews = await getReviews();
+    const isAdmin = all ? Boolean(getAdminFromRequest(request)) : false;
+
+    if (all && !isAdmin) {
+        return new Response(JSON.stringify({ error: 'Nao autorizado' }), { status: 401 });
+    }
     
     if (productId) {
-        reviews = reviews.filter(r => r.productId === productId && (r.status === 'approved' || all));
-    } else if (!all) {
+        reviews = reviews.filter(r => r.productId === productId && (r.status === 'approved' || isAdmin));
+    } else if (!isAdmin) {
        reviews = reviews.filter(r => r.status === 'approved');
     }
 

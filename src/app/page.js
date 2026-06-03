@@ -54,7 +54,7 @@ export default function Home() {
           setIsLoading(false);
       });
       
-    fetch('/api/reviews?all=true')
+    fetch('/api/reviews')
       .then(res => res.json())
       .then(data => setReviews(Array.isArray(data) ? data : []))
       .catch(err => console.error(err));
@@ -96,7 +96,7 @@ export default function Home() {
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  const handleCheckout = async () => {
+  const handleCheckout = async (couponCode = '') => {
     const zip = String(checkoutForm.zip || '').replace(/\D/g, '');
     if (!checkoutForm.name || !checkoutForm.email) {
       return;
@@ -122,7 +122,8 @@ export default function Home() {
             quantity: item.quantity
           })),
           customer: checkoutForm,
-          shippingServiceId: checkoutForm.shippingServiceId || undefined
+          shippingServiceId: checkoutForm.shippingServiceId || undefined,
+          couponCode: couponCode || undefined
         })
       });
       const data = await res.json();

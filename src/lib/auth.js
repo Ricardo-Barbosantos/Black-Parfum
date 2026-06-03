@@ -1,8 +1,16 @@
 import { sign, verify } from 'jsonwebtoken';
 
+function getJwtSecret() {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET nao configurado.');
+  }
+  return secret;
+}
+
 // Gerar token JWT para autenticação
 export const generateAuthToken = (payload) => {
-  const secret = process.env.JWT_SECRET || 'fallback_secret_key';
+  const secret = getJwtSecret();
   const expiresIn = process.env.JWT_EXPIRES_IN || '24h';
 
   return sign(payload, secret, { expiresIn });
@@ -11,7 +19,7 @@ export const generateAuthToken = (payload) => {
 // Verificar token JWT
 export const verifyAuthToken = (token) => {
   try {
-    const secret = process.env.JWT_SECRET || 'fallback_secret_key';
+    const secret = getJwtSecret();
     const decoded = verify(token, secret);
     return decoded;
   } catch (error) {
@@ -41,4 +49,15 @@ export const authenticateUser = (handler) => {
 
     return handler(req, res);
   };
+};
+
+export const getBearerToken = (request) => {
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return '';
+  return authHeader.substring(7);
+};
+
+export const getAdminFromRequest = (request) => {
+  const decoded = verifyAuthToken(getBearerToken(request));
+  return decoded?.role === 'admin' ? decoded : null;
 };

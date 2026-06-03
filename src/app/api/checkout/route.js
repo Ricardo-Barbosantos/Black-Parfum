@@ -3,6 +3,12 @@ import Redis from 'ioredis';
 import { z } from 'zod';
 import { getMercadoPagoPreference } from '@/lib/mercadopago';
 import { calculateMelhorEnvioShipping, getLocalShippingQuote } from '@/lib/shipping';
+import {
+  calculateCouponDiscount,
+  calculateInfluencerCommission,
+  getActiveCouponByCode,
+  normalizeCouponCode,
+} from '@/lib/coupons';
 
 const CheckoutSchema = z.object({
   cart: z.array(z.object({
@@ -24,6 +30,7 @@ const CheckoutSchema = z.object({
     state: z.string().optional(),
   }),
   shippingServiceId: z.string().optional(),
+  couponCode: z.string().max(32).optional(),
 });
 
 let redis = null;
@@ -82,6 +89,66 @@ function buildValidatedItems(cart, products) {
   });
 }
 
+function applyDiscountToItems(items, discountAmount) {
+  const discountCents = Math.round(Number(discountAmount || 0) * 100);
+  if (discountCents <= 0) return items;
+
+  const unitItems = items.flatMap((item) => (
+    Array.from({ length: item.quantity }, (_, index) => ({
+      ...item,
+      id: `${item.id}-${index + 1}`,
+      quantity: 1,
+    }))
+  ));
+
+  const subtotalCents = unitItems.reduce((sum, item) => sum + Math.round(item.unit_price * 100), 0);
+  if (subtotalCents <= 0) return items;
+
+  let remainingDiscountCents = Math.min(discountCents, Math.max(0, subtotalCents - unitItems.length));
+
+  return unitItems.map((item, index) => {
+    const priceCents = Math.round(item.unit_price * 100);
+    const suggestedShare = index === unitItems.length - 1
+      ? remainingDiscountCents
+      : Math.round((discountCents * priceCents) / subtotalCents);
+    const appliedCents = Math.min(remainingDiscountCents, Math.max(0, Math.min(priceCents - 1, suggestedShare)));
+    remainingDiscountCents -= appliedCents;
+
+    return {
+      ...item,
+      unit_price: Number(((priceCents - appliedCents) / 100).toFixed(2)),
+    };
+  });
+}
+
+async function getCouponSummary({ couponCode, subtotal }) {
+  const code = normalizeCouponCode(couponCode || '');
+  if (!code) {
+    return {
+      coupon: null,
+      discountAmount: 0,
+      discountedSubtotal: subtotal,
+      commissionAmount: 0,
+    };
+  }
+
+  const coupon = await getActiveCouponByCode(code);
+  if (!coupon) {
+    throw new Error('Cupom nao encontrado ou inativo.');
+  }
+
+  const discountAmount = calculateCouponDiscount(subtotal, coupon);
+  const discountedSubtotal = Number((subtotal - discountAmount).toFixed(2));
+  const commissionAmount = calculateInfluencerCommission(discountedSubtotal, coupon);
+
+  return {
+    coupon,
+    discountAmount,
+    discountedSubtotal,
+    commissionAmount,
+  };
+}
+
 async function getShipping({ customer, subtotal, shippingServiceId }) {
   const localShipping = getLocalShippingQuote({
     deliveryMethod: customer.deliveryMethod,
@@ -120,7 +187,7 @@ export async function POST(request) {
       }), { status: 400 });
     }
 
-    const { cart, customer, shippingServiceId } = validation.data;
+    const { cart, customer, shippingServiceId, couponCode } = validation.data;
 
     const zip = String(customer.zip || '').replace(/\D/g, '');
     if (
@@ -133,8 +200,10 @@ export async function POST(request) {
     const products = await getProducts();
     const items = buildValidatedItems(cart, products);
     const subtotal = items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
+    const couponSummary = await getCouponSummary({ couponCode, subtotal });
+    const discountedItems = applyDiscountToItems(items, couponSummary.discountAmount);
     const shipping = await getShipping({ customer, subtotal, shippingServiceId });
-    const total = Number((subtotal + shipping.cost).toFixed(2));
+    const total = Number((couponSummary.discountedSubtotal + shipping.cost).toFixed(2));
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.obsidianparfums.site';
     const preference = getMercadoPagoPreference();
 
@@ -145,7 +214,7 @@ export async function POST(request) {
           email: customer.email,
         },
         items: [
-          ...items,
+          ...discountedItems,
           ...(shipping.cost > 0 ? [{
             id: 'frete',
             title: `Frete - ${shipping.label}`,
@@ -159,6 +228,14 @@ export async function POST(request) {
           delivery_method: customer.deliveryMethod,
           shipping_label: shipping.label,
           shipping_cost: shipping.cost,
+          coupon_code: couponSummary.coupon?.code || '',
+          coupon_discount_percent: couponSummary.coupon?.discountPercent || 0,
+          coupon_discount_amount: couponSummary.discountAmount,
+          coupon_discounted_subtotal: couponSummary.discountedSubtotal,
+          influencer_name: couponSummary.coupon?.influencerName || '',
+          influencer_commission_percent: couponSummary.coupon?.commissionPercent || 0,
+          influencer_commission_fixed: couponSummary.coupon?.commissionFixed || 0,
+          influencer_commission_amount: couponSummary.commissionAmount,
           subtotal,
           total,
           address: customer.address || '',
@@ -182,6 +259,18 @@ export async function POST(request) {
       init_point: mpPreference.init_point,
       sandbox_init_point: mpPreference.sandbox_init_point,
       subtotal,
+      discount: {
+        couponCode: couponSummary.coupon?.code || '',
+        discountPercent: couponSummary.coupon?.discountPercent || 0,
+        discountAmount: couponSummary.discountAmount,
+        discountedSubtotal: couponSummary.discountedSubtotal,
+      },
+      influencerCommission: {
+        influencerName: couponSummary.coupon?.influencerName || '',
+        commissionPercent: couponSummary.coupon?.commissionPercent || 0,
+        commissionFixed: couponSummary.coupon?.commissionFixed || 0,
+        commissionAmount: couponSummary.commissionAmount,
+      },
       shipping,
       total,
     }), {

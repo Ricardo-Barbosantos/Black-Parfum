@@ -30,6 +30,16 @@ function getLookupZip(value = '') {
   return '';
 }
 
+function formatMoney(value = 0) {
+  return Number(value || 0).toFixed(2).replace('.', ',');
+}
+
+function getCouponDiscount(subtotal, coupon) {
+  if (!coupon) return 0;
+  const discount = Number(subtotal || 0) * (Number(coupon.discountPercent || 0) / 100);
+  return Number(Math.min(Number(subtotal || 0), discount).toFixed(2));
+}
+
 export default function CartDrawer({
   isOpen,
   onClose,
@@ -50,6 +60,10 @@ export default function CartDrawer({
   const [cepLoading, setCepLoading] = useState(false);
   const [cepMessage, setCepMessage] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponMessage, setCouponMessage] = useState('');
 
   if (!isOpen) return null;
 
@@ -59,7 +73,8 @@ export default function CartDrawer({
     ? null
     : shippingOptions.find(option => option.id === checkoutForm.shippingServiceId) || shippingOptions[0] || null;
   const shippingCost = isFreeDelivery ? 0 : Number(selectedShippingOption?.price || 0);
-  const orderTotal = Number((cartTotal + shippingCost).toFixed(2));
+  const couponDiscount = getCouponDiscount(cartTotal, appliedCoupon);
+  const orderTotal = Number((cartTotal - couponDiscount + shippingCost).toFixed(2));
   const requiredFields = checkoutForm.deliveryMethod === 'home'
     ? ['name', 'email', 'zip', 'address', 'number', 'neighborhood', 'city', 'state']
     : ['name', 'email'];
@@ -114,6 +129,45 @@ export default function CartDrawer({
         {field === 'zip' ? 'Informe um CEP válido.' : 'Campo obrigatório.'}
       </span>
     );
+  };
+
+  const applyCoupon = async () => {
+    const code = couponCode.trim();
+
+    if (!code) {
+      setAppliedCoupon(null);
+      setCouponMessage('Digite um cupom.');
+      return;
+    }
+
+    setCouponLoading(true);
+    setCouponMessage('');
+
+    try {
+      const response = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, subtotal: cartTotal }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.error || 'Cupom invalido.');
+
+      setAppliedCoupon(data.coupon);
+      setCouponCode(data.coupon.code);
+      setCouponMessage(`Cupom aplicado: ${data.coupon.discountPercent}% de desconto.`);
+    } catch (error) {
+      setAppliedCoupon(null);
+      setCouponMessage(error.message || 'Nao foi possivel aplicar o cupom.');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponMessage('');
   };
 
   const loadShippingOptions = async ({ zip, city, form = checkoutForm }) => {
@@ -253,19 +307,56 @@ export default function CartDrawer({
           <div style={{ borderTop: '1px solid #eee', padding: '16px 20px 20px', backgroundColor: '#fcfcfc', boxShadow: '0 -5px 15px rgba(0,0,0,0.03)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: '#555', marginBottom: '8px' }}>
               <span>Subtotal:</span>
-              <span>R$ {cartTotal.toFixed(2).replace('.', ',')}</span>
+              <span>R$ {formatMoney(cartTotal)}</span>
             </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 96px', gap: '8px', marginBottom: '8px' }}>
+              <input
+                type="text"
+                placeholder="Cupom de desconto"
+                value={couponCode}
+                onChange={(e) => {
+                  setCouponCode(e.target.value.toUpperCase());
+                  if (appliedCoupon) setAppliedCoupon(null);
+                  if (couponMessage) setCouponMessage('');
+                }}
+                style={inputStyle({ width: '100%', textTransform: 'uppercase' })}
+              />
+              <button
+                type="button"
+                onClick={applyCoupon}
+                disabled={couponLoading}
+                style={{ border: 'none', borderRadius: '4px', background: couponLoading ? '#777' : '#111', color: '#fff', fontWeight: 700, cursor: couponLoading ? 'not-allowed' : 'pointer' }}
+              >
+                {couponLoading ? '...' : 'Aplicar'}
+              </button>
+            </div>
+            {couponMessage && (
+              <div style={{ fontSize: '0.78rem', color: appliedCoupon ? '#16a34a' : '#dc2626', marginBottom: '8px', lineHeight: 1.35 }}>
+                {couponMessage}
+                {appliedCoupon && (
+                  <button type="button" onClick={removeCoupon} style={{ marginLeft: '8px', border: 'none', background: 'transparent', color: '#555', textDecoration: 'underline', cursor: 'pointer', fontSize: '0.78rem' }}>
+                    remover
+                  </button>
+                )}
+              </div>
+            )}
+            {couponDiscount > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: '#16a34a', marginBottom: '8px' }}>
+                <span>Desconto ({appliedCoupon.code}):</span>
+                <span>- R$ {formatMoney(couponDiscount)}</span>
+              </div>
+            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: '#555', marginBottom: '8px' }}>
               <span>Frete:</span>
               <span>
                 {shippingLoading
                   ? 'Calculando...'
-                  : `R$ ${shippingCost.toFixed(2).replace('.', ',')}`}
+                  : `R$ ${formatMoney(shippingCost)}`}
               </span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: '600', marginBottom: '14px', color: '#111', borderTop: '1px solid #eee', paddingTop: '12px' }}>
               <span>Total:</span>
-              <span>R$ {orderTotal.toFixed(2).replace('.', ',')}</span>
+              <span>R$ {formatMoney(orderTotal)}</span>
             </div>
 
             <h3 style={{ fontSize: '0.8rem', marginBottom: '10px', color: '#666', textTransform: 'uppercase', letterSpacing: '1px' }}>Forma de Entrega</h3>
@@ -440,7 +531,7 @@ export default function CartDrawer({
                   return;
                 }
                 setSubmitted(false);
-                onCheckout();
+                onCheckout(appliedCoupon?.code || '');
               }}
               disabled={checkoutLoading}
               style={{ width: '100%', background: checkoutLoading ? '#777' : '#009ee3', color: '#fff', padding: '15px', border: 'none', borderRadius: '6px', cursor: checkoutLoading ? 'not-allowed' : 'pointer', fontWeight: 'bold', fontSize: '1rem', boxShadow: '0 4px 15px rgba(0, 158, 227, 0.3)' }}

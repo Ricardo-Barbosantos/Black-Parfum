@@ -1,7 +1,7 @@
 import { kv } from '@vercel/kv';
 import Redis from 'ioredis';
 import { z } from 'zod';
-import { verify } from 'jsonwebtoken';
+import { verifyAuthToken } from '@/lib/auth';
 
 const ProductSchema = z.object({
   id: z.string().optional(),
@@ -26,15 +26,6 @@ const ProductSchema = z.object({
 const ProductsArraySchema = z.array(ProductSchema);
 
 // Função auxiliar para verificar o token JWT
-const verifyAuthToken = (token) => {
-  try {
-    const decoded = verify(token, process.env.JWT_SECRET || 'fallback_secret_key');
-    return decoded;
-  } catch (error) {
-    return null;
-  }
-};
-
 // Configuração do Redis (Caso o KV da Vercel falhe)
 let redis = null;
 if (process.env.REDIS_URL) {
@@ -153,7 +144,7 @@ export async function PUT(request) {
         }
       }
       // Caso contrário, tentar autenticação Basic
-      else if (authHeader.startsWith('Basic ')) {
+      else if (false && authHeader.startsWith('Basic ')) {
         const expectedAuth = `Basic ${Buffer.from(`${correctEmail}:${correctPassword}`).toString('base64')}`;
         if (authHeader === expectedAuth) {
           isAuthenticated = true;

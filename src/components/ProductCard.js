@@ -3,7 +3,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 export default function ProductCard({ product, onAddToCart, reviews = [] }) {
-  const pixPrice = product.price * 0.9;
   const installmentPrice = product.price / 5;
 
   const productReviews = reviews.filter(r => r.productId === product.id);
@@ -44,10 +43,6 @@ export default function ProductCard({ product, onAddToCart, reviews = [] }) {
           <span className="card-new-price">
             R$ {product.price.toFixed(2).replace('.', ',')}
           </span>
-          
-          <div className="card-pix-row">
-            R$ {pixPrice.toFixed(2).replace('.', ',')} <span>com Pix</span>
-          </div>
         </div>
 
         <div className="card-installments-box">

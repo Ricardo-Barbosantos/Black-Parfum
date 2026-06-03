@@ -230,20 +230,6 @@ input, textarea, select {
   color: var(--color-black);
 }
 
-.card-pix-row {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-gold);
-  margin-top: 2px;
-}
-
-.card-pix-row span {
-  color: #aaa;
-  font-weight: 400;
-  font-size: 0.75rem;
-  margin-left: 2px;
-}
-
 .card-installments-box {
   border: 1px solid var(--color-gold-light);
   padding: 6px;

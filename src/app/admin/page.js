@@ -7,6 +7,7 @@ import './page.css';
 export default function AdminPage() {
   const [products, setProducts] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [coupons, setCoupons] = useState([]);
   const [activeTab, setActiveTab] = useState('products');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -32,28 +33,48 @@ export default function AdminPage() {
     }
   };
 
+  const loadAdminData = async (token) => {
+    setLoading(true);
+    try {
+      const [productsRes, reviewsRes, couponsRes] = await Promise.all([
+        fetch('/api/products', { cache: 'no-store' }),
+        fetch('/api/reviews?all=true', { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' }),
+        fetch('/api/coupons', { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' })
+      ]);
+
+      const [productsData, reviewsData, couponsData] = await Promise.all([
+        productsRes.json(),
+        reviewsRes.json(),
+        couponsRes.json()
+      ]);
+
+      setProducts(Array.isArray(productsData) ? productsData : []);
+      setReviews(Array.isArray(reviewsData) ? reviewsData : []);
+      setCoupons(Array.isArray(couponsData?.coupons) ? couponsData.coupons : []);
+    } catch (error) {
+      setMessage('Erro ao carregar dados do painel.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
+    localStorage.removeItem('admin_password');
     const savedToken = localStorage.getItem('oud_admin_cache');
     if (savedToken) {
       // Verifica se o token está expirado antes de usá-lo
       if (isTokenExpired(savedToken)) {
         localStorage.removeItem('oud_admin_cache');
         localStorage.removeItem('admin_email');
-        localStorage.removeItem('admin_password');
+        setLoading(false);
       } else {
         setAuthToken(savedToken);
         setIsAuthenticated(true);
+        loadAdminData(savedToken);
       }
-    }
-
-    Promise.all([
-      fetch('/api/products').then(res => res.json()),
-      fetch('/api/reviews?all=true').then(res => res.json())
-    ]).then(([productsData, reviewsData]) => {
-      setProducts(productsData || []);
-      setReviews(Array.isArray(reviewsData) ? reviewsData : []);
+    } else {
       setLoading(false);
-    });
+    }
   }, []);
 
   const handleLogin = async (e) => {
@@ -76,7 +97,7 @@ export default function AdminPage() {
         localStorage.setItem('oud_admin_cache', data.token);
         // Armazena temporariamente email e senha para renovação automática do token
         localStorage.setItem('admin_email', email);
-        localStorage.setItem('admin_password', password);
+        await loadAdminData(data.token);
       } else {
         setAuthError(data.error || 'Credenciais inválidas!');
       }
@@ -119,7 +140,7 @@ export default function AdminPage() {
       // Verifica se o token atual está expirado antes de tentar fazer o upload
       if (isTokenExpired(currentToken)) {
         const storedEmail = localStorage.getItem('admin_email');
-        const storedPassword = localStorage.getItem('admin_password');
+        const storedPassword = '';
 
         if (!storedEmail || !storedPassword) {
           alert(`Erro ao subir ${file.name}: Credenciais não encontradas. Por favor, faça login novamente.`);
@@ -161,7 +182,7 @@ export default function AdminPage() {
         if (res.status === 401) {
           // Mesmo após a verificação de expiração, pode haver outro problema de autenticação
           const storedEmail = localStorage.getItem('admin_email');
-          const storedPassword = localStorage.getItem('admin_password');
+          const storedPassword = '';
 
           if (!storedEmail || !storedPassword) {
             alert(`Erro ao subir ${file.name}: Credenciais não encontradas. Por favor, faça login novamente.`);
@@ -278,6 +299,79 @@ export default function AdminPage() {
     setProducts(newProducts);
   };
 
+  const handleAddCoupon = () => {
+    setCoupons([
+      {
+        id: `coupon_${Date.now()}`,
+        code: 'NOVO10',
+        discountPercent: 10,
+        influencerName: '',
+        commissionPercent: 0,
+        commissionFixed: 0,
+        active: true,
+        createdAt: new Date().toISOString(),
+      },
+      ...coupons
+    ]);
+  };
+
+  const handleCouponChange = (index, field, value) => {
+    const nextCoupons = [...coupons];
+    nextCoupons[index] = { ...nextCoupons[index], [field]: value };
+    setCoupons(nextCoupons);
+  };
+
+  const handleDeleteCoupon = (index) => {
+    if (!confirm('Remover este cupom?')) return;
+    setCoupons(coupons.filter((_, couponIndex) => couponIndex !== index));
+  };
+
+  const handleSaveCoupons = async () => {
+    if (isTokenExpired(authToken)) {
+      setMessage('Sessao expirada. Faca login novamente.');
+      setTimeout(() => handleLogout(), 1500);
+      return;
+    }
+
+    setSaving(true);
+    setMessage('');
+
+    try {
+      const res = await fetch('/api/coupons', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(coupons.map(coupon => ({
+          ...coupon,
+          code: String(coupon.code || '').toUpperCase().replace(/\s+/g, ''),
+          discountPercent: Number(coupon.discountPercent || 0),
+          commissionPercent: Number(coupon.commissionPercent || 0),
+          commissionFixed: Number(coupon.commissionFixed || 0),
+          active: coupon.active !== false,
+        })))
+      });
+      const data = await res.json();
+
+      if (res.status === 401) {
+        setMessage('Sessao expirada. Faca login novamente.');
+        setTimeout(() => handleLogout(), 1500);
+        return;
+      }
+
+      if (!res.ok) throw new Error(data.error || 'Erro ao salvar cupons.');
+
+      setCoupons(Array.isArray(data.coupons) ? data.coupons : []);
+      setMessage('Cupons salvos com sucesso!');
+    } catch (error) {
+      setMessage(error.message || 'Erro ao salvar cupons.');
+    } finally {
+      setSaving(false);
+      setTimeout(() => setMessage(''), 5000);
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setMessage('');
@@ -287,7 +381,7 @@ export default function AdminPage() {
     // Verifica se o token atual está expirado antes de tentar salvar
     if (isTokenExpired(currentToken)) {
       const storedEmail = localStorage.getItem('admin_email');
-      const storedPassword = localStorage.getItem('admin_password');
+      const storedPassword = '';
 
       if (!storedEmail || !storedPassword) {
         setMessage('❌ Erro de Segurança: Credenciais não encontradas. Faça login novamente.');
@@ -338,7 +432,7 @@ export default function AdminPage() {
       if (res.status === 401) {
         // Verifica se temos credenciais armazenadas
         const storedEmail = localStorage.getItem('admin_email');
-        const storedPassword = localStorage.getItem('admin_password');
+        const storedPassword = '';
 
         if (!storedEmail || !storedPassword) {
           setMessage('❌ Erro de Segurança: Credenciais não encontradas. Faça login novamente.');
@@ -463,6 +557,8 @@ export default function AdminPage() {
 
   const sectionTitle = activeTab === 'reviews'
     ? 'Moderação de Reviews'
+    : activeTab === 'coupons'
+      ? 'Cupons e Influencers'
     : activeTab === 'decants'
       ? 'Gerenciamento de Decantes'
       : activeTab === 'combos'
@@ -489,8 +585,11 @@ export default function AdminPage() {
           <div className={`nav-item ${activeTab === 'reviews' ? 'active' : ''}`} onClick={() => setActiveTab('reviews')} style={{cursor: 'pointer'}}>
             Reviews Pendentes ({reviews.filter(r => r.status === 'pending').length})
           </div>
-          <button onClick={() => handleAddProduct(activeTab === 'decants' ? 'Decante' : activeTab === 'combos' ? 'Combo Decantes' : 'Perfume')} className="btn-add">
-            {activeTab === 'decants' ? '+ Novo Decante' : activeTab === 'combos' ? '+ Novo Combo' : '+ Novo Produto'}
+          <div className={`nav-item ${activeTab === 'coupons' ? 'active' : ''}`} onClick={() => setActiveTab('coupons')} style={{cursor: 'pointer'}}>
+            Cupons ({coupons.length})
+          </div>
+          <button onClick={() => activeTab === 'coupons' ? handleAddCoupon() : handleAddProduct(activeTab === 'decants' ? 'Decante' : activeTab === 'combos' ? 'Combo Decantes' : 'Perfume')} className="btn-add">
+            {activeTab === 'coupons' ? '+ Novo Cupom' : activeTab === 'decants' ? '+ Novo Decante' : activeTab === 'combos' ? '+ Novo Combo' : '+ Novo Produto'}
           </button>
           <Link href="/" className="nav-link">
             Ver Loja
@@ -505,7 +604,7 @@ export default function AdminPage() {
       <main className="admin-main">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
           <h1>{sectionTitle}</h1>
-          <button className="btn-gold" onClick={handleSave} disabled={saving} style={{ padding: '12px 24px', fontSize: '1rem' }}>
+          <button className="btn-gold" onClick={activeTab === 'coupons' ? handleSaveCoupons : handleSave} disabled={saving} style={{ padding: '12px 24px', fontSize: '1rem' }}>
             {saving ? <span className="spinner" style={{ width: '20px', height: '20px' }}></span> : 'Salvar Alterações no Banco'}
           </button>
         </div>
@@ -742,6 +841,96 @@ export default function AdminPage() {
             </div>
           ))}
         </div>
+        )}
+
+        {activeTab === 'coupons' && (
+          <div className="coupons-container" style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            {coupons.length === 0 ? (
+              <div style={{ background: '#0a0a0a', border: '1px solid #333', padding: '24px', borderRadius: '8px', color: 'var(--text-dim)' }}>
+                Nenhum cupom cadastrado. Clique em + Novo Cupom para criar.
+              </div>
+            ) : (
+              coupons.map((coupon, index) => (
+                <div key={coupon.id || index} style={{ background: '#0a0a0a', border: '1px solid #333', borderRadius: '8px', padding: '20px', display: 'grid', gridTemplateColumns: '1.1fr .8fr 1fr .8fr .8fr auto', gap: '14px', alignItems: 'end' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.85rem' }}>Codigo do cupom</label>
+                    <input
+                      type="text"
+                      value={coupon.code || ''}
+                      onChange={(e) => handleCouponChange(index, 'code', e.target.value.toUpperCase())}
+                      placeholder="AMAURI10"
+                      style={{ width: '100%', padding: '12px', background: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', textTransform: 'uppercase' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.85rem' }}>Desconto (%)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="80"
+                      step="0.1"
+                      value={coupon.discountPercent || ''}
+                      onChange={(e) => handleCouponChange(index, 'discountPercent', parseFloat(e.target.value) || 0)}
+                      style={{ width: '100%', padding: '12px', background: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.85rem' }}>Influencer</label>
+                    <input
+                      type="text"
+                      value={coupon.influencerName || ''}
+                      onChange={(e) => handleCouponChange(index, 'influencerName', e.target.value)}
+                      placeholder="Amauri"
+                      style={{ width: '100%', padding: '12px', background: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.85rem' }}>Comissao (%)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="80"
+                      step="0.1"
+                      value={coupon.commissionPercent || ''}
+                      onChange={(e) => handleCouponChange(index, 'commissionPercent', parseFloat(e.target.value) || 0)}
+                      style={{ width: '100%', padding: '12px', background: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.85rem' }}>Comissao fixa (R$)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={coupon.commissionFixed || ''}
+                      onChange={(e) => handleCouponChange(index, 'commissionFixed', parseFloat(e.target.value) || 0)}
+                      style={{ width: '100%', padding: '12px', background: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingBottom: '10px' }}>
+                    <label style={{ color: coupon.active !== false ? '#4ade80' : '#f87171', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input
+                        type="checkbox"
+                        checked={coupon.active !== false}
+                        onChange={(e) => handleCouponChange(index, 'active', e.target.checked)}
+                        style={{ width: '18px', height: '18px', accentColor: 'var(--primary-gold)' }}
+                      />
+                      Ativo
+                    </label>
+                    <button
+                      onClick={() => handleDeleteCoupon(index)}
+                      style={{ background: '#f87171', color: '#fff', border: 'none', borderRadius: '4px', padding: '8px 10px', cursor: 'pointer', fontWeight: 700 }}
+                    >
+                      X
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+            <div style={{ color: 'var(--text-dim)', fontSize: '0.9rem', lineHeight: 1.5 }}>
+              A comissao e calculada sobre o subtotal dos produtos depois do desconto, sem incluir frete. Se preencher comissao fixa, ela prevalece sobre a porcentagem.
+            </div>
+          </div>
         )}
 
         {/* REVIEWS TAB */}

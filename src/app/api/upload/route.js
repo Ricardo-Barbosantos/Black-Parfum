@@ -1,16 +1,7 @@
 import { put } from '@vercel/blob';
-import { verify } from 'jsonwebtoken';
+import { verifyAuthToken } from '@/lib/auth';
 
 // Função auxiliar para verificar o token JWT
-const verifyAuthToken = (token) => {
-  try {
-    const decoded = verify(token, process.env.JWT_SECRET || 'fallback_secret_key');
-    return decoded;
-  } catch (error) {
-    return null;
-  }
-};
-
 export async function POST(request) {
   try {
     // 🛡️ SECURITY: Melhorar o sistema de autenticação usando JWT
@@ -65,10 +56,7 @@ export async function POST(request) {
     return new Response(JSON.stringify({ success: true, url: blob.url }), {
       status: 201,
       headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+        'Content-Type': 'application/json'
       }
     });
   } catch (error) {
