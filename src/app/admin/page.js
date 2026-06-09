@@ -563,17 +563,16 @@ export default function AdminPage() {
 
   if (!loading && !isAuthenticated) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg-dark)' }}>
-        <form onSubmit={handleLogin} style={{ background: '#111', padding: '40px', borderRadius: '8px', border: '1px solid #222', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
-          <h2 style={{ color: 'var(--primary-gold)', marginBottom: '10px' }}>Oud Royale Admin</h2>
-          <p style={{ color: 'var(--text-dim)', marginBottom: '30px', fontSize: '0.9rem' }}>Acesso restrito à gerência.</p>
+      <div className="admin-login-screen">
+        <form onSubmit={handleLogin} className="admin-login-card">
+          <h1 className="admin-login-brand">OBSIDIAN</h1>
           
           <input 
             type="email" 
             placeholder="E-mail de acesso"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px', marginBottom: '15px' }}
+            className="admin-login-input"
           />
 
           <input 
@@ -581,7 +580,7 @@ export default function AdminPage() {
             placeholder="Senha Mestra"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px', marginBottom: '15px' }}
+            className="admin-login-input"
           />
           
           {authError && <div style={{ color: '#f87171', fontSize: '0.9rem', marginBottom: '15px' }}>{authError}</div>}
@@ -641,13 +640,22 @@ export default function AdminPage() {
   const paidOrders = orders.filter(order => order.status === 'paid').length;
   const canEditProducts = ['products', 'decants', 'combos', 'soldOut', 'inactive'].includes(activeTab);
   const canAddCurrentTab = ['products', 'decants', 'combos'].includes(activeTab) || activeTab === 'coupons';
+  const addCurrentProduct = () => handleAddProduct(activeTab === 'decants' ? 'Decante' : activeTab === 'combos' ? 'Combo Decantes' : 'Perfume');
+  const emptyProductsText = activeTab === 'combos'
+    ? 'Nenhum combo de decantes cadastrado.'
+    : activeTab === 'decants'
+      ? 'Nenhum decante cadastrado.'
+      : activeTab === 'soldOut'
+        ? 'Nenhum produto esgotado.'
+        : activeTab === 'inactive'
+          ? 'Nenhum produto inativo.'
+          : 'Nenhum produto ativo cadastrado.';
 
   return (
     <div className="admin-layout">
       <aside className="admin-sidebar">
         <div className="sidebar-header">
           <h2>Painel Admin</h2>
-          <p>Gestão Segura</p>
         </div>
         <nav className="admin-nav">
           <div className={`nav-item ${activeTab === 'products' ? 'active' : ''}`} onClick={() => setActiveTab('products')} style={{cursor: 'pointer'}}>
@@ -674,7 +682,7 @@ export default function AdminPage() {
           <div className={`nav-item ${activeTab === 'coupons' ? 'active' : ''}`} onClick={() => setActiveTab('coupons')} style={{cursor: 'pointer'}}>
             Cupons ({coupons.length})
           </div>
-          {canAddCurrentTab && <button onClick={() => activeTab === 'coupons' ? handleAddCoupon() : handleAddProduct(activeTab === 'decants' ? 'Decante' : activeTab === 'combos' ? 'Combo Decantes' : 'Perfume')} className="btn-add">
+          {canAddCurrentTab && <button onClick={() => activeTab === 'coupons' ? handleAddCoupon() : addCurrentProduct()} className="btn-add">
             {activeTab === 'coupons' ? '+ Novo Cupom' : activeTab === 'decants' ? '+ Novo Decante' : activeTab === 'combos' ? '+ Novo Combo' : '+ Novo Produto'}
           </button>}
           <Link href="/" className="nav-link">
@@ -724,6 +732,16 @@ export default function AdminPage() {
 
         {canEditProducts && (
         <div className="products-container">
+          {displayedProducts.length === 0 && (
+            <div className="admin-empty-state">
+              <strong>{emptyProductsText}</strong>
+              {['products', 'decants', 'combos'].includes(activeTab) && (
+                <button onClick={addCurrentProduct} className="btn-gold" style={{ padding: '12px 22px', fontSize: '0.95rem' }}>
+                  {activeTab === 'combos' ? '+ Novo Combo' : activeTab === 'decants' ? '+ Novo Decante' : '+ Novo Produto'}
+                </button>
+              )}
+            </div>
+          )}
           {displayedProducts.map(({ product, index }) => (
             <div key={product.id} style={{ display: 'flex', gap: '40px', alignItems: 'flex-start', borderBottom: '1px solid #222', paddingBottom: '30px', marginBottom: '30px', position: 'relative' }}>
               
