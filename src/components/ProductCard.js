@@ -4,7 +4,8 @@ import Link from 'next/link';
 
 export default function ProductCard({ product, onAddToCart, reviews = [] }) {
   const installmentPrice = product.price / 5;
-  const isSoldOut = Boolean(product.soldOut);
+  const hasControlledStock = product.stock !== null && typeof product.stock !== 'undefined' && product.stock !== '';
+  const isSoldOut = Boolean(product.soldOut) || (hasControlledStock && Number(product.stock) <= 0) || product.active === false;
 
   const productReviews = reviews.filter(r => r.productId === product.id);
   const avgRating = productReviews.length > 0 
@@ -64,7 +65,7 @@ export default function ProductCard({ product, onAddToCart, reviews = [] }) {
             window.location.href = `/product/${product.id}`;
           }}
         >
-          {isSoldOut ? 'Esgotado' : 'Comprar'}
+          {product.active === false ? 'Indisponivel' : isSoldOut ? 'Esgotado' : 'Comprar'}
         </button>
 
         {avgRating > 0 && (

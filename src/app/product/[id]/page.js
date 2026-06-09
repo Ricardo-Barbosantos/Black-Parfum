@@ -161,9 +161,12 @@ export default function ProductPage() {
   }
   const { cartTotal, cartItemCount } = calculateCartFields();
 
+  const hasControlledStock = product?.stock !== null && typeof product?.stock !== 'undefined' && product?.stock !== '';
+  const isUnavailable = Boolean(product?.soldOut) || (hasControlledStock && Number(product?.stock) <= 0) || product?.active === false;
+
   const handleAddToCart = () => {
     if (!product) return;
-    if (product.soldOut) {
+    if (isUnavailable) {
       showToast('Produto esgotado no momento.');
       return;
     }
@@ -182,7 +185,7 @@ export default function ProductPage() {
 
   const handleBuyNow = () => {
     if (!product) return;
-    if (product.soldOut) {
+    if (isUnavailable) {
       showToast('Produto esgotado no momento.');
       return;
     }
@@ -253,7 +256,7 @@ export default function ProductPage() {
   if (!product) return <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#000' }}>Produto não encontrado.</div>;
 
   const installmentPrice = product.price / 5;
-  const isSoldOut = Boolean(product.soldOut);
+  const isSoldOut = isUnavailable;
   const sizesList = product.sizes ? product.sizes.split(',').map(s => s.trim()).filter(Boolean) : [];
   const imagesList = product.images?.length > 0 ? product.images : [product.image];
   if (product.videoUrl && !imagesList.includes(product.videoUrl)) {
@@ -365,7 +368,7 @@ export default function ProductPage() {
                  {product.compareAtPrice > 0 && <div className="old-price">De: R$ {product.compareAtPrice.toFixed(2).replace('.', ',')}</div>}
                  <div className="current-price">R$ {product.price.toFixed(2).replace('.', ',')}</div>
                  <div className="installments-price">ou 5x de R$ {installmentPrice.toFixed(2).replace('.', ',')} sem juros</div>
-                 {isSoldOut && <div className="sold-out-pill">Produto esgotado</div>}
+                   {isSoldOut && <div className="sold-out-pill">{product.active === false ? 'Produto inativo' : 'Produto esgotado'}</div>}
               </div>
 
              {sizesList.length > 0 && (
@@ -388,7 +391,7 @@ export default function ProductPage() {
 
               <div className="actions-section">
                  <button className="btn-add-cart" onClick={handleAddToCart} disabled={isSoldOut}>
-                   {isSoldOut ? 'Produto esgotado' : 'Adicionar ao Carrinho'}
+                   {product.active === false ? 'Produto inativo' : isSoldOut ? 'Produto esgotado' : 'Adicionar ao Carrinho'}
                  </button>
                  <button className="btn-buy-now" onClick={handleBuyNow} disabled={isSoldOut}>
                    {isSoldOut ? 'Indisponivel' : 'Comprar Agora'}

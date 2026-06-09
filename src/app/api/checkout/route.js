@@ -1,8 +1,9 @@
-import { kv } from '@vercel/kv';
-import Redis from 'ioredis';
 import { z } from 'zod';
 import { getMercadoPagoPreference } from '@/lib/mercadopago';
 import { calculateMelhorEnvioShipping, getLocalShippingQuote } from '@/lib/shipping';
+import { getControlledStock, getProducts, isProductActive, isProductSoldOut } from '@/lib/products';
+import { addOrder, buildPendingOrder, createOrderId } from '@/lib/orders';
+import { sendOrderEmail } from '@/lib/notifications';
 import {
   calculateCouponDiscount,
   calculateInfluencerCommission,
@@ -33,38 +34,12 @@ const CheckoutSchema = z.object({
   couponCode: z.string().max(32).optional(),
 });
 
-let redis = null;
-if (process.env.REDIS_URL) {
-  try {
-    redis = new Redis(process.env.REDIS_URL);
-  } catch (error) {
-    console.error('Erro ao iniciar Redis no checkout:', error);
-  }
-}
-
-async function getProducts() {
-  if (process.env.KV_REST_API_URL) {
-    try {
-      const products = await kv.get('obsidian_products') || await kv.get('black_parfum_products');
-      if (Array.isArray(products)) return products;
-    } catch (error) {
-      console.error('KV checkout error:', error);
-    }
-  }
-
-  if (redis) {
-    try {
-      const data = await redis.get('obsidian_products') || await redis.get('black_parfum_products');
-      if (data) return JSON.parse(data);
-    } catch (error) {
-      console.error('Redis checkout error:', error);
-    }
-  }
-
-  throw new Error('Não foi possível carregar os produtos para validar o carrinho.');
-}
-
 function buildValidatedItems(cart, products) {
+  const requestedByProduct = cart.reduce((acc, cartItem) => {
+    acc[cartItem.id] = (acc[cartItem.id] || 0) + Number(cartItem.quantity || 0);
+    return acc;
+  }, {});
+
   return cart.map((cartItem) => {
     const product = products.find((item) => item.id === cartItem.id);
 
@@ -72,23 +47,43 @@ function buildValidatedItems(cart, products) {
       throw new Error(`Produto não encontrado: ${cartItem.id}`);
     }
 
-    if (product.soldOut) {
+    if (!isProductActive(product)) {
+      throw new Error(`Produto inativo: ${product.name}`);
+    }
+
+    if (isProductSoldOut(product)) {
       throw new Error(`Produto esgotado: ${product.name}`);
     }
 
     const quantity = Number(cartItem.quantity);
     const unitPrice = Number(product.price);
+    const stock = getControlledStock(product);
+
+    if (stock !== null && requestedByProduct[product.id] > stock) {
+      throw new Error(`Estoque insuficiente para ${product.name}. Disponível: ${stock}`);
+    }
 
     if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
       throw new Error(`Produto com preço inválido: ${product.name}`);
     }
 
     return {
-      id: cartItem.cartItemId || product.id,
-      title: `${product.name}${cartItem.selectedSize ? ` (${cartItem.selectedSize})` : ''}`,
-      quantity,
-      unit_price: unitPrice,
-      currency_id: 'BRL',
+      mpItem: {
+        id: cartItem.cartItemId || product.id,
+        title: `${product.name}${cartItem.selectedSize ? ` (${cartItem.selectedSize})` : ''}`,
+        quantity,
+        unit_price: unitPrice,
+        currency_id: 'BRL',
+      },
+      orderItem: {
+        productId: product.id,
+        cartItemId: cartItem.cartItemId || product.id,
+        name: product.name,
+        selectedSize: cartItem.selectedSize || '',
+        quantity,
+        unitPrice,
+        total: Number((unitPrice * quantity).toFixed(2)),
+      },
     };
   });
 }
@@ -202,7 +197,9 @@ export async function POST(request) {
     }
 
     const products = await getProducts();
-    const items = buildValidatedItems(cart, products);
+    const validatedItems = buildValidatedItems(cart, products);
+    const items = validatedItems.map((item) => item.mpItem);
+    const orderItems = validatedItems.map((item) => item.orderItem);
     const subtotal = items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
     const couponSummary = await getCouponSummary({ couponCode, subtotal });
     const discountedItems = applyDiscountToItems(items, couponSummary.discountAmount);
@@ -210,6 +207,7 @@ export async function POST(request) {
     const total = Number((couponSummary.discountedSubtotal + shipping.cost).toFixed(2));
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.obsidianparfums.site';
     const preference = getMercadoPagoPreference();
+    const orderId = createOrderId();
 
     const mpPreference = await preference.create({
       body: {
@@ -228,6 +226,7 @@ export async function POST(request) {
           }] : []),
         ],
         metadata: {
+          order_id: orderId,
           customer_name: customer.name,
           delivery_method: customer.deliveryMethod,
           shipping_label: shipping.label,
@@ -250,6 +249,8 @@ export async function POST(request) {
           state: customer.state || '',
           zip: customer.zip || '',
         },
+        external_reference: orderId,
+        notification_url: `${siteUrl}/api/mercadopago/webhook`,
         back_urls: {
           success: `${siteUrl}/?checkout=success`,
           pending: `${siteUrl}/?checkout=pending`,
@@ -259,7 +260,27 @@ export async function POST(request) {
       },
     });
 
+    const order = buildPendingOrder({
+      orderId,
+      customer,
+      orderItems,
+      shipping,
+      couponSummary,
+      subtotal,
+      total,
+      mpPreference,
+    });
+
+    await addOrder(order);
+
+    try {
+      await sendOrderEmail(order, 'Novo pedido');
+    } catch (error) {
+      console.error('Erro ao enviar email de novo pedido:', error);
+    }
+
     return new Response(JSON.stringify({
+      orderId,
       init_point: mpPreference.init_point,
       sandbox_init_point: mpPreference.sandbox_init_point,
       subtotal,

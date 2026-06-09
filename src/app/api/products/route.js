@@ -1,7 +1,6 @@
-import { kv } from '@vercel/kv';
-import Redis from 'ioredis';
 import { z } from 'zod';
 import { verifyAuthToken } from '@/lib/auth';
+import { getProducts, saveProducts, INITIAL_PRODUCTS } from '@/lib/products';
 
 const ProductSchema = z.object({
   id: z.string().optional(),
@@ -11,7 +10,9 @@ const ProductSchema = z.object({
   image: z.string().min(1),
   images: z.array(z.string()).optional(),
   isOnSale: z.boolean().optional(),
+  active: z.boolean().optional(),
   soldOut: z.boolean().optional(),
+  stock: z.number().int().min(0).nullable().optional(),
   brand: z.string().optional(),
   category: z.string().optional(),
   gender: z.string().optional(),
@@ -26,95 +27,16 @@ const ProductSchema = z.object({
 
 const ProductsArraySchema = z.array(ProductSchema);
 
-// Função auxiliar para verificar o token JWT
-// Configuração do Redis (Caso o KV da Vercel falhe)
-let redis = null;
-if (process.env.REDIS_URL) {
-  try {
-    redis = new Redis(process.env.REDIS_URL);
-  } catch (e) { console.error("Erro ao iniciar Redis:", e); }
-}
-
-// 🛡️ REDE DE SEGURANÇA: Produtos iniciais caso o Banco de Dados ou o Arquivo falhem
-const INITIAL_PRODUCTS = [
-  {
-    "id": "al-haramain",
-    "name": "Al Haramain Miracle Dubai Eau de Parfum",
-    "price": 500,
-    "compareAtPrice": 999,
-    "image": "/photos/1775830308715_Gemini_Generated_Image_4ftic54ftic54fti.png",
-    "images": ["/photos/1775830308715_Gemini_Generated_Image_4ftic54ftic54fti.png"],
-    "isOnSale": false,
-    "soldOut": false,
-    "rating": 5,
-    "discountPercent": 20,
-    "installments": "ou 8x de R$ 94,76",
-    "category": "Perfume",
-    "brand": "Paris Elysees",
-    "gender": "Masculino"
-  },
-  {
-    "id": "al-wataniah",
-    "name": "Al Wataniah Bareeq Al Dhahab Eau de Parfum",
-    "price": 312.55,
-    "compareAtPrice": 359,
-    "image": "/perfume.jpg",
-    "images": ["/perfume.jpg"],
-    "isOnSale": true,
-    "soldOut": false,
-    "rating": 5,
-    "discountPercent": 8,
-    "installments": "ou 8x de R$ 39,06",
-    "category": "Perfume",
-    "brand": "Outra",
-    "gender": "Unissex"
-  }
-];
-
-// Função de Sanitização
-const sanitizeString = (str) => {
-  if (typeof str !== 'string' || !str) return '';
-  return str.replace(/<[^>]*>?/gm, ''); 
-};
-
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export async function GET() {
   try {
-    let products = null;
-    let source = 'fallback';
-    
-    // 1. Tenta pegar do KV da Vercel (REST)
-    if (process.env.KV_REST_API_URL) {
-      try {
-        products = await kv.get('obsidian_products') || await kv.get('black_parfum_products');
-        if (products && Array.isArray(products)) source = 'kv';
-      } catch (e) {}
-    }
-    
-    // 2. Tenta pegar do Redis (Protocolo Redis) Caso o anterior falhe
-    if (source === 'fallback' && redis) {
-      try {
-        let data = await redis.get('obsidian_products');
-        if (!data) data = await redis.get('black_parfum_products');
-        if (data) {
-          products = JSON.parse(data);
-          if (Array.isArray(products)) source = 'redis';
-        }
-      } catch (e) { console.error("Redis GET Error", e); }
-    }
-    
-    // 3. Se tudo falhar, usa os produtos iniciais
-    if (source === 'fallback') {
-        products = INITIAL_PRODUCTS;
-    }
-    
+    const products = await getProducts();
     return new Response(JSON.stringify(products), { 
       status: 200, 
       headers: { 
         'Content-Type': 'application/json',
-        'X-Data-Source': source,
         'Cache-Control': 'no-store, max-age=0'
       } 
     });
@@ -170,42 +92,9 @@ export async function PUT(request) {
       }), { status: 400 });
     }
 
-    const sanitizedProducts = validation.data.map(product => ({
-      ...product,
-      id: product.id || `prod_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-      name: sanitizeString(product.name),
-      brand: sanitizeString(product.brand) || 'Outra',
-      category: sanitizeString(product.category) || 'Perfume',
-      gender: sanitizeString(product.gender) || 'Unissex',
-      sizes: sanitizeString(product.sizes || ''),
-      description: sanitizeString(product.description || ''),
-      topNotes: sanitizeString(product.topNotes || ''),
-      heartNotes: sanitizeString(product.heartNotes || ''),
-      baseNotes: sanitizeString(product.baseNotes || ''),
-      olfactoryFamily: sanitizeString(product.olfactoryFamily || ''),
-      videoUrl: sanitizeString(product.videoUrl || ''),
-      soldOut: Boolean(product.soldOut)
-    }));
+    const sanitizedProducts = await saveProducts(validation.data);
 
-    let saved = false;
-
-    // Tenta salvar no KV (REST)
-    if (process.env.KV_REST_API_URL) {
-      try {
-        await kv.set('obsidian_products', sanitizedProducts);
-        saved = true;
-      } catch (e) {}
-    }
-
-    // Tenta salvar no Redis (Protocolo)
-    if (!saved && redis) {
-       await redis.set('obsidian_products', JSON.stringify(sanitizedProducts));
-       saved = true;
-    }
-
-    if (!saved) throw new Error("Nenhum banco de dados disponível (KV ou REDIS_URL)");
-
-    return new Response(JSON.stringify({ success: true, products: sanitizedProducts, source: saved ? 'cloud' : 'fail' }), { status: 200 });
+    return new Response(JSON.stringify({ success: true, products: sanitizedProducts, source: 'cloud' }), { status: 200 });
   } catch (error) {
     console.error('ERRO AO SALVAR NO BANCO:', error);
     return new Response(JSON.stringify({ error: 'Erro ao salvar no banco de dados: ' + error.message }), { status: 500 });

@@ -35,6 +35,11 @@ export default function Home() {
     setToast({ visible: true, message: msg });
   };
 
+  const isProductSoldOut = (product) => {
+    const hasControlledStock = product.stock !== null && typeof product.stock !== 'undefined' && product.stock !== '';
+    return Boolean(product.soldOut) || (hasControlledStock && Number(product.stock) <= 0);
+  };
+
   useEffect(() => {
     if (toast.visible) {
       const timer = setTimeout(() => setToast({ visible: false, message: '' }), 2500);
@@ -77,6 +82,11 @@ export default function Home() {
   }, [cart]);
 
   const addToCart = (product) => {
+    if (product.active === false || isProductSoldOut(product)) {
+      showToast('Produto esgotado no momento.');
+      return;
+    }
+
     setCart(prev => {
       const cartItemId = product.cartItemId || product.id;
       const exist = prev.find(item => (item.cartItemId || item.id) === cartItemId);
@@ -139,6 +149,7 @@ export default function Home() {
 
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
+      if (product.active === false) return false;
       if (searchQuery && product.name && !product.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
       if (selectedCategory !== 'Todos' && product.category !== selectedCategory) return false;
       if (selectedBrand !== 'Todas' && product.brand !== selectedBrand) return false;

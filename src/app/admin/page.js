@@ -8,6 +8,7 @@ export default function AdminPage() {
   const [products, setProducts] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [coupons, setCoupons] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [activeTab, setActiveTab] = useState('products');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -33,24 +34,56 @@ export default function AdminPage() {
     }
   };
 
+  const isProductSoldOut = (product) => {
+    const hasControlledStock = product.stock !== null && typeof product.stock !== 'undefined' && product.stock !== '';
+    return Boolean(product.soldOut) || (hasControlledStock && Number(product.stock) <= 0);
+  };
+
+  const formatMoney = (value = 0) => `R$ ${Number(value || 0).toFixed(2).replace('.', ',')}`;
+
+  const formatDateTime = (value) => {
+    if (!value) return '';
+    return new Date(value).toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const getOrderStatusMeta = (status) => {
+    const map = {
+      paid: { label: 'PAGO', color: '#16a34a', background: 'rgba(22, 163, 74, 0.18)' },
+      pending: { label: 'A PAGAR', color: '#facc15', background: 'rgba(250, 204, 21, 0.16)' },
+      cancelled: { label: 'CANCELADO', color: '#f87171', background: 'rgba(248, 113, 113, 0.18)' },
+      refunded: { label: 'REEMBOLSADO', color: '#93c5fd', background: 'rgba(147, 197, 253, 0.16)' },
+    };
+
+    return map[status] || map.pending;
+  };
+
   const loadAdminData = async (token) => {
     setLoading(true);
     try {
-      const [productsRes, reviewsRes, couponsRes] = await Promise.all([
+      const [productsRes, reviewsRes, couponsRes, ordersRes] = await Promise.all([
         fetch('/api/products', { cache: 'no-store' }),
         fetch('/api/reviews?all=true', { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' }),
-        fetch('/api/coupons', { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' })
+        fetch('/api/coupons', { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' }),
+        fetch('/api/orders', { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' })
       ]);
 
-      const [productsData, reviewsData, couponsData] = await Promise.all([
+      const [productsData, reviewsData, couponsData, ordersData] = await Promise.all([
         productsRes.json(),
         reviewsRes.json(),
-        couponsRes.json()
+        couponsRes.json(),
+        ordersRes.json()
       ]);
 
       setProducts(Array.isArray(productsData) ? productsData : []);
       setReviews(Array.isArray(reviewsData) ? reviewsData : []);
       setCoupons(Array.isArray(couponsData?.coupons) ? couponsData.coupons : []);
+      setOrders(Array.isArray(ordersData?.orders) ? ordersData.orders : []);
     } catch (error) {
       setMessage('Erro ao carregar dados do painel.');
     } finally {
@@ -276,7 +309,9 @@ export default function AdminPage() {
       image: "/photos/perfume.jpg",
       images: ["/photos/perfume.jpg"],
       isOnSale: false,
+      active: true,
       soldOut: false,
+      stock: null,
       rating: 5,
       discountPercent: 0,
       installments: "3x de R$ 0,00 s/ juros",
@@ -370,6 +405,30 @@ export default function AdminPage() {
     } finally {
       setSaving(false);
       setTimeout(() => setMessage(''), 5000);
+    }
+  };
+
+  const handleOrderAction = async (orderId, action, status) => {
+    if (action === 'delete' && !confirm('Apagar este pedido do painel?')) return;
+
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ id: orderId, action, status })
+      });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || 'Erro ao atualizar pedido.');
+
+      setOrders(Array.isArray(data.orders) ? data.orders : []);
+      setMessage(action === 'delete' ? 'Pedido apagado.' : 'Pedido atualizado.');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      setMessage(error.message || 'Erro ao atualizar pedido.');
     }
   };
 
@@ -551,20 +610,37 @@ export default function AdminPage() {
   const displayedProducts = products
     .map((product, index) => ({ product, index }))
     .filter(({ product }) => {
+      if (activeTab === 'soldOut') return isProductSoldOut(product);
+      if (activeTab === 'inactive') return product.active === false;
       if (activeTab === 'decants') return product.category === 'Decante';
       if (activeTab === 'combos') return product.category === 'Combo Decantes';
-      return activeTab === 'products';
+      return activeTab === 'products' && product.active !== false && !isProductSoldOut(product);
     });
 
   const sectionTitle = activeTab === 'reviews'
     ? 'Moderação de Reviews'
     : activeTab === 'coupons'
       ? 'Cupons e Influencers'
+    : activeTab === 'sales'
+      ? 'Vendas'
+    : activeTab === 'soldOut'
+      ? 'Produtos Esgotados'
+    : activeTab === 'inactive'
+      ? 'Produtos Inativos'
     : activeTab === 'decants'
       ? 'Gerenciamento de Decantes'
       : activeTab === 'combos'
         ? 'Gerenciamento de Combos de Decantes'
         : 'Gerenciamento de Produtos';
+
+  const totalProducts = products.length;
+  const soldOutProducts = products.filter(isProductSoldOut).length;
+  const activeProducts = products.filter(product => product.active !== false && !isProductSoldOut(product)).length;
+  const categoriesCount = new Set(products.map(product => product.category).filter(Boolean)).size;
+  const pendingOrders = orders.filter(order => order.status === 'pending').length;
+  const paidOrders = orders.filter(order => order.status === 'paid').length;
+  const canEditProducts = ['products', 'decants', 'combos', 'soldOut', 'inactive'].includes(activeTab);
+  const canAddCurrentTab = ['products', 'decants', 'combos'].includes(activeTab) || activeTab === 'coupons';
 
   return (
     <div className="admin-layout">
@@ -575,7 +651,16 @@ export default function AdminPage() {
         </div>
         <nav className="admin-nav">
           <div className={`nav-item ${activeTab === 'products' ? 'active' : ''}`} onClick={() => setActiveTab('products')} style={{cursor: 'pointer'}}>
-            Produtos e Preços
+            Ativos ({activeProducts})
+          </div>
+          <div className={`nav-item ${activeTab === 'soldOut' ? 'active' : ''}`} onClick={() => setActiveTab('soldOut')} style={{cursor: 'pointer'}}>
+            Esgotados ({soldOutProducts})
+          </div>
+          <div className={`nav-item ${activeTab === 'inactive' ? 'active' : ''}`} onClick={() => setActiveTab('inactive')} style={{cursor: 'pointer'}}>
+            Inativos ({products.filter(product => product.active === false).length})
+          </div>
+          <div className={`nav-item ${activeTab === 'sales' ? 'active' : ''}`} onClick={() => setActiveTab('sales')} style={{cursor: 'pointer'}}>
+            Vendas ({pendingOrders})
           </div>
           <div className={`nav-item ${activeTab === 'decants' ? 'active' : ''}`} onClick={() => setActiveTab('decants')} style={{cursor: 'pointer'}}>
             Decantes
@@ -589,9 +674,9 @@ export default function AdminPage() {
           <div className={`nav-item ${activeTab === 'coupons' ? 'active' : ''}`} onClick={() => setActiveTab('coupons')} style={{cursor: 'pointer'}}>
             Cupons ({coupons.length})
           </div>
-          <button onClick={() => activeTab === 'coupons' ? handleAddCoupon() : handleAddProduct(activeTab === 'decants' ? 'Decante' : activeTab === 'combos' ? 'Combo Decantes' : 'Perfume')} className="btn-add">
+          {canAddCurrentTab && <button onClick={() => activeTab === 'coupons' ? handleAddCoupon() : handleAddProduct(activeTab === 'decants' ? 'Decante' : activeTab === 'combos' ? 'Combo Decantes' : 'Perfume')} className="btn-add">
             {activeTab === 'coupons' ? '+ Novo Cupom' : activeTab === 'decants' ? '+ Novo Decante' : activeTab === 'combos' ? '+ Novo Combo' : '+ Novo Produto'}
-          </button>
+          </button>}
           <Link href="/" className="nav-link">
             Ver Loja
           </Link>
@@ -605,9 +690,15 @@ export default function AdminPage() {
       <main className="admin-main">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
           <h1>{sectionTitle}</h1>
-          <button className="btn-gold" onClick={activeTab === 'coupons' ? handleSaveCoupons : handleSave} disabled={saving} style={{ padding: '12px 24px', fontSize: '1rem' }}>
-            {saving ? <span className="spinner" style={{ width: '20px', height: '20px' }}></span> : 'Salvar Alterações no Banco'}
-          </button>
+          {activeTab === 'sales' ? (
+            <button className="btn-gold" onClick={() => loadAdminData(authToken)} style={{ padding: '12px 24px', fontSize: '1rem' }}>
+              Atualizar
+            </button>
+          ) : (canEditProducts || activeTab === 'coupons') ? (
+            <button className="btn-gold" onClick={activeTab === 'coupons' ? handleSaveCoupons : handleSave} disabled={saving} style={{ padding: '12px 24px', fontSize: '1rem' }}>
+              {saving ? <span className="spinner" style={{ width: '20px', height: '20px' }}></span> : 'Salvar Alterações no Banco'}
+            </button>
+          ) : null}
         </div>
 
         {message && (
@@ -616,7 +707,22 @@ export default function AdminPage() {
           </div>
         )}
 
-        {['products', 'decants', 'combos'].includes(activeTab) && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: '14px', marginBottom: '30px' }}>
+          {[
+            { label: 'Total produtos', value: totalProducts, color: '#fff' },
+            { label: 'Ativos', value: activeProducts, color: '#22c55e' },
+            { label: 'Esgotados', value: soldOutProducts, color: '#f87171' },
+            { label: 'Categorias', value: categoriesCount, color: '#facc15' },
+            { label: 'Vendas pagas', value: paidOrders, color: '#22c55e' },
+          ].map((stat) => (
+            <div key={stat.label} style={{ border: '1px solid #222', borderRadius: '6px', padding: '14px', background: 'rgba(10,10,10,0.7)' }}>
+              <div style={{ color: '#b8c7d9', textTransform: 'uppercase', fontSize: '0.75rem', marginBottom: '6px' }}>{stat.label}</div>
+              <div style={{ color: stat.color, fontSize: '1.8rem', fontWeight: 800, lineHeight: 1 }}>{stat.value}</div>
+            </div>
+          ))}
+        </div>
+
+        {canEditProducts && (
         <div className="products-container">
           {displayedProducts.map(({ product, index }) => (
             <div key={product.id} style={{ display: 'flex', gap: '40px', alignItems: 'flex-start', borderBottom: '1px solid #222', paddingBottom: '30px', marginBottom: '30px', position: 'relative' }}>
@@ -760,6 +866,20 @@ export default function AdminPage() {
                   />
                 </div>
 
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Estoque</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="Sem controle"
+                    value={product.stock ?? ''}
+                    onChange={(e) => handleChange(index, 'stock', e.target.value === '' ? null : Math.max(0, parseInt(e.target.value, 10) || 0))}
+                    style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                  />
+                  <div style={{ color: '#666', fontSize: '0.75rem', marginTop: '6px' }}>Em branco = sem baixa automatica.</div>
+                </div>
+
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Tamanhos Disponíveis (separados por vírgula)</label>
                   <input 
@@ -827,6 +947,19 @@ export default function AdminPage() {
                 </div>
 
                 <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '15px', marginTop: '10px' }}>
+                  <input
+                    type="checkbox"
+                    id={`active-${product.id}`}
+                    checked={product.active !== false}
+                    onChange={(e) => handleChange(index, 'active', e.target.checked)}
+                    style={{ width: '20px', height: '20px', accentColor: '#4ade80', cursor: 'pointer' }}
+                  />
+                  <label htmlFor={`active-${product.id}`} style={{ fontSize: '1.1rem', cursor: 'pointer', color: product.active !== false ? '#4ade80' : 'var(--text-dim)' }}>
+                    Produto ATIVO na loja
+                  </label>
+                </div>
+
+                <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '15px' }}>
                   <input 
                     type="checkbox" 
                     id={`promo-${product.id}`}
@@ -944,6 +1077,83 @@ export default function AdminPage() {
             <div style={{ color: 'var(--text-dim)', fontSize: '0.9rem', lineHeight: 1.5 }}>
               A comissao e calculada sobre o subtotal dos produtos depois do desconto, sem incluir frete. Se preencher comissao fixa, ela prevalece sobre a porcentagem.
             </div>
+          </div>
+        )}
+
+        {activeTab === 'sales' && (
+          <div style={{ border: '1px solid #222', borderRadius: '6px', background: 'rgba(10,10,10,0.72)', overflow: 'hidden' }}>
+            <div style={{ padding: '20px', borderBottom: '1px solid #222', display: 'flex', justifyContent: 'space-between', gap: '20px', alignItems: 'center' }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '1.2rem', color: '#fff' }}>Pedidos recentes</h2>
+                <p style={{ margin: '6px 0 0', color: '#b8c7d9', fontSize: '0.9rem' }}>Clientes, endereco, itens, frete, total e status do pagamento.</p>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', color: '#b8c7d9', fontSize: '0.85rem' }}>
+                <span>A pagar: {pendingOrders}</span>
+                <span>Pagos: {paidOrders}</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.3fr 1.4fr 1.4fr .9fr .9fr .8fr', gap: '18px', padding: '14px', color: '#b8c7d9', borderBottom: '1px solid #222', textTransform: 'uppercase', fontSize: '0.72rem', letterSpacing: '0.04em' }}>
+              <div>Pedido</div>
+              <div>Cliente</div>
+              <div>Entrega</div>
+              <div>Itens</div>
+              <div>Valores</div>
+              <div>Status</div>
+              <div>Acoes</div>
+            </div>
+
+            {orders.length === 0 ? (
+              <div style={{ padding: '24px', color: 'var(--text-dim)' }}>Nenhum pedido registrado ainda.</div>
+            ) : (
+              orders.map((order) => {
+                const statusMeta = getOrderStatusMeta(order.status);
+                const delivery = order.customer?.deliveryMethod === 'pickup'
+                  ? 'Retirar na loja'
+                  : `${order.customer?.address || ''} ${order.customer?.number || ''}${order.customer?.complement ? `, ${order.customer.complement}` : ''} - ${order.customer?.neighborhood || ''} - ${order.customer?.city || ''}/${order.customer?.state || ''} - ${order.customer?.zip || ''}`;
+
+                return (
+                  <div key={order.id} style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.3fr 1.4fr 1.4fr .9fr .9fr .8fr', gap: '18px', padding: '18px 14px', borderBottom: '1px solid #1f2937', color: '#fff', alignItems: 'start', fontSize: '0.86rem' }}>
+                    <div>
+                      <strong style={{ color: '#fff' }}>{order.id}</strong>
+                      <div style={{ color: '#b8c7d9', fontSize: '0.78rem', marginTop: '6px' }}>{formatDateTime(order.createdAt)}</div>
+                    </div>
+                    <div>
+                      <strong>{order.customer?.name || '-'}</strong>
+                      <div style={{ color: '#b8c7d9', fontSize: '0.78rem', marginTop: '6px' }}>{order.customer?.email || '-'}</div>
+                    </div>
+                    <div style={{ color: '#e5e7eb', lineHeight: 1.45 }}>{delivery}</div>
+                    <div style={{ color: '#e5e7eb', lineHeight: 1.45 }}>
+                      {(order.items || []).map((item) => (
+                        <div key={`${order.id}-${item.cartItemId}`}>{item.quantity}x {item.name}{item.selectedSize ? ` - ${item.selectedSize}` : ''}</div>
+                      ))}
+                    </div>
+                    <div style={{ lineHeight: 1.5 }}>
+                      <div>Produtos: {formatMoney(order.amounts?.subtotal)}</div>
+                      {Number(order.amounts?.discount || 0) > 0 && <div>Desc: -{formatMoney(order.amounts.discount)}</div>}
+                      <div>Frete: {formatMoney(order.amounts?.shipping)}</div>
+                      <strong>Total: {formatMoney(order.amounts?.total)}</strong>
+                    </div>
+                    <div>
+                      <span style={{ display: 'inline-block', padding: '6px 9px', borderRadius: '4px', background: statusMeta.background, color: statusMeta.color, fontWeight: 800, fontSize: '0.72rem' }}>
+                        {statusMeta.label}
+                      </span>
+                      {order.paymentId && <div style={{ color: '#b8c7d9', fontSize: '0.75rem', marginTop: '8px' }}>MP: {order.paymentId}</div>}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {(order.initPoint || order.sandboxInitPoint) && (
+                        <a href={order.initPoint || order.sandboxInitPoint} target="_blank" rel="noreferrer" style={{ border: '1px solid #d4af37', color: '#d4af37', borderRadius: '4px', padding: '7px 8px', textAlign: 'center', textDecoration: 'none', fontWeight: 700, fontSize: '0.78rem' }}>
+                          Ver pagamento
+                        </a>
+                      )}
+                      <button onClick={() => handleOrderAction(order.id, 'delete')} style={{ border: '1px solid #555', color: '#fff', background: 'transparent', borderRadius: '4px', padding: '7px 8px', cursor: 'pointer', fontWeight: 700 }}>
+                        Apagar
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         )}
 
