@@ -199,24 +199,46 @@ export default function Home() {
               Todos
             </button>
             <button 
-              onClick={() => setSelectedGender(selectedGender === 'Feminino' ? 'Todos' : 'Feminino')}
+              onClick={() => {
+                setSelectedGender(selectedGender === 'Feminino' ? 'Todos' : 'Feminino');
+                setMaxPrice(Infinity);
+              }}
               style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', whiteSpace: 'nowrap', border: '1px solid #ddd', background: selectedGender === 'Feminino' ? '#111' : '#fff', color: selectedGender === 'Feminino' ? '#fff' : '#111', cursor: 'pointer' }}>
               Feminino
             </button>
             <button 
-              onClick={() => setSelectedGender(selectedGender === 'Masculino' ? 'Todos' : 'Masculino')}
+              onClick={() => {
+                setSelectedGender(selectedGender === 'Masculino' ? 'Todos' : 'Masculino');
+                setMaxPrice(Infinity);
+              }}
               style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', whiteSpace: 'nowrap', border: '1px solid #ddd', background: selectedGender === 'Masculino' ? '#111' : '#fff', color: selectedGender === 'Masculino' ? '#fff' : '#111', cursor: 'pointer' }}>
               Masculino
             </button>
             <button 
-              onClick={() => setSelectedCategory(selectedCategory === 'Decante' ? 'Todos' : 'Decante')}
+              onClick={() => {
+                setSelectedCategory(selectedCategory === 'Decante' ? 'Todos' : 'Decante');
+                setMaxPrice(Infinity);
+              }}
               style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', whiteSpace: 'nowrap', border: '1px solid #ddd', background: selectedCategory === 'Decante' ? '#111' : '#fff', color: selectedCategory === 'Decante' ? '#fff' : '#111', cursor: 'pointer' }}>
               Decantes
             </button>
             <button 
-              onClick={() => setSelectedCategory(selectedCategory === 'Combo Decantes' ? 'Todos' : 'Combo Decantes')}
-              style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', whiteSpace: 'nowrap', border: '1px solid #ddd', background: selectedCategory === 'Combo Decantes' ? '#111' : '#fff', color: selectedCategory === 'Combo Decantes' ? '#fff' : '#111', cursor: 'pointer' }}>
+              onClick={() => {
+                const isActive = selectedCategory === 'Combo Decantes' && maxPrice !== 99;
+                setSelectedCategory(isActive ? 'Todos' : 'Combo Decantes');
+                setMaxPrice(Infinity);
+              }}
+              style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', whiteSpace: 'nowrap', border: '1px solid #ddd', background: (selectedCategory === 'Combo Decantes' && maxPrice !== 99) ? '#111' : '#fff', color: (selectedCategory === 'Combo Decantes' && maxPrice !== 99) ? '#fff' : '#111', cursor: 'pointer' }}>
               Combos Decantes
+            </button>
+            <button
+              onClick={() => {
+                const isActive = selectedCategory === 'Combo Decantes' && maxPrice === 99;
+                setSelectedCategory(isActive ? 'Todos' : 'Combo Decantes');
+                setMaxPrice(isActive ? Infinity : 99);
+              }}
+              style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', whiteSpace: 'nowrap', border: '1px solid #e11d48', background: (selectedCategory === 'Combo Decantes' && maxPrice === 99) ? '#e11d48' : '#fff', color: (selectedCategory === 'Combo Decantes' && maxPrice === 99) ? '#fff' : '#e11d48', cursor: 'pointer', fontWeight: 700 }}>
+              🔥 Até R$ 99
             </button>
             {brands.map(brand => (
               <button 
@@ -232,7 +254,7 @@ export default function Home() {
 
       <div className="container" style={{ marginTop: '20px' }}>
         <h3 style={{ marginBottom: '15px', fontSize: '1.2rem', color: '#111' }}>
-          {selectedCategory === 'Combo Decantes' ? 'Combos de Decantes' : selectedCategory === 'Decante' ? 'Vitrine de Decantes' : maxPrice < 100 ? 'Perfumes até R$ 99' : 'Destaques'}
+          {selectedCategory === 'Combo Decantes' && maxPrice === 99 ? '🔥 Combos até R$ 99' : selectedCategory === 'Combo Decantes' ? 'Combos de Decantes' : selectedCategory === 'Decante' ? 'Vitrine de Decantes' : maxPrice < 100 ? 'Perfumes até R$ 99' : 'Destaques'}
         </h3>
         
         {isLoading ? (

@@ -65,39 +65,53 @@ export default function ProductPage() {
   const [reviewForm, setReviewForm] = useState({ name: '', email: '', text: '', rating: 5 });
   const [submittingReview, setSubmittingReview] = useState(false);
 
-  // Swipe Handlers (Fluid)
+  // Swipe changes the selected media without dragging the frame out of center.
   const [touchStart, setTouchStart] = useState(null);
-  const [translateX, setTranslateX] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
+  const [touchEnd, setTouchEnd] = useState(null);
   const minSwipeDistance = 50;
+
+  function getGalleryItems(source = product) {
+    if (!source) return [];
+    const list = source.images?.length > 0 ? [...source.images] : [source.image];
+
+    if (source.videoUrl && !list.includes(source.videoUrl)) {
+      list.push(source.videoUrl);
+    }
+
+    return list.filter(Boolean);
+  }
 
   const onTouchStart = (e) => {
     setTouchStart(e.targetTouches[0].clientX);
-    setIsDragging(true);
+    setTouchEnd(null);
   };
   
   const onTouchMove = (e) => {
     if (!touchStart) return;
-    const currentTouch = e.targetTouches[0].clientX;
-    const diff = currentTouch - touchStart;
-    setTranslateX(diff);
+    setTouchEnd(e.targetTouches[0].clientX);
   };
   
   const onTouchEnd = () => {
-    setIsDragging(false);
-    const imagesList = product.images?.length > 0 ? product.images : [product.image];
-    if (product.videoUrl && !imagesList.includes(product.videoUrl)) imagesList.push(product.videoUrl);
+    if (!touchStart || !touchEnd) {
+      setTouchStart(null);
+      setTouchEnd(null);
+      return;
+    }
 
-    if (Math.abs(translateX) > minSwipeDistance) {
+    const imagesList = getGalleryItems();
+    const swipeDistance = touchStart - touchEnd;
+
+    if (Math.abs(swipeDistance) > minSwipeDistance) {
       const currentIndex = imagesList.indexOf(selectedImage);
-      if (translateX < 0 && currentIndex < imagesList.length - 1) {
+      if (swipeDistance > 0 && currentIndex < imagesList.length - 1) {
         setSelectedImage(imagesList[currentIndex + 1]);
-      } else if (translateX > 0 && currentIndex > 0) {
+      } else if (swipeDistance < 0 && currentIndex > 0) {
         setSelectedImage(imagesList[currentIndex - 1]);
       }
     }
-    setTranslateX(0);
+
     setTouchStart(null);
+    setTouchEnd(null);
   };
 
   // Safe Cart Initialization
@@ -258,10 +272,7 @@ export default function ProductPage() {
   const installmentPrice = product.price / 5;
   const isSoldOut = isUnavailable;
   const sizesList = product.sizes ? product.sizes.split(',').map(s => s.trim()).filter(Boolean) : [];
-  const imagesList = product.images?.length > 0 ? product.images : [product.image];
-  if (product.videoUrl && !imagesList.includes(product.videoUrl)) {
-    imagesList.push(product.videoUrl); // Video added to the end of gallery
-  }
+  const imagesList = getGalleryItems();
 
   const avgRating = reviews.length > 0 ? (reviews.reduce((acc, curr) => acc + curr.rating, 0) / reviews.length).toFixed(1) : 0;
 
@@ -280,11 +291,11 @@ export default function ProductPage() {
              return <iframe src={`https://drive.google.com/file/d/${driveId}/preview`} className="drive-iframe" allow="autoplay" allowFullScreen frameBorder="0"></iframe>;
          }
       } else {
-         return <video src={item} controls style={{ width: '100%', height: '100%', objectFit: 'contain' }} />;
+         return <video src={item} controls style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />;
       }
     }
     
-    return <img src={item} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />;
+    return <img src={item} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />;
   };
 
   const renderThumbItem = (item) => {
@@ -333,12 +344,7 @@ export default function ProductPage() {
                 position: 'relative'
               }}
             >
-                <div style={{ 
-                  transform: `translateX(${translateX}px)`, 
-                  transition: isDragging ? 'none' : 'transform 0.3s ease',
-                  width: '100%',
-                  height: '100%'
-                }}>
+                <div className="gallery-item-frame">
                   {renderGalleryItem(selectedImage)}
                 </div>
             </div>

@@ -83,6 +83,13 @@ export default function CartDrawer({
     return !String(checkoutForm[field] || '').trim();
   };
   const missingFields = requiredFields.filter(isFieldMissing);
+  const hasDeliveryAddressDetails = checkoutForm.deliveryMethod === 'home'
+    && hasValidZip
+    && ['address', 'number', 'neighborhood', 'city'].every(field => String(checkoutForm[field] || '').trim());
+  const showFinalSummary = checkoutForm.deliveryMethod === 'pickup'
+    || isFreeDelivery
+    || Boolean(selectedShippingOption)
+    || shippingLoading;
 
   const inputStyle = (extra = {}) => ({
     padding: '8px 10px',
@@ -319,58 +326,38 @@ export default function CartDrawer({
 
         {cart.length > 0 && (
           <div style={{ borderTop: '1px solid #eee', padding: '16px 20px 20px', backgroundColor: '#fcfcfc', boxShadow: '0 -5px 15px rgba(0,0,0,0.03)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: '#555', marginBottom: '8px' }}>
-              <span>Subtotal:</span>
-              <span>R$ {formatMoney(cartTotal)}</span>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 96px', gap: '8px', marginBottom: '8px' }}>
-              <input
-                type="text"
-                placeholder="Cupom de desconto"
-                value={couponCode}
-                onChange={(e) => {
-                  setCouponCode(e.target.value.toUpperCase());
-                  if (appliedCoupon) setAppliedCoupon(null);
-                  if (couponMessage) setCouponMessage('');
-                }}
-                style={inputStyle({ width: '100%', textTransform: 'uppercase' })}
-              />
-              <button
-                type="button"
-                onClick={applyCoupon}
-                disabled={couponLoading}
-                style={{ border: 'none', borderRadius: '4px', background: couponLoading ? '#777' : '#111', color: '#fff', fontWeight: 700, cursor: couponLoading ? 'not-allowed' : 'pointer' }}
-              >
-                {couponLoading ? '...' : 'Aplicar'}
-              </button>
-            </div>
-            {couponMessage && (
-              <div style={{ fontSize: '0.78rem', color: appliedCoupon ? '#16a34a' : '#dc2626', marginBottom: '8px', lineHeight: 1.35 }}>
-                {couponMessage}
-                {appliedCoupon && (
-                  <button type="button" onClick={removeCoupon} style={{ marginLeft: '8px', border: 'none', background: 'transparent', color: '#555', textDecoration: 'underline', cursor: 'pointer', fontSize: '0.78rem' }}>
-                    remover
-                  </button>
-                )}
+            <div style={{ border: '1px solid #eee', borderRadius: '6px', background: '#fff', padding: '10px', marginBottom: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 96px', gap: '8px' }}>
+                <input
+                  type="text"
+                  placeholder="Cupom de desconto"
+                  value={couponCode}
+                  onChange={(e) => {
+                    setCouponCode(e.target.value.toUpperCase());
+                    if (appliedCoupon) setAppliedCoupon(null);
+                    if (couponMessage) setCouponMessage('');
+                  }}
+                  style={inputStyle({ width: '100%', textTransform: 'uppercase' })}
+                />
+                <button
+                  type="button"
+                  onClick={applyCoupon}
+                  disabled={couponLoading}
+                  style={{ border: 'none', borderRadius: '4px', background: couponLoading ? '#777' : '#111', color: '#fff', fontWeight: 700, cursor: couponLoading ? 'not-allowed' : 'pointer' }}
+                >
+                  {couponLoading ? '...' : 'Aplicar'}
+                </button>
               </div>
-            )}
-            {couponDiscount > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: '#16a34a', marginBottom: '8px' }}>
-                <span>Desconto ({appliedCoupon.code}):</span>
-                <span>- R$ {formatMoney(couponDiscount)}</span>
-              </div>
-            )}
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: '#555', marginBottom: '8px' }}>
-              <span>Frete:</span>
-              <span>
-                {shippingLoading
-                  ? 'Calculando...'
-                  : `R$ ${formatMoney(shippingCost)}`}
-              </span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: '600', marginBottom: '14px', color: '#111', borderTop: '1px solid #eee', paddingTop: '12px' }}>
-              <span>Total:</span>
-              <span>R$ {formatMoney(orderTotal)}</span>
+              {couponMessage && (
+                <div style={{ fontSize: '0.78rem', color: appliedCoupon ? '#16a34a' : '#dc2626', marginTop: '8px', lineHeight: 1.35 }}>
+                  {couponMessage}
+                  {appliedCoupon && (
+                    <button type="button" onClick={removeCoupon} style={{ marginLeft: '8px', border: 'none', background: 'transparent', color: '#555', textDecoration: 'underline', cursor: 'pointer', fontSize: '0.78rem' }}>
+                      remover
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             <h3 style={{ fontSize: '0.72rem', marginBottom: '8px', color: '#666', textTransform: 'uppercase', letterSpacing: '1px' }}>Forma de Entrega</h3>
@@ -524,6 +511,40 @@ export default function CartDrawer({
                 </>
               )}
             </div>
+
+            {showFinalSummary ? (
+              <div style={{ border: '1px solid #e5e7eb', borderRadius: '6px', background: '#fff', padding: '12px', marginBottom: '14px' }}>
+                <h3 style={{ ...sectionTitleStyle, marginBottom: '8px' }}>Resumo do pedido</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.92rem', color: '#555', marginBottom: '6px' }}>
+                  <span>Produtos</span>
+                  <span>R$ {formatMoney(cartTotal)}</span>
+                </div>
+                {couponDiscount > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.92rem', color: '#16a34a', marginBottom: '6px' }}>
+                    <span>Desconto ({appliedCoupon.code})</span>
+                    <span>- R$ {formatMoney(couponDiscount)}</span>
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.92rem', color: '#555', marginBottom: '8px' }}>
+                  <span>Frete</span>
+                  <span>
+                    {shippingLoading
+                      ? 'Calculando...'
+                      : isFreeDelivery
+                        ? 'Grátis'
+                        : `R$ ${formatMoney(shippingCost)}`}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.18rem', fontWeight: 800, color: '#111', borderTop: '1px solid #eee', paddingTop: '10px' }}>
+                  <span>Total</span>
+                  <span>{shippingLoading ? 'Calculando...' : `R$ ${formatMoney(orderTotal)}`}</span>
+                </div>
+              </div>
+            ) : (
+              <div style={{ border: '1px solid #e5e7eb', borderRadius: '6px', background: '#fff', padding: '10px 12px', marginBottom: '14px', fontSize: '0.82rem', color: '#666', lineHeight: 1.35 }}>
+                {hasDeliveryAddressDetails ? 'Aguardando frete para fechar o total.' : 'Preencha o endereço para ver o total com frete.'}
+              </div>
+            )}
 
             <button
               onClick={() => {

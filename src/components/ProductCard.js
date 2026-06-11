@@ -6,6 +6,7 @@ export default function ProductCard({ product, onAddToCart, reviews = [] }) {
   const installmentPrice = product.price / 5;
   const hasControlledStock = product.stock !== null && typeof product.stock !== 'undefined' && product.stock !== '';
   const isSoldOut = Boolean(product.soldOut) || (hasControlledStock && Number(product.stock) <= 0) || product.active === false;
+  const isUpTo99Combo = product.category === 'Combo Decantes' && Number(product.price || 0) <= 99;
 
   const productReviews = reviews.filter(r => r.productId === product.id);
   const avgRating = productReviews.length > 0 
@@ -19,13 +20,18 @@ export default function ProductCard({ product, onAddToCart, reviews = [] }) {
           ESGOTADO
         </div>
       )}
-      {!isSoldOut && product.isOnSale && (
+      {!isSoldOut && isUpTo99Combo && (
+        <div className="card-badge card-badge-hot">
+          🔥 Até R$ 99
+        </div>
+      )}
+      {!isSoldOut && !isUpTo99Combo && product.isOnSale && (
         <div className="card-badge">
           12% OFF
         </div>
       )}
       
-      <div className="card-image-wrap" style={{ position: 'relative', width: '100%', height: '200px' }}>
+      <div className="card-image-wrap" style={{ position: 'relative', width: '100%' }}>
         <Image 
           src={product.image || '/photos/perfume.jpg'} 
           alt={product.name}
