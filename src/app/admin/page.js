@@ -715,7 +715,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: '14px', marginBottom: '30px' }}>
+        <div className="admin-stats-grid">
           {[
             { label: 'Total produtos', value: totalProducts, color: '#fff' },
             { label: 'Ativos', value: activeProducts, color: '#22c55e' },
@@ -723,9 +723,9 @@ export default function AdminPage() {
             { label: 'Categorias', value: categoriesCount, color: '#facc15' },
             { label: 'Vendas pagas', value: paidOrders, color: '#22c55e' },
           ].map((stat) => (
-            <div key={stat.label} style={{ border: '1px solid #222', borderRadius: '6px', padding: '14px', background: 'rgba(10,10,10,0.7)' }}>
-              <div style={{ color: '#b8c7d9', textTransform: 'uppercase', fontSize: '0.75rem', marginBottom: '6px' }}>{stat.label}</div>
-              <div style={{ color: stat.color, fontSize: '1.8rem', fontWeight: 800, lineHeight: 1 }}>{stat.value}</div>
+            <div key={stat.label} className="admin-stat-card">
+              <div className="admin-stat-label">{stat.label}</div>
+              <div className="admin-stat-value" style={{ color: stat.color }}>{stat.value}</div>
             </div>
           ))}
         </div>
@@ -743,22 +743,22 @@ export default function AdminPage() {
             </div>
           )}
           {displayedProducts.map(({ product, index }) => (
-            <div key={product.id} style={{ display: 'flex', gap: '40px', alignItems: 'flex-start', borderBottom: '1px solid #222', paddingBottom: '30px', marginBottom: '30px', position: 'relative' }}>
+            <div key={product.id} className="admin-product-editor">
               
               <button 
                 onClick={() => handleDeleteProduct(index)} 
                 title="Deletar"
-                style={{ position: 'absolute', top: 0, right: 0, background: '#f87171', color: '#fff', border: 'none', borderRadius: '4px', padding: '5px 10px', cursor: 'pointer' }}>
+                className="admin-delete-product-btn">
                 X
               </button>
 
-              <div style={{ width: '180px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ padding: '10px', background: '#0a0a0a', borderRadius: '8px', border: '1px solid #222' }}>
-                  <label style={{ display: 'block', fontSize: '0.75rem', color: '#888', marginBottom: '8px', textTransform: 'uppercase' }}>Galeria ({product.images?.length || 0})</label>
+              <div className="admin-media-panel">
+                <div className="admin-media-card">
+                  <label className="admin-field-kicker">Galeria ({product.images?.length || 0})</label>
                   
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+                  <div className="admin-gallery-grid">
                     {(product.images || [product.image]).map((img, i) => (
-                      <div key={i} style={{ aspectRatio: '1/1', background: '#1a1a1a', borderRadius: '4px', position: 'relative', overflow: 'hidden', border: product.image === img ? '2px solid var(--primary-gold)' : '1px solid #333' }}>
+                      <div key={i} className="admin-gallery-thumb" style={{ border: product.image === img ? '2px solid var(--primary-gold)' : '1px solid #333' }}>
                         <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         <button 
                           onClick={() => removeImage(index, i)}
@@ -770,8 +770,8 @@ export default function AdminPage() {
                       </div>
                     ))}
                     
-                    <label style={{ aspectRatio: '1/1', background: '#222', borderRadius: '4px', border: '1px dashed #555', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', fontSize: '1.2rem', color: '#888' }}>
-                      +
+                    <label className="admin-upload-tile">
+                      <span>+ Adicionar fotos</span>
                       <input type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={(e) => handleImageUpload(index, e.target.files)} />
                     </label>
                   </div>
@@ -808,7 +808,7 @@ export default function AdminPage() {
                 </div>
               </div>
               
-              <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
+              <div className="admin-product-form-grid">
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Nome do Perfume</label>
                   <input 
