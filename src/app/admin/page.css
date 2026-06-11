@@ -2,8 +2,8 @@
 :root {
   --admin-bg: #0a0a0a;
   --admin-sidebar-bg: #111;
-  --admin-gold: #c5a67c;
-  --admin-gold-dim: rgba(197, 166, 124, 0.1);
+  --admin-gold: #f5c518;
+  --admin-gold-dim: rgba(245, 197, 24, 0.1);
   --admin-border: #222;
 }
 
@@ -295,7 +295,77 @@
   min-width: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 25px;
+  gap: 16px;
+}
+
+.admin-accordion-section {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  background: #0a0a0a;
+}
+
+.admin-accordion-trigger {
+  width: 100%;
+  min-height: 48px;
+  padding: 13px 16px;
+  border: none;
+  background: #0a0a0a;
+  color: #f5c518;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  font-weight: 800;
+  text-align: left;
+}
+
+.admin-accordion-trigger:hover {
+  background: rgba(245, 197, 24, 0.08);
+}
+
+.admin-accordion-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.admin-accordion-arrow {
+  width: 16px;
+  color: #f5c518;
+  font-size: 0.88rem;
+  line-height: 1;
+}
+
+.admin-filled-badge {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: lowercase;
+}
+
+.admin-accordion-content {
+  padding: 16px;
+  border-top: 1px solid #222;
+  background: #0d0d0d;
+}
+
+.admin-accordion-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.admin-accordion-field-full {
+  grid-column: 1 / -1;
 }
 
 .admin-empty-state {
@@ -407,6 +477,22 @@
   .admin-product-form-grid {
     grid-template-columns: 1fr;
     gap: 16px;
+  }
+
+  .admin-accordion-trigger {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+    padding: 13px 14px;
+  }
+
+  .admin-accordion-content {
+    padding: 14px;
+  }
+
+  .admin-accordion-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 
   /* Inputs and forms adjustments */

@@ -2,7 +2,36 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import * as Collapsible from '@radix-ui/react-collapsible';
 import './page.css';
+
+function hasFilledValue(value) {
+  if (typeof value === 'number') return value > 0;
+  return String(value || '').trim().length > 0;
+}
+
+function hasStockValue(value) {
+  return value !== null && typeof value !== 'undefined' && value !== '';
+}
+
+function ProductAccordionSection({ title, filled, children }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Collapsible.Root open={open} onOpenChange={setOpen} className="admin-accordion-section">
+      <Collapsible.Trigger className="admin-accordion-trigger">
+        <span className="admin-accordion-title">
+          <span className="admin-accordion-arrow">{open ? '▼' : '▶'}</span>
+          {title}
+        </span>
+        {filled && <span className="admin-filled-badge">● preenchido</span>}
+      </Collapsible.Trigger>
+      <Collapsible.Content className="admin-accordion-content">
+        {children}
+      </Collapsible.Content>
+    </Collapsible.Root>
+  );
+}
 
 export default function AdminPage() {
   const [products, setProducts] = useState([]);
@@ -432,7 +461,51 @@ export default function AdminPage() {
     }
   };
 
+  const validateProductsBeforeSave = () => {
+    for (const product of products) {
+      const productName = product.name || 'Produto sem nome';
+
+      if (!String(product.name || '').trim()) {
+        return `Preencha o nome do produto antes de salvar.`;
+      }
+
+      if (!String(product.category || '').trim()) {
+        return `Preencha a categoria de ${productName}.`;
+      }
+
+      if (!String(product.gender || '').trim()) {
+        return `Preencha o gênero de ${productName}.`;
+      }
+
+      if (!String(product.brand || '').trim()) {
+        return `Preencha a marca de ${productName}.`;
+      }
+
+      if (!Number.isFinite(Number(product.price)) || Number(product.price) <= 0) {
+        return `Informe um preço atual válido para ${productName}.`;
+      }
+
+      if (product.compareAtPrice !== '' && product.compareAtPrice !== null && typeof product.compareAtPrice !== 'undefined' && Number(product.compareAtPrice) < 0) {
+        return `O preço anterior de ${productName} não pode ser negativo.`;
+      }
+
+      if (hasStockValue(product.stock) && (!Number.isInteger(Number(product.stock)) || Number(product.stock) < 0)) {
+        return `O estoque de ${productName} precisa ser um número inteiro maior ou igual a zero.`;
+      }
+    }
+
+    return '';
+  };
+
   const handleSave = async () => {
+    const validationError = validateProductsBeforeSave();
+
+    if (validationError) {
+      setMessage(`❌ ${validationError}`);
+      setTimeout(() => setMessage(''), 5000);
+      return;
+    }
+
     setSaving(true);
     setMessage('');
 
@@ -819,150 +892,178 @@ export default function AdminPage() {
                   />
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Categoria</label>
-                  <select 
-                    value={product.category || 'Perfume'}
-                    onChange={(e) => handleChange(index, 'category', e.target.value)}
-                    style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
-                  >
-                    <option value="Perfume">Perfume (Frasco)</option>
-                    <option value="Decante">Decante</option>
-                    <option value="Combo Decantes">Combo Decantes</option>
-                  </select>
-                </div>
+                <ProductAccordionSection
+                  title="Classificação"
+                  filled={hasFilledValue(product.category) || hasFilledValue(product.gender) || hasFilledValue(product.brand) || hasFilledValue(product.olfactoryFamily)}
+                >
+                  <div className="admin-accordion-grid">
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Categoria</label>
+                      <select
+                        value={product.category || 'Perfume'}
+                        onChange={(e) => handleChange(index, 'category', e.target.value)}
+                        style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                      >
+                        <option value="Perfume">Perfume (Frasco)</option>
+                        <option value="Decante">Decante</option>
+                        <option value="Combo Decantes">Combo Decantes</option>
+                      </select>
+                    </div>
 
-                <div>
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Gênero</label>
-                  <select 
-                    value={product.gender || 'Unissex'}
-                    onChange={(e) => handleChange(index, 'gender', e.target.value)}
-                    style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
-                  >
-                    <option value="Feminino">Feminino</option>
-                    <option value="Masculino">Masculino</option>
-                    <option value="Unissex">Unissex</option>
-                  </select>
-                </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Gênero</label>
+                      <select
+                        value={product.gender || 'Unissex'}
+                        onChange={(e) => handleChange(index, 'gender', e.target.value)}
+                        style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                      >
+                        <option value="Feminino">Feminino</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Unissex">Unissex</option>
+                      </select>
+                    </div>
 
-                <div>
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Marca</label>
-                  <select 
-                    value={product.brand || 'Outra'}
-                    onChange={(e) => handleChange(index, 'brand', e.target.value)}
-                    style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
-                  >
-                    <option value="Lattafa">Lattafa</option>
-                    <option value="Maison Alhambra">Maison Alhambra</option>
-                    <option value="Al Haramain">Al Haramain</option>
-                    <option value="Armaf">Armaf</option>
-                    <option value="Afnan">Afnan</option>
-                    <option value="Paris Elysees">Paris Elysees</option>
-                    <option value="Rasasi">Rasasi</option>
-                    <option value="Creme">Creme</option>
-                    <option value="Outra">Outra</option>
-                  </select>
-                </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Marca</label>
+                      <select
+                        value={product.brand || 'Outra'}
+                        onChange={(e) => handleChange(index, 'brand', e.target.value)}
+                        style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                      >
+                        <option value="Lattafa">Lattafa</option>
+                        <option value="Maison Alhambra">Maison Alhambra</option>
+                        <option value="Al Haramain">Al Haramain</option>
+                        <option value="Armaf">Armaf</option>
+                        <option value="Afnan">Afnan</option>
+                        <option value="Paris Elysees">Paris Elysees</option>
+                        <option value="Rasasi">Rasasi</option>
+                        <option value="Creme">Creme</option>
+                        <option value="Outra">Outra</option>
+                      </select>
+                    </div>
 
-                <div>
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Preço Atual (R$)</label>
-                  <input 
-                    type="number" 
-                    value={product.price || ''}
-                    onChange={(e) => handleChange(index, 'price', parseFloat(e.target.value) || 0)}
-                    style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
-                  />
-                </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Família Olfativa</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Amadeirado, Floral, Oriental"
+                        value={product.olfactoryFamily || ''}
+                        onChange={(e) => handleChange(index, 'olfactoryFamily', e.target.value)}
+                        style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                      />
+                    </div>
+                  </div>
+                </ProductAccordionSection>
 
-                <div>
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Preço Anterior (R$)</label>
-                  <input 
-                    type="number" 
-                    value={product.compareAtPrice || ''}
-                    onChange={(e) => handleChange(index, 'compareAtPrice', parseFloat(e.target.value) || 0)}
-                    style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
-                  />
-                </div>
+                <ProductAccordionSection
+                  title="Preço & Estoque"
+                  filled={hasFilledValue(product.price) || hasFilledValue(product.compareAtPrice) || hasStockValue(product.stock)}
+                >
+                  <div className="admin-accordion-grid">
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Preço Atual (R$)</label>
+                      <input
+                        type="number"
+                        value={product.price || ''}
+                        onChange={(e) => handleChange(index, 'price', parseFloat(e.target.value) || 0)}
+                        style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                      />
+                    </div>
 
-                <div>
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Estoque</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    placeholder="Sem controle"
-                    value={product.stock ?? ''}
-                    onChange={(e) => handleChange(index, 'stock', e.target.value === '' ? null : Math.max(0, parseInt(e.target.value, 10) || 0))}
-                    style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
-                  />
-                  <div style={{ color: '#666', fontSize: '0.75rem', marginTop: '6px' }}>Em branco = sem baixa automatica.</div>
-                </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Preço Anterior (R$)</label>
+                      <input
+                        type="number"
+                        value={product.compareAtPrice || ''}
+                        onChange={(e) => handleChange(index, 'compareAtPrice', parseFloat(e.target.value) || 0)}
+                        style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                      />
+                    </div>
 
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Tamanhos Disponíveis (separados por vírgula)</label>
-                  <input 
-                    type="text" 
-                    placeholder="Ex: 50ml, 100ml, 150ml"
-                    value={product.sizes || ''}
-                    onChange={(e) => handleChange(index, 'sizes', e.target.value)}
-                    style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
-                  />
-                </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Estoque</label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        placeholder="Sem controle"
+                        value={product.stock ?? ''}
+                        onChange={(e) => handleChange(index, 'stock', e.target.value === '' ? null : Math.max(0, parseInt(e.target.value, 10) || 0))}
+                        style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                      />
+                      <div style={{ color: '#666', fontSize: '0.75rem', marginTop: '6px' }}>Em branco = sem baixa automatica.</div>
+                    </div>
+                  </div>
+                </ProductAccordionSection>
 
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Família Olfativa</label>
-                  <input 
-                    type="text" 
-                    placeholder="Ex: Amadeirado, Floral, Oriental"
-                    value={product.olfactoryFamily || ''}
-                    onChange={(e) => handleChange(index, 'olfactoryFamily', e.target.value)}
-                    style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
-                  />
-                </div>
+                <ProductAccordionSection
+                  title="Detalhes & Tamanhos"
+                  filled={hasFilledValue(product.sizes) || hasFilledValue(product.description)}
+                >
+                  <div className="admin-accordion-grid">
+                    <div className="admin-accordion-field-full">
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Tamanhos Disponíveis (separados por vírgula)</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: 50ml, 100ml, 150ml"
+                        value={product.sizes || ''}
+                        onChange={(e) => handleChange(index, 'sizes', e.target.value)}
+                        style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                      />
+                    </div>
 
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Descrição do Perfume</label>
-                  <textarea 
-                    rows="3"
-                    placeholder="Descrição sobre o perfume..."
-                    value={product.description || ''}
-                    onChange={(e) => handleChange(index, 'description', e.target.value)}
-                    style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px', resize: 'vertical' }}
-                  />
-                </div>
+                    <div className="admin-accordion-field-full">
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Descrição do Perfume</label>
+                      <textarea
+                        rows="4"
+                        placeholder="Descrição sobre o perfume..."
+                        value={product.description || ''}
+                        onChange={(e) => handleChange(index, 'description', e.target.value)}
+                        style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px', resize: 'vertical' }}
+                      />
+                    </div>
+                  </div>
+                </ProductAccordionSection>
 
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Notas de Topo (separadas por vírgula)</label>
-                  <input 
-                    type="text" 
-                    placeholder="Ex: Limão, Abacaxi, Bergamota"
-                    value={product.topNotes || ''}
-                    onChange={(e) => handleChange(index, 'topNotes', e.target.value)}
-                    style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
-                  />
-                </div>
+                <ProductAccordionSection
+                  title="Notas Olfativas"
+                  filled={hasFilledValue(product.topNotes) || hasFilledValue(product.heartNotes) || hasFilledValue(product.baseNotes)}
+                >
+                  <div className="admin-accordion-grid">
+                    <div className="admin-accordion-field-full">
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Notas de Topo (separadas por vírgula)</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Limão, Abacaxi, Bergamota"
+                        value={product.topNotes || ''}
+                        onChange={(e) => handleChange(index, 'topNotes', e.target.value)}
+                        style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                      />
+                    </div>
 
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Notas de Coração (separadas por vírgula)</label>
-                  <input 
-                    type="text" 
-                    placeholder="Ex: Jasmim, Rosa, Vidoeiro"
-                    value={product.heartNotes || ''}
-                    onChange={(e) => handleChange(index, 'heartNotes', e.target.value)}
-                    style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
-                  />
-                </div>
+                    <div className="admin-accordion-field-full">
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Notas de Coração (separadas por vírgula)</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Jasmim, Rosa, Vidoeiro"
+                        value={product.heartNotes || ''}
+                        onChange={(e) => handleChange(index, 'heartNotes', e.target.value)}
+                        style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                      />
+                    </div>
 
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Notas de Base (separadas por vírgula)</label>
-                  <input 
-                    type="text" 
-                    placeholder="Ex: Almíscar, Baunilha, Patchouli"
-                    value={product.baseNotes || ''}
-                    onChange={(e) => handleChange(index, 'baseNotes', e.target.value)}
-                    style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
-                  />
-                </div>
+                    <div className="admin-accordion-field-full">
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Notas de Base (separadas por vírgula)</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Almíscar, Baunilha, Patchouli"
+                        value={product.baseNotes || ''}
+                        onChange={(e) => handleChange(index, 'baseNotes', e.target.value)}
+                        style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                      />
+                    </div>
+                  </div>
+                </ProductAccordionSection>
 
                 <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '15px', marginTop: '10px' }}>
                   <input
