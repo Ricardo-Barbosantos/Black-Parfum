@@ -318,10 +318,32 @@
   font-size: 0.95rem;
   line-height: 1.6;
   color: #444;
+  width: 100%;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .description-text p {
   margin-bottom: 10px;
+  max-width: 100%;
+}
+
+@media(max-width: 900px) {
+  .description-text {
+    margin-top: 6px;
+    padding: 14px;
+    border: 1px solid #ececec;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: #333;
+  }
+
+  .description-text p {
+    margin-bottom: 8px;
+  }
 }
 
 /* OLFACTORY NOTES */

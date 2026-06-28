@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { verifyAuthToken } from '@/lib/auth';
-import { getProducts, saveProducts, INITIAL_PRODUCTS } from '@/lib/products';
+import { getAdminFromRequest, verifyAuthToken } from '@/lib/auth';
+import { getProducts, saveProducts, INITIAL_PRODUCTS, stripAdminProductFields } from '@/lib/products';
 
 const ProductSchema = z.object({
   id: z.string().optional(),
@@ -13,6 +13,8 @@ const ProductSchema = z.object({
   active: z.boolean().optional(),
   soldOut: z.boolean().optional(),
   stock: z.number().int().min(0).nullable().optional(),
+  purchasePrice: z.number().min(0).nullable().optional(),
+  dupeOf: z.string().optional(),
   brand: z.string().optional(),
   category: z.string().optional(),
   gender: z.string().optional(),
@@ -30,10 +32,14 @@ const ProductsArraySchema = z.array(ProductSchema);
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export async function GET() {
+export async function GET(request) {
   try {
     const products = await getProducts();
-    return new Response(JSON.stringify(products), { 
+    const responseProducts = getAdminFromRequest(request)
+      ? products
+      : products.map(stripAdminProductFields);
+
+    return new Response(JSON.stringify(responseProducts), {
       status: 200, 
       headers: { 
         'Content-Type': 'application/json',
@@ -42,7 +48,7 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Falha crítica no GET:', error);
-    return new Response(JSON.stringify(INITIAL_PRODUCTS), { status: 200 });
+    return new Response(JSON.stringify(INITIAL_PRODUCTS.map(stripAdminProductFields)), { status: 200 });
   }
 }
 

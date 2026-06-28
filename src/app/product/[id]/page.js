@@ -404,6 +404,13 @@ export default function ProductPage() {
                  </button>
               </div>
 
+              {product.description && (
+                 <div className="description-text">
+                   <p>{product.description}</p>
+                   {product.olfactoryFamily && <p><strong>Família Olfativa:</strong> {product.olfactoryFamily}</p>}
+                 </div>
+              )}
+
               {/* REVIEWS SECTION REPOSITIONED */}
               <div className="reviews-section" style={{ borderTop: 'none', paddingTop: '20px', marginTop: '20px' }}>
                 <h2 className="section-title" style={{ fontSize: '1.4rem', textAlign: 'left', marginBottom: '20px' }}>O que nossos clientes dizem</h2>
@@ -446,12 +453,6 @@ export default function ProductPage() {
                 </div>
               </div>
 
-              {product.description && (
-                 <div className="description-text">
-                   <p>{product.description}</p>
-                   {product.olfactoryFamily && <p><strong>Família Olfativa:</strong> {product.olfactoryFamily}</p>}
-                 </div>
-              )}
            </div>
         </div>
 

@@ -25,6 +25,8 @@ export const INITIAL_PRODUCTS = [
     active: true,
     soldOut: false,
     stock: null,
+    purchasePrice: null,
+    dupeOf: '',
     rating: 5,
     discountPercent: 20,
     installments: 'ou 8x de R$ 94,76',
@@ -43,6 +45,8 @@ export const INITIAL_PRODUCTS = [
     active: true,
     soldOut: false,
     stock: null,
+    purchasePrice: null,
+    dupeOf: '',
     rating: 5,
     discountPercent: 8,
     installments: 'ou 8x de R$ 39,06',
@@ -59,6 +63,12 @@ export function cleanProductText(value = '') {
 function normalizeMoney(value) {
   const number = Number(value || 0);
   return Number.isFinite(number) && number >= 0 ? Number(number.toFixed(2)) : 0;
+}
+
+function normalizeOptionalMoney(value) {
+  if (value === '' || value === null || typeof value === 'undefined') return null;
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? Number(number.toFixed(2)) : null;
 }
 
 function normalizeStock(value) {
@@ -98,6 +108,8 @@ export function sanitizeProduct(product = {}) {
     active: product.active !== false,
     soldOut: Boolean(product.soldOut) || (stock !== null && stock <= 0),
     stock,
+    purchasePrice: normalizeOptionalMoney(product.purchasePrice),
+    dupeOf: cleanProductText(product.dupeOf || ''),
     brand: cleanProductText(product.brand) || 'Outra',
     category: cleanProductText(product.category) || 'Perfume',
     gender: cleanProductText(product.gender) || 'Unissex',
@@ -109,6 +121,11 @@ export function sanitizeProduct(product = {}) {
     olfactoryFamily: cleanProductText(product.olfactoryFamily || ''),
     videoUrl: cleanProductText(product.videoUrl || ''),
   };
+}
+
+export function stripAdminProductFields(product = {}) {
+  const { purchasePrice, dupeOf, ...publicProduct } = sanitizeProduct(product);
+  return publicProduct;
 }
 
 export async function getProducts() {

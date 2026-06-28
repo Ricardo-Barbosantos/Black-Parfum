@@ -58,6 +58,8 @@ export const getBearerToken = (request) => {
 };
 
 export const getAdminFromRequest = (request) => {
-  const decoded = verifyAuthToken(getBearerToken(request));
+  const token = getBearerToken(request);
+  if (!token) return null;
+  const decoded = verifyAuthToken(token);
   return decoded?.role === 'admin' ? decoded : null;
 };

@@ -96,7 +96,7 @@ export default function AdminPage() {
     setLoading(true);
     try {
       const [productsRes, reviewsRes, couponsRes, ordersRes] = await Promise.all([
-        fetch('/api/products', { cache: 'no-store' }),
+        fetch('/api/products', { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' }),
         fetch('/api/reviews?all=true', { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' }),
         fetch('/api/coupons', { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' }),
         fetch('/api/orders', { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' })
@@ -341,6 +341,8 @@ export default function AdminPage() {
       active: true,
       soldOut: false,
       stock: null,
+      purchasePrice: null,
+      dupeOf: "",
       rating: 5,
       discountPercent: 0,
       installments: "3x de R$ 0,00 s/ juros",
@@ -492,6 +494,10 @@ export default function AdminPage() {
       if (hasStockValue(product.stock) && (!Number.isInteger(Number(product.stock)) || Number(product.stock) < 0)) {
         return `O estoque de ${productName} precisa ser um número inteiro maior ou igual a zero.`;
       }
+
+      if (hasStockValue(product.purchasePrice) && Number(product.purchasePrice) < 0) {
+        return `O preço de compra de ${productName} não pode ser negativo.`;
+      }
     }
 
     return '';
@@ -607,7 +613,7 @@ export default function AdminPage() {
           if (retryRes.ok) {
             setMessage('✅ Alterações salvas com sucesso na nuvem!');
             // Refresh products to ensure sync
-            const refresh = await fetch('/api/products?t=' + Date.now(), { cache: 'no-store' });
+            const refresh = await fetch('/api/products?t=' + Date.now(), { headers: { 'Authorization': `Bearer ${loginData.token}` }, cache: 'no-store' });
             const freshData = await refresh.json();
             if (Array.isArray(freshData)) setProducts(freshData);
           } else {
@@ -620,7 +626,7 @@ export default function AdminPage() {
       } else if (res.ok) {
         setMessage('✅ Alterações salvas com sucesso na nuvem!');
         // Refresh products to ensure sync
-        const refresh = await fetch('/api/products?t=' + Date.now(), { cache: 'no-store' });
+        const refresh = await fetch('/api/products?t=' + Date.now(), { headers: { 'Authorization': `Bearer ${currentToken}` }, cache: 'no-store' });
         const freshData = await refresh.json();
         if (Array.isArray(freshData)) setProducts(freshData);
       } else {
@@ -894,7 +900,7 @@ export default function AdminPage() {
 
                 <ProductAccordionSection
                   title="Classificação"
-                  filled={hasFilledValue(product.category) || hasFilledValue(product.gender) || hasFilledValue(product.brand) || hasFilledValue(product.olfactoryFamily)}
+                  filled={hasFilledValue(product.category) || hasFilledValue(product.gender) || hasFilledValue(product.brand) || hasFilledValue(product.olfactoryFamily) || hasFilledValue(product.dupeOf)}
                 >
                   <div className="admin-accordion-grid">
                     <div>
@@ -952,12 +958,23 @@ export default function AdminPage() {
                         style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
                       />
                     </div>
+
+                    <div className="admin-accordion-field-full">
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Dupe de / Inspirado em</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Creed Aventus, Baccarat Rouge 540..."
+                        value={product.dupeOf || ''}
+                        onChange={(e) => handleChange(index, 'dupeOf', e.target.value)}
+                        style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                      />
+                    </div>
                   </div>
                 </ProductAccordionSection>
 
                 <ProductAccordionSection
                   title="Preço & Estoque"
-                  filled={hasFilledValue(product.price) || hasFilledValue(product.compareAtPrice) || hasStockValue(product.stock)}
+                  filled={hasFilledValue(product.price) || hasFilledValue(product.compareAtPrice) || hasStockValue(product.stock) || hasStockValue(product.purchasePrice)}
                 >
                   <div className="admin-accordion-grid">
                     <div>
@@ -978,6 +995,20 @@ export default function AdminPage() {
                         onChange={(e) => handleChange(index, 'compareAtPrice', parseFloat(e.target.value) || 0)}
                         style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
                       />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.9rem' }}>Preço de Compra (R$)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="Só admin"
+                        value={product.purchasePrice ?? ''}
+                        onChange={(e) => handleChange(index, 'purchasePrice', e.target.value === '' ? null : parseFloat(e.target.value) || 0)}
+                        style={{ width: '100%', padding: '12px', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                      />
+                      <div style={{ color: '#666', fontSize: '0.75rem', marginTop: '6px' }}>Interno. Não aparece na loja.</div>
                     </div>
 
                     <div>
