@@ -512,10 +512,6 @@ export default function CartDrawer({
                                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke={GOLD} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                   5% de desconto
                                 </div>
-                                <div style={{ marginTop: 12 }}>
-                                  <label style={darkLabel}>CPF (opcional)</label>
-                                  <input value={formatCpf(cpf)} onChange={e => setCpf(e.target.value)} onFocus={focusGold} onBlur={blurDark} placeholder="000.000.000-00" style={{ ...darkInput, width: '100%' }} />
-                                </div>
                               </div>
                             </div>
                           </div>
@@ -556,20 +552,6 @@ export default function CartDrawer({
                                   <option key={n} value={n}>{n}x de R$ {formatMoney(finalTotal / n)} sem juros</option>
                                 ))}
                               </select>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* BOLETO */}
-                        {m.id === 'boleto' && (
-                          <div style={{ background: '#0d0d0d', border: `1px solid #1e1e1e`, borderRadius: 8, padding: 16 }}>
-                            <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 16px', lineHeight: 1.5 }}>
-                              O boleto será gerado e enviado para seu e-mail. Vencimento em <strong style={{ color: '#eee' }}>3 dias úteis</strong>.
-                            </p>
-                            <div>
-                              <label style={darkLabel}>CPF*</label>
-                              <input value={formatCpf(cpf)} onChange={e => setCpf(e.target.value)} onFocus={focusGold} onBlur={blurDark} placeholder="000.000.000-00" style={darkInput} />
-                              <div style={{ fontSize: 10.5, color: '#555', marginTop: 6 }}>Necessário para emissão do boleto</div>
                             </div>
                           </div>
                         )}
