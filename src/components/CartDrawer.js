@@ -10,6 +10,12 @@ function isFreeShippingRegion(city = '') {
 }
 function cleanZip(v = '') { return v.replace(/\D/g, '').slice(0, 8); }
 function formatZip(v = '') { const z = cleanZip(v); return z.length <= 5 ? z : `${z.slice(0,5)}-${z.slice(5)}`; }
+function formatPhone(v = '') {
+  const c = v.replace(/\D/g, '').slice(0, 11);
+  if (c.length <= 2) return c;
+  if (c.length <= 6) return `(${c.slice(0,2)}) ${c.slice(2)}`;
+  return `(${c.slice(0,2)}) ${c.slice(2,7)}-${c.slice(7)}`;
+}
 function getLookupZip(v = '') {
   const z = cleanZip(v);
   if (z.length === 8) return z;
@@ -201,8 +207,8 @@ export default function CartDrawer({
   const finalTotal = Number((orderTotal - pixDiscount).toFixed(2));
 
   const requiredFields = checkoutForm.deliveryMethod === 'home'
-    ? ['name', 'email', 'zip', 'address', 'number', 'neighborhood', 'city']
-    : ['name', 'email'];
+    ? ['name', 'email', 'whatsapp', 'zip', 'address', 'number', 'neighborhood', 'city']
+    : ['name', 'email', 'whatsapp'];
   const isFieldMissing = (f) => {
     if (f === 'zip') return cleanZip(checkoutForm.zip || '').length !== 8;
     return !String(checkoutForm[f] || '').trim();
@@ -727,13 +733,18 @@ export default function CartDrawer({
               <h3 style={sectionTitleStyle}>Contato</h3>
               <div style={compactFieldStyle}>
                 <label style={compactLabelStyle}>Nome*</label>
-                <input type="text" value={checkoutForm.name} onChange={e => onFormChange({...checkoutForm, name: e.target.value})} style={compactInputStyle()} />
+                <input type="text" value={checkoutForm.name || ''} onChange={e => onFormChange({...checkoutForm, name: e.target.value})} style={compactInputStyle()} />
                 {fieldError('name')}
               </div>
               <div style={compactFieldStyle}>
                 <label style={compactLabelStyle}>E-mail*</label>
                 <input type="email" value={checkoutForm.email || ''} onChange={e => onFormChange({...checkoutForm, email: e.target.value})} style={compactInputStyle()} />
                 {fieldError('email')}
+              </div>
+              <div style={compactFieldStyle}>
+                <label style={compactLabelStyle}>WhatsApp*</label>
+                <input type="tel" placeholder="(00) 00000-0000" value={checkoutForm.whatsapp || ''} onChange={e => onFormChange({...checkoutForm, whatsapp: formatPhone(e.target.value)})} style={compactInputStyle()} />
+                {fieldError('whatsapp')}
               </div>
 
               {checkoutForm.deliveryMethod === 'home' && (
@@ -773,7 +784,7 @@ export default function CartDrawer({
                     <input type="text" value={checkoutForm.complement} onChange={e => onFormChange({...checkoutForm, complement: e.target.value})} style={compactInputStyle({ fontWeight: 500 })} />
                   </div>
 
-                  {isFreeDelivery && <div style={{ fontSize: '0.82rem', color: '#16a34a', lineHeight: 1.3 }}>Frete grátis.</div>}
+                  {isFreeDelivery && <div style={{ fontSize: '0.82rem', color: '#16a34a', lineHeight: 1.3 }}>Frete grátis. {isFreeShippingRegion(checkoutForm.city) ? 'Entrega em até 24 horas.' : ''}</div>}
                   {!isFreeDelivery && (hasValidZip || shippingLoading || shippingError || shippingOptions.length > 0) && (
                     <div style={{ border: '1px solid #e5e7eb', borderRadius: '4px', background: '#fff', padding: '8px', color: '#111' }}>
                       <div style={{ fontSize: '0.7rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '5px' }}>Frete</div>
