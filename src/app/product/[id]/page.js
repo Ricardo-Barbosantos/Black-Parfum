@@ -139,8 +139,9 @@ export default function ProductPage() {
           if (found) {
             setProduct(found);
             setSelectedImage(found.images?.[0] || found.image);
-            if (found.sizes) {
-               const s = found.sizes.split(',').map(s => s.trim()).filter(Boolean);
+            const foundSizes = found.sizes || found.size || found.ml || found.volume || found.volumes || '';
+            if (foundSizes) {
+               const s = String(foundSizes).split(',').map(s => s.trim()).filter(Boolean);
                if(s.length > 0) setSelectedSize(s[0]);
             }
           }
@@ -271,7 +272,8 @@ export default function ProductPage() {
 
   const installmentPrice = product.price / 5;
   const isSoldOut = isUnavailable;
-  const sizesList = product.sizes ? product.sizes.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const sizesSource = product.sizes || product.size || product.ml || product.volume || product.volumes || '';
+  const sizesList = sizesSource ? String(sizesSource).split(',').map(s => s.trim()).filter(Boolean) : [];
   const imagesList = getGalleryItems();
 
   const avgRating = reviews.length > 0 ? (reviews.reduce((acc, curr) => acc + curr.rating, 0) / reviews.length).toFixed(1) : 0;
