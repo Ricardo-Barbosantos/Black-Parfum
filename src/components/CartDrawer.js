@@ -39,31 +39,46 @@ function formatExpiry(v = '') {
   return `${d.slice(0,2)}/${d.slice(2)}`;
 }
 
-const GOLD = '#d4af37';
-const DARK_BG = '#0a0a0a';
-const DARK_CARD = '#111111';
-const DARK_BORDER = '#2a2a2a';
+const GOLD = '#c9a84c';
+const LIGHT_BG = '#f8f6f2';
+const WHITE = '#ffffff';
+const BORDER = '#e8e2d9';
+const TEXT = '#1a1614';
+const TEXT2 = '#6b6560';
+const TEXT3 = '#a09992';
 
 /* ─────────────────────────────────────────────
    ÍCONES SVG INLINE
 ───────────────────────────────────────────── */
+/* Logo PIX oficial */
 const IconPix = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-    <path d="M12 2L6.5 7.5H3v3L2 12l1 1.5v3h3.5L12 22l5.5-5.5H21v-3l1-1.5-1-1.5v-3h-3.5L12 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-    <path d="M8 12h8M12 8v8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 48 48">
+    <path fill="#4db6ac" d="M11.9,12h-0.68l8.04-8.04c2.62-2.61,6.86-2.61,9.48,0L36.78,12H36.1c-1.6,0-3.11,0.62-4.24,1.76l-6.8,6.77c-0.59,0.59-1.53,0.59-2.12,0l-6.8-6.77C15.01,12.62,13.5,12,11.9,12z"/>
+    <path fill="#4db6ac" d="M36.1,36h0.68l-8.04,8.04c-2.62,2.61-6.86,2.61-9.48,0L11.22,36h0.68c1.6,0,3.11-0.62,4.24-1.76l6.8-6.77c0.59-0.59,1.53-0.59,2.12,0l6.8,6.77C32.99,35.38,34.5,36,36.1,36z"/>
+    <path fill="#4db6ac" d="M44.04,28.74L38.78,34H36.1c-1.07,0-2.07-0.42-2.83-1.17l-6.8-6.78c-1.36-1.36-3.58-1.36-4.94,0l-6.8,6.78C13.97,33.58,12.97,34,11.9,34H9.22l-5.26-5.26c-2.61-2.62-2.61-6.86,0-9.48L9.22,14h2.68c1.07,0,2.07,0.42,2.83,1.17l6.8,6.78c0.68,0.68,1.58,1.02,2.47,1.02s1.79-0.34,2.47-1.02l6.8-6.78C34.03,14.42,35.03,14,36.1,14h2.68l5.26,5.26C46.65,21.88,46.65,26.12,44.04,28.74z"/>
   </svg>
 );
 const IconCard = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
     <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/>
     <path d="M2 10h20" stroke="currentColor" strokeWidth="1.5"/>
     <path d="M6 15h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
 );
-const IconBoleto = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-    <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-    <path d="M6 8v8M8 8v8M11 8v8M13 8v8M16 8v8M18 8v8" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
+/* Mastercard logo */
+const MastercardLogo = () => (
+  <svg width="36" height="22" viewBox="0 0 36 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="36" height="22" rx="3" fill="#f5f5f5"/>
+    <circle cx="13.5" cy="11" r="7" fill="#EB001B"/>
+    <circle cx="22.5" cy="11" r="7" fill="#F79E1B"/>
+    <path d="M18 5.8a7 7 0 0 1 0 10.4A7 7 0 0 1 18 5.8z" fill="#FF5F00"/>
+  </svg>
+);
+/* Visa logo */
+const VisaLogo = () => (
+  <svg width="36" height="22" viewBox="0 0 36 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="36" height="22" rx="3" fill="#f5f5f5"/>
+    <text x="5" y="15" fontFamily="Arial,sans-serif" fontWeight="900" fontSize="11" fill="#1A1F71" letterSpacing="1">VISA</text>
   </svg>
 );
 const IconCheck = () => (
@@ -107,18 +122,6 @@ const IconStar = () => (
     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
   </svg>
 );
-
-/* ─────────────────────────────────────────────
-   QR CODE PATTERN (visual enquanto carrega)
-───────────────────────────────────────────── */
-function QRPattern() {
-  const cells = useRef(Array.from({ length: 15 * 15 }, () => Math.random() > 0.55 ? 1 : 0)).current;
-  return (
-    <div style={{ width: 160, height: 160, background: '#fff', borderRadius: 8, padding: 10, display: 'grid', gridTemplateColumns: 'repeat(15,1fr)', gap: 1, flexShrink: 0 }}>
-      {cells.map((c, i) => <div key={i} style={{ background: c ? '#0a0a0a' : '#fff' }} />)}
-    </div>
-  );
-}
 
 /* ─────────────────────────────────────────────
    COMPONENTE PRINCIPAL
@@ -334,11 +337,6 @@ export default function CartDrawer({
 
       if (paymentMethod === 'pix' && data.pixData) {
         setPixData(data.pixData);
-        // Não vai para success ainda — fica na tela PIX aguardando
-      } else if (paymentMethod === 'boleto' && data.boletoData) {
-        setBoletoData(data.boletoData);
-        setCheckoutStep('success');
-        if (onCheckout) onCheckout('__transparent__');
       } else {
         setCheckoutStep('success');
         if (onCheckout) onCheckout('__transparent__');
@@ -355,54 +353,27 @@ export default function CartDrawer({
   ───────────────────────────────────────────── */
   if (checkoutStep === 'success') {
     return (
-      <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-        <div style={{ background: DARK_BG, borderRadius: 16, padding: '40px 32px', maxWidth: 440, width: '100%', textAlign: 'center', border: `1px solid ${DARK_BORDER}`, fontFamily: 'Inter, system-ui, sans-serif' }}>
-          <div style={{ marginBottom: 20 }}>
+      <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(30,24,18,0.6)', backdropFilter: 'blur(4px)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div style={{ background: WHITE, borderRadius: 20, padding: '40px 32px', maxWidth: 420, width: '100%', textAlign: 'center', border: `1px solid ${BORDER}`, fontFamily: 'Inter, system-ui, sans-serif', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: `linear-gradient(135deg, ${GOLD}22, ${GOLD}44)`, border: `2px solid ${GOLD}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
             <IconStar />
           </div>
-          <div style={{ fontSize: 13, letterSpacing: 4, textTransform: 'uppercase', color: '#666', marginBottom: 8, fontFamily: 'var(--font-cinzel, serif)' }}>Obsidian Parfums</div>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#fff', margin: '0 0 10px' }}>Pedido Confirmado!</h2>
-          <div style={{ width: 48, height: 2, background: GOLD, margin: '0 auto 20px' }} />
-
-          {boletoData ? (
-            <>
-              <p style={{ color: '#aaa', fontSize: 14, lineHeight: 1.6, marginBottom: 20 }}>
-                Seu boleto foi gerado com sucesso.<br />Vencimento em <strong style={{ color: '#fff' }}>3 dias úteis</strong>.
-              </p>
-              <div style={{ background: '#161616', border: `1px solid ${DARK_BORDER}`, borderRadius: 8, padding: 16, marginBottom: 16, textAlign: 'left' }}>
-                <div style={{ fontSize: 10, letterSpacing: 1, color: '#666', textTransform: 'uppercase', marginBottom: 8 }}>Linha digitável</div>
-                <div style={{ fontSize: 12, color: '#ccc', wordBreak: 'break-all', lineHeight: 1.5 }}>{boletoData.barcode || 'Disponível no seu e-mail'}</div>
-              </div>
-              {boletoData.barcode && (
-                <button onClick={() => copyText(boletoData.barcode)} style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 auto 20px', padding: '10px 18px', borderRadius: 6, border: `1px solid ${GOLD}`, background: copied ? GOLD : 'transparent', color: copied ? '#000' : GOLD, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                  {copied ? <IconCheck /> : <IconCopy />} {copied ? 'Copiado!' : 'Copiar código'}
-                </button>
-              )}
-              {boletoData.externalResourceUrl && (
-                <a href={boletoData.externalResourceUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'block', marginBottom: 20, padding: '12px', borderRadius: 8, background: GOLD, color: '#000', fontWeight: 800, fontSize: 14, textDecoration: 'none' }}>
-                  Visualizar Boleto
-                </a>
-              )}
-            </>
-          ) : (
-            <>
-              <p style={{ color: '#aaa', fontSize: 14, lineHeight: 1.6, marginBottom: 20 }}>
-                Obrigado pela sua compra! 🖤<br />
-                Seu pedido foi recebido e está sendo processado.<br />
-                Você receberá uma confirmação no e-mail<br />
-                <strong style={{ color: '#fff' }}>{checkoutForm.email}</strong>
-              </p>
-            </>
-          )}
-
+          <div style={{ fontSize: 10, letterSpacing: 5, textTransform: 'uppercase', color: TEXT3, marginBottom: 6, fontFamily: 'var(--font-cinzel, serif)' }}>Obsidian Parfums</div>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: TEXT, margin: '0 0 6px', fontFamily: 'var(--font-cinzel, serif)' }}>Pedido Confirmado!</h2>
+          <div style={{ width: 40, height: 2, background: GOLD, margin: '0 auto 20px' }} />
+          <p style={{ color: TEXT2, fontSize: 13.5, lineHeight: 1.7, marginBottom: 20 }}>
+            Obrigado pela sua compra! ✨<br />
+            Seu pedido foi recebido com sucesso.<br />
+            Enviaremos a confirmação para<br />
+            <strong style={{ color: TEXT }}>{checkoutForm.email}</strong>
+          </p>
           {orderResult && (
-            <div style={{ background: '#161616', border: `1px solid ${DARK_BORDER}`, borderRadius: 8, padding: '12px 16px', marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 12, color: '#666' }}>Pedido</span>
-              <span style={{ fontSize: 12, color: '#aaa', fontWeight: 700 }}>{orderResult.orderId}</span>
+            <div style={{ background: LIGHT_BG, border: `1px solid ${BORDER}`, borderRadius: 10, padding: '12px 16px', marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 11, color: TEXT3, textTransform: 'uppercase', letterSpacing: 1 }}>Número do Pedido</span>
+              <span style={{ fontSize: 12, color: TEXT, fontWeight: 700, fontFamily: 'monospace' }}>{orderResult.orderId}</span>
             </div>
           )}
-
-          <button onClick={() => { setCheckoutStep('delivery'); onClose(); }} style={{ width: '100%', padding: '14px', borderRadius: 8, border: 'none', background: GOLD, color: '#000', fontWeight: 800, fontSize: 14, cursor: 'pointer' }}>
+          <button onClick={() => { setCheckoutStep('delivery'); onClose(); }} style={{ width: '100%', padding: '14px', borderRadius: 10, border: 'none', background: `linear-gradient(135deg, ${GOLD}, #b8943c)`, color: '#fff', fontWeight: 800, fontSize: 14, cursor: 'pointer', letterSpacing: 1, boxShadow: `0 4px 20px ${GOLD}44` }}>
             Voltar à Loja
           </button>
         </div>
@@ -410,56 +381,62 @@ export default function CartDrawer({
     );
   }
 
+
   /* ─────────────────────────────────────────────
      RENDER — TELA DE PAGAMENTO
   ───────────────────────────────────────────── */
   if (checkoutStep === 'payment') {
     const methods = [
       { id: 'pix', Icon: IconPix, label: 'PIX', tag: '5% de desconto · aprovação imediata' },
-      { id: 'credit_card', Icon: IconCard, label: 'Cartão de crédito', tag: 'Em até 1x sem juros' },
-      { id: 'boleto', Icon: IconBoleto, label: 'Boleto bancário', tag: 'Compensação em 1-2 dias úteis' },
+      { id: 'credit_card', Icon: IconCard, label: 'Cartão de crédito', tag: 'Visa · Mastercard · Elo · Hipercard' },
     ];
 
-    const darkInput = { width: '100%', background: '#161616', border: `1px solid ${DARK_BORDER}`, borderRadius: 5, padding: '11px 13px', color: '#eee', fontSize: 13.5, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' };
-    const darkLabel = { fontSize: 10.5, letterSpacing: 1, color: '#8a8a8a', textTransform: 'uppercase', display: 'block', marginBottom: 6 };
+    const fieldInput = { width: '100%', background: WHITE, border: `1.5px solid ${BORDER}`, borderRadius: 8, padding: '11px 13px', color: TEXT, fontSize: 13.5, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', transition: 'border-color 0.15s' };
+    const fieldLabel = { fontSize: 10, letterSpacing: 1.2, color: TEXT3, textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 };
 
     const focusGold = (e) => e.target.style.borderColor = GOLD;
-    const blurDark  = (e) => e.target.style.borderColor = DARK_BORDER;
+    const blurBorder = (e) => e.target.style.borderColor = BORDER;
 
     // Tela PIX aguardando QR Code
     if (pixData) {
       return (
-        <div style={{ position: 'fixed', inset: 0, background: DARK_BG, zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: 'Inter, system-ui, sans-serif' }}>
-          <div style={{ maxWidth: 460, width: '100%', textAlign: 'center' }}>
-            <div style={{ fontSize: 13, letterSpacing: 4, textTransform: 'uppercase', color: '#555', marginBottom: 8, fontFamily: 'var(--font-cinzel, serif)' }}>Obsidian Parfums</div>
-            <div style={{ width: 40, height: 2, background: GOLD, margin: '0 auto 24px' }} />
-            <h2 style={{ color: '#fff', fontSize: 20, fontWeight: 800, marginBottom: 8 }}>Pague com PIX</h2>
-            <p style={{ color: '#888', fontSize: 13, marginBottom: 24, lineHeight: 1.6 }}>Escaneie o QR code ou copie a chave.<br />A confirmação é automática e imediata.</p>
+        <div style={{ position: 'fixed', inset: 0, background: LIGHT_BG, zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: 'Inter, system-ui, sans-serif', overflowY: 'auto' }}>
+          <div style={{ maxWidth: 420, width: '100%', textAlign: 'center', background: WHITE, borderRadius: 20, padding: '36px 28px', boxShadow: '0 8px 40px rgba(0,0,0,0.1)', border: `1px solid ${BORDER}` }}>
+            <div style={{ fontSize: 10, letterSpacing: 5, textTransform: 'uppercase', color: TEXT3, marginBottom: 6, fontFamily: 'var(--font-cinzel, serif)' }}>Obsidian Parfums</div>
+            <div style={{ width: 36, height: 2, background: GOLD, margin: '0 auto 20px' }} />
 
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+            {/* PIX Logo */}
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <IconPix />
+              <h2 style={{ color: TEXT, fontSize: 20, fontWeight: 800, margin: 0, fontFamily: 'var(--font-cinzel, serif)' }}>Pague com PIX</h2>
+            </div>
+            <p style={{ color: TEXT2, fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>Escaneie o QR code ou copie a chave.<br />Confirmação automática e imediata.</p>
+
+            {/* QR Code */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
               {pixData.qrCodeBase64
-                ? <img src={`data:image/png;base64,${pixData.qrCodeBase64}`} alt="QR Code PIX" style={{ width: 180, height: 180, borderRadius: 10, background: '#fff', padding: 8 }} />
+                ? <img src={`data:image/png;base64,${pixData.qrCodeBase64}`} alt="QR Code PIX" style={{ width: 200, height: 200, borderRadius: 12, background: '#fff', padding: 10, boxShadow: '0 2px 16px rgba(0,0,0,0.1)' }} />
                 : <QRPattern />}
             </div>
 
             {pixData.qrCode && (
-              <div style={{ background: '#111', border: `1px solid ${DARK_BORDER}`, borderRadius: 8, padding: '12px 16px', marginBottom: 16, wordBreak: 'break-all', fontSize: 11, color: '#aaa', textAlign: 'left' }}>
-                {pixData.qrCode.slice(0, 60)}...
+              <div style={{ background: LIGHT_BG, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '10px 14px', marginBottom: 14, wordBreak: 'break-all', fontSize: 10.5, color: TEXT2, textAlign: 'left', lineHeight: 1.5 }}>
+                {pixData.qrCode.slice(0, 70)}...
               </div>
             )}
 
-            <button onClick={() => copyText(pixData.qrCode)} style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 auto 24px', padding: '11px 20px', borderRadius: 6, border: `1px solid ${GOLD}`, background: copied ? GOLD : 'transparent', color: copied ? '#000' : GOLD, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+            <button onClick={() => copyText(pixData.qrCode)} style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 auto 20px', padding: '12px 22px', borderRadius: 8, border: `1.5px solid ${GOLD}`, background: copied ? GOLD : 'transparent', color: copied ? '#fff' : GOLD, fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>
               {copied ? <IconCheck /> : <IconCopy />} {copied ? 'Copiado!' : 'Copiar chave PIX'}
             </button>
 
             {orderResult && (
-              <div style={{ fontSize: 11, color: '#555', marginBottom: 20 }}>Pedido: {orderResult.orderId} · Total: R$ {formatMoney(finalTotal)}</div>
+              <div style={{ fontSize: 11, color: TEXT3, marginBottom: 16 }}>Pedido: <strong style={{ color: TEXT }}>{orderResult.orderId}</strong> · Total: <strong style={{ color: GOLD }}>R$ {formatMoney(finalTotal)}</strong></div>
             )}
 
-            <p style={{ fontSize: 11, color: '#555', marginBottom: 20 }}>Após o pagamento, você receberá a confirmação por e-mail.</p>
+            <p style={{ fontSize: 11, color: TEXT3, marginBottom: 20 }}>Após o pagamento, você receberá a confirmação por e-mail.</p>
 
             <button onClick={() => { setCheckoutStep('success'); if (onCheckout) onCheckout('__transparent__'); }}
-              style={{ width: '100%', padding: '13px', borderRadius: 8, border: `1px solid ${DARK_BORDER}`, background: '#161616', color: '#888', fontSize: 13, cursor: 'pointer' }}>
+              style={{ width: '100%', padding: '13px', borderRadius: 8, border: `1.5px solid ${BORDER}`, background: LIGHT_BG, color: TEXT2, fontSize: 13, cursor: 'pointer', fontWeight: 600 }}>
               Já paguei — ver confirmação
             </button>
           </div>
@@ -468,25 +445,24 @@ export default function CartDrawer({
     }
 
     return (
-      <div style={{ position: 'fixed', inset: 0, background: DARK_BG, zIndex: 999, overflowY: 'auto', fontFamily: 'Inter, system-ui, sans-serif' }}>
-        <div style={{ padding: '28px 16px 60px', maxWidth: 860, margin: '0 auto' }}>
+      <div style={{ position: 'fixed', inset: 0, background: LIGHT_BG, zIndex: 999, overflowY: 'auto', fontFamily: 'Inter, system-ui, sans-serif' }}>
+        <div style={{ padding: isMobile ? '20px 16px 60px' : '32px 20px 60px', maxWidth: 900, margin: '0 auto' }}>
 
           {/* Header */}
-          <div style={{ textAlign: 'center', marginBottom: 28 }}>
-            <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 5, textTransform: 'uppercase', color: '#eee', fontFamily: 'var(--font-cinzel, serif)' }}>
+          <div style={{ textAlign: 'center', marginBottom: 24 }}>
+            <div style={{ fontSize: isMobile ? 16 : 20, fontWeight: 800, letterSpacing: 5, textTransform: 'uppercase', color: TEXT, fontFamily: 'var(--font-cinzel, serif)' }}>
               Obsidian <span style={{ color: GOLD }}>Parfums</span>
             </div>
-            <div style={{ width: 40, height: 2, background: GOLD, margin: '8px auto 0' }} />
+            <div style={{ width: 36, height: 2, background: GOLD, margin: '8px auto 0' }} />
           </div>
 
           {/* Stepper */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-            <div style={{ width: 22, height: 22, borderRadius: '50%', background: GOLD, color: '#000', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>1</div>
-            <span style={{ fontSize: 12, color: '#666' }}>Entrega</span>
-            <IconCheck />
-            <div style={{ flex: 1, height: 1, background: '#222' }} />
-            <div style={{ width: 22, height: 22, borderRadius: '50%', background: GOLD, color: '#000', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>2</div>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#eee' }}>Pagamento</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, background: WHITE, borderRadius: 10, padding: '12px 16px', border: `1px solid ${BORDER}`, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+            <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#d1f5e8', color: '#059669', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</div>
+            <span style={{ fontSize: 12, color: TEXT3 }}>Entrega</span>
+            <div style={{ flex: 1, height: 1, background: BORDER }} />
+            <div style={{ width: 22, height: 22, borderRadius: '50%', background: GOLD, color: '#fff', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>2</div>
+            <span style={{ fontSize: 13, fontWeight: 700, color: TEXT }}>Pagamento</span>
           </div>
 
           {/* Grid — resumo primeiro no mobile */}
@@ -494,20 +470,20 @@ export default function CartDrawer({
 
             {/* Coluna esquerda — Métodos (direita no mobile fica abaixo) */}
             <div style={{ flex: isMobile ? 'none' : '1.3', minWidth: 0, order: isMobile ? 2 : 1 }}>
-              <div style={{ border: `1px solid ${DARK_BORDER}`, borderRadius: 10, overflow: 'hidden', background: DARK_CARD }}>
+              <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, overflow: 'hidden', background: WHITE, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
                 {methods.map((m, idx) => (
-                  <div key={m.id} style={{ borderTop: idx ? `1px solid ${DARK_BORDER}` : 'none' }}>
+                  <div key={m.id} style={{ borderTop: idx ? `1px solid ${BORDER}` : 'none' }}>
                     <button onClick={() => setPaymentMethod(m.id)}
-                      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '16px 18px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
-                      <div style={{ width: 18, height: 18, borderRadius: '50%', border: `1.5px solid ${paymentMethod === m.id ? GOLD : '#444'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '16px 18px', background: paymentMethod === m.id ? `${GOLD}0a` : 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s' }}>
+                      <div style={{ width: 18, height: 18, borderRadius: '50%', border: `1.5px solid ${paymentMethod === m.id ? GOLD : BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'border-color 0.15s' }}>
                         {paymentMethod === m.id && <div style={{ width: 9, height: 9, borderRadius: '50%', background: GOLD }} />}
                       </div>
-                      <span style={{ color: paymentMethod === m.id ? GOLD : '#999', display: 'flex' }}><m.Icon /></span>
+                      <span style={{ color: paymentMethod === m.id ? '#4db6ac' : TEXT3, display: 'flex' }}><m.Icon /></span>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: '#eee' }}>{m.label}</div>
-                        <div style={{ fontSize: 11.5, color: m.id === 'pix' ? GOLD : '#666' }}>{m.tag}</div>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: TEXT }}>{m.label}</div>
+                        <div style={{ fontSize: 11.5, color: m.id === 'pix' ? '#4db6ac' : TEXT3 }}>{m.tag}</div>
                       </div>
-                      <span style={{ color: '#555' }}><IconChevron open={paymentMethod === m.id} /></span>
+                      <span style={{ color: TEXT3 }}><IconChevron open={paymentMethod === m.id} /></span>
                     </button>
 
                     {paymentMethod === m.id && (
@@ -544,27 +520,34 @@ export default function CartDrawer({
                         {/* CARTÃO */}
                         {m.id === 'credit_card' && (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                            <div>
-                              <label style={darkLabel}>Número do cartão</label>
-                              <input value={cardForm.number} onChange={e => setCardForm(f => ({ ...f, number: formatCardNumber(e.target.value) }))} onFocus={focusGold} onBlur={blurDark} placeholder="0000 0000 0000 0000" maxLength={19} style={darkInput} />
+                            {/* Bandeiras aceitas */}
+                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+                              <MastercardLogo />
+                              <VisaLogo />
+                              <div style={{ display: 'flex', alignItems: 'center', padding: '0 8px', height: 22, background: '#f5f5f5', borderRadius: 3, fontSize: 9, fontWeight: 700, color: '#555', letterSpacing: 0.5 }}>ELO</div>
+                              <div style={{ display: 'flex', alignItems: 'center', padding: '0 8px', height: 22, background: '#f5f5f5', borderRadius: 3, fontSize: 9, fontWeight: 700, color: '#b22222', letterSpacing: 0.5 }}>HIPER</div>
                             </div>
                             <div>
-                              <label style={darkLabel}>Nome no cartão</label>
-                              <input value={cardForm.name} onChange={e => setCardForm(f => ({ ...f, name: e.target.value.toUpperCase() }))} onFocus={focusGold} onBlur={blurDark} placeholder="COMO ESTÁ NO CARTÃO" style={darkInput} />
+                              <label style={fieldLabel}>Número do cartão</label>
+                              <input value={cardForm.number} onChange={e => setCardForm(f => ({ ...f, number: formatCardNumber(e.target.value) }))} onFocus={focusGold} onBlur={blurBorder} placeholder="0000 0000 0000 0000" maxLength={19} style={fieldInput} />
+                            </div>
+                            <div>
+                              <label style={fieldLabel}>Nome no cartão</label>
+                              <input value={cardForm.name} onChange={e => setCardForm(f => ({ ...f, name: e.target.value.toUpperCase() }))} onFocus={focusGold} onBlur={blurBorder} placeholder="COMO ESTÁ NO CARTÃO" style={fieldInput} />
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                               <div>
-                                <label style={darkLabel}>Validade</label>
-                                <input value={cardForm.expiry} onChange={e => setCardForm(f => ({ ...f, expiry: formatExpiry(e.target.value) }))} onFocus={focusGold} onBlur={blurDark} placeholder="MM/AA" maxLength={5} style={darkInput} />
+                                <label style={fieldLabel}>Validade</label>
+                                <input value={cardForm.expiry} onChange={e => setCardForm(f => ({ ...f, expiry: formatExpiry(e.target.value) }))} onFocus={focusGold} onBlur={blurBorder} placeholder="MM/AA" maxLength={5} style={fieldInput} />
                               </div>
                               <div>
-                                <label style={darkLabel}>CVV</label>
-                                <input value={cardForm.cvv} onChange={e => setCardForm(f => ({ ...f, cvv: e.target.value.replace(/\D/g,'').slice(0,4) }))} onFocus={focusGold} onBlur={blurDark} placeholder="123" maxLength={4} type="password" style={darkInput} />
+                                <label style={fieldLabel}>CVV</label>
+                                <input value={cardForm.cvv} onChange={e => setCardForm(f => ({ ...f, cvv: e.target.value.replace(/\D/g,'').slice(0,4) }))} onFocus={focusGold} onBlur={blurBorder} placeholder="•••" maxLength={4} type="password" style={fieldInput} />
                               </div>
                             </div>
                             <div>
-                              <label style={darkLabel}>Parcelas</label>
-                              <select value={cardForm.installments} onChange={e => setCardForm(f => ({ ...f, installments: Number(e.target.value) }))} style={{ ...darkInput, cursor: 'pointer' }}>
+                              <label style={fieldLabel}>Parcelas</label>
+                              <select value={cardForm.installments} onChange={e => setCardForm(f => ({ ...f, installments: Number(e.target.value) }))} style={{ ...fieldInput, cursor: 'pointer', appearance: 'auto' }}>
                                 {[1,2,3,4,5].map(n => (
                                   <option key={n} value={n}>{n}x de R$ {formatMoney(finalTotal / n)} sem juros</option>
                                 ))}
@@ -593,73 +576,72 @@ export default function CartDrawer({
               </div>
 
               {paymentError && (
-                <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.3)', borderRadius: 6, color: '#ef4444', fontSize: 13 }}>
+                <div style={{ marginTop: 12, padding: '10px 14px', background: '#fff0f0', border: '1px solid #fca5a5', borderRadius: 8, color: '#dc2626', fontSize: 13 }}>
                   {paymentError}
                 </div>
               )}
 
               <button onClick={handlePay} disabled={paymentLoading}
-                style={{ width: '100%', marginTop: 16, padding: '15px', borderRadius: 8, border: 'none', background: paymentLoading ? '#555' : GOLD, color: '#0a0a0a', fontWeight: 800, fontSize: 14, letterSpacing: 0.5, cursor: paymentLoading ? 'not-allowed' : 'pointer', transition: 'background 0.2s' }}>
+                style={{ width: '100%', marginTop: 16, padding: '15px', borderRadius: 10, border: 'none', background: paymentLoading ? '#ccc' : `linear-gradient(135deg, ${GOLD}, #b8943c)`, color: '#fff', fontWeight: 800, fontSize: 14, letterSpacing: 0.5, cursor: paymentLoading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', boxShadow: paymentLoading ? 'none' : `0 4px 20px ${GOLD}44` }}>
                 {paymentLoading ? 'Processando...' : `Pagar R$ ${formatMoney(finalTotal)}`}
               </button>
 
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6, marginTop: 12, fontSize: 11, color: '#555' }}>
-                <IconLock /> Ambiente seguro · Mercado Pago
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6, marginTop: 12, fontSize: 11, color: TEXT3 }}>
+                <IconLock /> Pagamento seguro
               </div>
 
-              <button onClick={() => setCheckoutStep('delivery')} style={{ display: 'block', margin: '12px auto 0', background: 'none', border: 'none', color: '#555', fontSize: 12, cursor: 'pointer', textDecoration: 'underline' }}>
+              <button onClick={() => setCheckoutStep('delivery')} style={{ display: 'block', margin: '12px auto 0', background: 'none', border: 'none', color: TEXT3, fontSize: 12, cursor: 'pointer', textDecoration: 'underline' }}>
                 ← Voltar aos dados de entrega
               </button>
             </div>
 
             {/* Coluna direita — Resumo (aparece primeiro no mobile) */}
-            <div style={{ border: `1px solid ${DARK_BORDER}`, borderRadius: 10, background: DARK_CARD, padding: isMobile ? '14px 16px' : 20, position: isMobile ? 'static' : 'sticky', top: 20, flex: isMobile ? 'none' : '1', minWidth: 0, order: isMobile ? 1 : 2, width: isMobile ? '100%' : 'auto' }}>
-              <div style={{ fontSize: 10, letterSpacing: 1, color: '#666', textTransform: 'uppercase', marginBottom: 14 }}>Resumo do pedido</div>
+            <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, background: WHITE, padding: isMobile ? '14px 16px' : 20, position: isMobile ? 'static' : 'sticky', top: 20, flex: isMobile ? 'none' : '1', minWidth: 0, order: isMobile ? 1 : 2, width: isMobile ? '100%' : 'auto', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div style={{ fontSize: 10, letterSpacing: 1.5, color: TEXT3, textTransform: 'uppercase', marginBottom: 14, fontWeight: 600 }}>Resumo do pedido</div>
 
               {cart.map((item, i) => (
                 <div key={i} style={{ display: 'flex', gap: 12, marginBottom: 14, alignItems: 'center' }}>
-                  <div style={{ width: 52, height: 52, borderRadius: 6, background: 'linear-gradient(145deg,#1a1a1a,#0a0a0a)', border: `1px solid #262626`, flexShrink: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 52, height: 52, borderRadius: 8, background: LIGHT_BG, border: `1px solid ${BORDER}`, flexShrink: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {item.image ? <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: GOLD, fontSize: 10, fontWeight: 700 }}>{item.quantity}x</span>}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12, lineHeight: 1.3, color: '#ccc', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}{item.selectedSize ? ` (${item.selectedSize})` : ''}</div>
-                    <div style={{ fontSize: 10.5, color: '#666' }}>Qtd: {item.quantity}</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.3, color: TEXT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}{item.selectedSize ? ` (${item.selectedSize})` : ''}</div>
+                    <div style={{ fontSize: 10.5, color: TEXT3 }}>Qtd: {item.quantity}</div>
                   </div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: '#eee', whiteSpace: 'nowrap' }}>R$ {formatMoney(item.price * item.quantity)}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: TEXT, whiteSpace: 'nowrap' }}>R$ {formatMoney(item.price * item.quantity)}</div>
                 </div>
               ))}
 
-              <div style={{ borderTop: `1px solid ${DARK_BORDER}`, paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#888' }}>
+              <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: TEXT2 }}>
                   <span>Subtotal</span><span>R$ {formatMoney(cartTotal)}</span>
                 </div>
                 {couponDiscount > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#4ade80' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#059669' }}>
                     <span>Cupom ({appliedCoupon.code})</span><span>- R$ {formatMoney(couponDiscount)}</span>
                   </div>
                 )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#888' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: TEXT2 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><IconTruck /> Frete</span>
                   <span>{isFreeDelivery ? 'Grátis' : `R$ ${formatMoney(shippingCost)}`}</span>
                 </div>
                 {pixDiscount > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: GOLD }}>
-                    <span>Desconto PIX</span><span>- R$ {formatMoney(pixDiscount)}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#009688' }}>
+                    <span>Desconto PIX (5%)</span><span>- R$ {formatMoney(pixDiscount)}</span>
                   </div>
                 )}
               </div>
 
-              <div style={{ borderTop: `1px solid ${DARK_BORDER}`, marginTop: 10, paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#eee' }}>Total</span>
-                <span style={{ fontSize: 20, fontWeight: 800, color: GOLD }}>R$ {formatMoney(finalTotal)}</span>
+              <div style={{ borderTop: `1px solid ${BORDER}`, marginTop: 10, paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: TEXT }}>Total</span>
+                <span style={{ fontSize: 22, fontWeight: 800, color: GOLD }}>R$ {formatMoney(finalTotal)}</span>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 16, fontSize: 11, color: '#555', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 16, fontSize: 11, color: TEXT3, justifyContent: 'center' }}>
                 <IconShield /> Dados protegidos com criptografia
               </div>
             </div>
           </div>
-
 
         </div>
       </div>
