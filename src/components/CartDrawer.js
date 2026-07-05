@@ -197,7 +197,7 @@ export default function CartDrawer({
   if (!isOpen) return null;
 
   /* ─── Cálculos ─── */
-  const isFreeDelivery = checkoutForm.deliveryMethod === 'pickup' || isFreeShippingRegion(checkoutForm.city || '');
+  const isFreeDelivery = isFreeShippingRegion(checkoutForm.city || '');
   const hasValidZip = cleanZip(checkoutForm.zip || '').length === 8;
   const selectedShippingOption = isFreeDelivery ? null : shippingOptions.find(o => o.id === checkoutForm.shippingServiceId) || shippingOptions[0] || null;
   const shippingCost = isFreeDelivery ? 0 : Number(selectedShippingOption?.price || 0);
@@ -206,16 +206,14 @@ export default function CartDrawer({
   const orderTotal = Number((cartTotal - couponDiscount + shippingCost).toFixed(2));
   const finalTotal = Number((orderTotal - pixDiscount).toFixed(2));
 
-  const requiredFields = checkoutForm.deliveryMethod === 'home'
-    ? ['name', 'email', 'whatsapp', 'zip', 'address', 'number', 'neighborhood', 'city']
-    : ['name', 'email', 'whatsapp'];
+  const requiredFields = ['name', 'email', 'whatsapp', 'zip', 'address', 'number', 'neighborhood', 'city'];
   const isFieldMissing = (f) => {
     if (f === 'zip') return cleanZip(checkoutForm.zip || '').length !== 8;
     return !String(checkoutForm[f] || '').trim();
   };
   const missingFields = requiredFields.filter(isFieldMissing);
-  const hasDeliveryAddressDetails = checkoutForm.deliveryMethod === 'home' && hasValidZip && ['address', 'number', 'neighborhood', 'city'].every(f => String(checkoutForm[f] || '').trim());
-  const showFinalSummary = checkoutForm.deliveryMethod === 'pickup' || isFreeDelivery || Boolean(selectedShippingOption) || shippingLoading;
+  const hasDeliveryAddressDetails = hasValidZip && ['address', 'number', 'neighborhood', 'city'].every(f => String(checkoutForm[f] || '').trim());
+  const showFinalSummary = isFreeDelivery || Boolean(selectedShippingOption) || shippingLoading;
 
   /* ─── Estilos compartilhados (Delivery step) ─── */
   const inputStyle = (extra = {}) => ({ padding: '8px 10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '0.95rem', minHeight: '38px', lineHeight: 1.2, color: '#111', background: '#fff', ...extra });
@@ -716,40 +714,7 @@ export default function CartDrawer({
               )}
             </div>
 
-            {/* Entrega */}
-            <h3 style={{ fontSize: '0.72rem', marginBottom: '8px', color: '#666', textTransform: 'uppercase', letterSpacing: '1px' }}>Forma de Entrega</h3>
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '10px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.86rem', color: '#111' }}>
-                <input type="radio" name="deliveryMethod" value="home" checked={checkoutForm.deliveryMethod === 'home'} onChange={() => onFormChange({...checkoutForm, deliveryMethod: 'home'})} style={{ accentColor: '#111' }} />
-                Receber em Casa
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.86rem', color: '#111' }}>
-                <input type="radio" name="deliveryMethod" value="pickup" checked={checkoutForm.deliveryMethod === 'pickup'} onChange={() => onFormChange({...checkoutForm, deliveryMethod: 'pickup'})} style={{ accentColor: '#111' }} />
-                Retirar na Loja
-              </label>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px' }}>
-              <h3 style={sectionTitleStyle}>Contato</h3>
-              <div style={compactFieldStyle}>
-                <label style={compactLabelStyle}>Nome*</label>
-                <input type="text" value={checkoutForm.name || ''} onChange={e => onFormChange({...checkoutForm, name: e.target.value})} style={compactInputStyle()} />
-                {fieldError('name')}
-              </div>
-              <div style={compactFieldStyle}>
-                <label style={compactLabelStyle}>E-mail*</label>
-                <input type="email" value={checkoutForm.email || ''} onChange={e => onFormChange({...checkoutForm, email: e.target.value})} style={compactInputStyle()} />
-                {fieldError('email')}
-              </div>
-              <div style={compactFieldStyle}>
-                <label style={compactLabelStyle}>WhatsApp*</label>
-                <input type="tel" placeholder="(00) 00000-0000" value={checkoutForm.whatsapp || ''} onChange={e => onFormChange({...checkoutForm, whatsapp: formatPhone(e.target.value)})} style={compactInputStyle()} />
-                {fieldError('whatsapp')}
-              </div>
-
-              {checkoutForm.deliveryMethod === 'home' && (
-                <>
-                  <h3 style={{ ...sectionTitleStyle, marginTop: '4px' }}>Endereço</h3>
+              <h3 style={{ ...sectionTitleStyle, marginTop: '4px' }}>Endereço</h3>
                   <div style={compactFieldStyle}>
                     <label style={compactLabelStyle}>CEP*</label>
                     <input type="text" value={formatZip(checkoutForm.zip)} maxLength={9} onChange={async (e) => { const zip = formatZip(e.target.value); const nextForm = { ...checkoutForm, zip, shippingServiceId: '' }; onFormChange(nextForm); lookupZip(zip, nextForm); }} style={compactInputStyle()} />
@@ -800,8 +765,6 @@ export default function CartDrawer({
                       ))}
                     </div>
                   )}
-                </>
-              )}
             </div>
 
             {/* Resumo */}
@@ -823,7 +786,7 @@ export default function CartDrawer({
             <button
               onClick={() => {
                 if (missingFields.length > 0) { setSubmitted(true); return; }
-                if (checkoutForm.deliveryMethod === 'home' && !isFreeDelivery && !selectedShippingOption && !shippingLoading) { setSubmitted(true); return; }
+                if (!isFreeDelivery && !selectedShippingOption && !shippingLoading) { setSubmitted(true); return; }
                 setSubmitted(false);
                 setCheckoutStep('payment');
               }}
