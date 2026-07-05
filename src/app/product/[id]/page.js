@@ -283,19 +283,19 @@ export default function ProductPage() {
     if (isVideo) {
       if (item.includes('youtu')) {
          const videoId = item.split('v=')[1]?.split('&')[0] || item.split('youtu.be/')[1];
-         return <iframe style={{ width: '100%', height: '100%', border: 'none' }} src={`https://www.youtube.com/embed/${videoId}?autoplay=0`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>;
+         return <iframe className="gallery-main-media" src={`https://www.youtube.com/embed/${videoId}?autoplay=0`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>;
       } else if (item.includes('drive.google.com')) {
          const driveMatch = item.match(/\/d\/([a-zA-Z0-9_-]+)/);
          const driveId = driveMatch ? driveMatch[1] : null;
          if (driveId) {
-             return <iframe src={`https://drive.google.com/file/d/${driveId}/preview`} className="drive-iframe" allow="autoplay" allowFullScreen frameBorder="0"></iframe>;
+             return <iframe src={`https://drive.google.com/file/d/${driveId}/preview`} className="gallery-main-media drive-iframe" allow="autoplay" allowFullScreen frameBorder="0"></iframe>;
          }
       } else {
-         return <video src={item} controls style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />;
+         return <video src={item} controls className="gallery-main-media" />;
       }
     }
     
-    return <img src={item} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />;
+    return <img src={item} alt={product.name} className="gallery-main-media" />;
   };
 
   const renderThumbItem = (item) => {
@@ -309,15 +309,15 @@ export default function ProductPage() {
     }
     
     return (
-      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <div className="thumbnail-media-frame">
          {isVideo && !item.includes('youtu') && !isDrive ? (
-            <video src={item} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <video src={item} className="thumbnail-media" />
          ) : isDrive ? (
-            <div style={{ width: '100%', height: '100%', backgroundColor: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="thumbnail-video-placeholder">
                <span style={{ color: '#fff', fontSize: '1.5rem' }}>▶️</span>
             </div>
          ) : (
-            <img src={thumbSrc} alt="thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={thumbSrc} alt="thumbnail" className="thumbnail-media" />
          )}
          {isVideo && !isDrive && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(0,0,0,0.5)', borderRadius: '50%', padding: '5px' }}>▶️</div>}
       </div>

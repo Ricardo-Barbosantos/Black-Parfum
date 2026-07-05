@@ -23,6 +23,10 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .product-gallery-sold-out {
@@ -32,6 +36,8 @@
 
 .main-image {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   aspect-ratio: 1/1;
   background-color: #f9f9f9;
   border-radius: 12px;
@@ -46,15 +52,32 @@
 .gallery-item-frame {
   width: 100%;
   height: 100%;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.gallery-main-media {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  border: 0;
+  object-fit: contain;
+  object-position: center;
+}
+
 .thumbnails-wrapper {
   display: flex;
   gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   overflow-x: auto;
+  overflow-y: hidden;
   padding-bottom: 10px;
   scrollbar-width: thin;
   scroll-snap-type: x mandatory;
@@ -65,6 +88,7 @@
   width: 80px;
   height: 80px;
   flex-shrink: 0;
+  box-sizing: border-box;
   border: 2px solid transparent;
   border-radius: 8px;
   overflow: hidden;
@@ -73,8 +97,41 @@
   scroll-snap-align: start;
 }
 
+.thumbnail-btn:focus {
+  outline: none;
+}
+
+.thumbnail-btn:focus-visible {
+  outline: 2px solid var(--primary-gold);
+  outline-offset: 2px;
+}
+
 .thumbnail-btn.active {
   border-color: var(--primary-gold);
+}
+
+.thumbnail-media-frame,
+.thumbnail-video-placeholder,
+.thumbnail-media {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.thumbnail-media,
+.thumbnail-video-placeholder {
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}
+
+.thumbnail-video-placeholder {
+  background: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .product-info-panel {
@@ -125,6 +182,7 @@
     gap: 10px;
     padding: 0 20px 8px;
     scrollbar-width: none;
+    margin: 0;
   }
 
   .thumbnails-wrapper::-webkit-scrollbar {
@@ -434,13 +492,13 @@
 
 .drive-iframe {
   width: 100%;
-  height: 450px;
+  height: 100%;
   border: none;
 }
 
 @media(max-width: 900px) {
   .drive-iframe {
-    height: 300px;
+    height: 100%;
   }
 }
 
