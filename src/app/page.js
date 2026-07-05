@@ -106,45 +106,10 @@ export default function Home() {
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  const handleCheckout = async (couponCode = '') => {
-    const zip = String(checkoutForm.zip || '').replace(/\D/g, '');
-    if (!checkoutForm.name || !checkoutForm.email) {
-      return;
-    }
-
-    if (
-      checkoutForm.deliveryMethod === 'home' &&
-      (!checkoutForm.address || !checkoutForm.number || !checkoutForm.neighborhood || !checkoutForm.city || zip.length !== 8)
-    ) {
-      return;
-    }
-
-    setCheckoutLoading(true);
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          cart: cart.map(item => ({
-            id: item.id,
-            cartItemId: item.cartItemId || item.id,
-            selectedSize: item.selectedSize || '',
-            quantity: item.quantity
-          })),
-          customer: checkoutForm,
-          shippingServiceId: checkoutForm.shippingServiceId || undefined,
-          couponCode: couponCode || undefined
-        })
-      });
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || 'Erro ao iniciar pagamento.');
-      window.location.href = data.init_point || data.sandbox_init_point;
-    } catch (error) {
-      showToast(error.message || 'Erro ao iniciar pagamento.');
-    } finally {
-      setCheckoutLoading(false);
-    }
+  // Chamado pelo CartDrawer após o pagamento transparente ser concluído
+  const handleCheckout = async () => {
+    setCart([]);
+    setIsCartOpen(false);
   };
 
   const filteredProducts = useMemo(() => {
