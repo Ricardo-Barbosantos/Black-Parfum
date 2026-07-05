@@ -696,6 +696,24 @@ export default function CartDrawer({
               )}
             </div>
 
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px' }}>
+              <h3 style={sectionTitleStyle}>Contato</h3>
+              <div style={compactFieldStyle}>
+                <label style={compactLabelStyle}>Nome*</label>
+                <input type="text" value={checkoutForm.name || ''} onChange={e => onFormChange({...checkoutForm, name: e.target.value})} style={compactInputStyle()} />
+                {fieldError('name')}
+              </div>
+              <div style={compactFieldStyle}>
+                <label style={compactLabelStyle}>E-mail*</label>
+                <input type="email" value={checkoutForm.email || ''} onChange={e => onFormChange({...checkoutForm, email: e.target.value})} style={compactInputStyle()} />
+                {fieldError('email')}
+              </div>
+              <div style={compactFieldStyle}>
+                <label style={compactLabelStyle}>WhatsApp*</label>
+                <input type="tel" placeholder="(00) 00000-0000" value={checkoutForm.whatsapp || ''} onChange={e => onFormChange({...checkoutForm, whatsapp: formatPhone(e.target.value)})} style={compactInputStyle()} />
+                {fieldError('whatsapp')}
+              </div>
+
               <h3 style={{ ...sectionTitleStyle, marginTop: '4px' }}>Endereço</h3>
                   <div style={compactFieldStyle}>
                     <label style={compactLabelStyle}>CEP*</label>
