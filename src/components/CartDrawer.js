@@ -414,7 +414,12 @@ export default function CartDrawer({
               <IconPix />
               <h2 style={{ color: TEXT, fontSize: 20, fontWeight: 800, margin: 0, fontFamily: 'var(--font-cinzel, serif)' }}>Pague com PIX</h2>
             </div>
-            <p style={{ color: TEXT2, fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>Escaneie o QR code ou copie a chave.<br />Confirmação automática e imediata.</p>
+            <p style={{ color: TEXT2, fontSize: 13, marginBottom: 16, lineHeight: 1.6 }}>Escaneie o QR code ou copie a chave.<br />Confirmação automática e imediata.</p>
+            
+            <div style={{ background: '#f9fafb', border: `1px solid ${BORDER}`, borderRadius: 8, padding: '12px', marginBottom: 20 }}>
+              <div style={{ fontSize: 11, color: TEXT3, textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 600, marginBottom: 4 }}>Recebedor</div>
+              <div style={{ fontSize: 14, color: TEXT, fontWeight: 800 }}>Gustavo Barbosa Dos Santos</div>
+            </div>
 
             {/* QR Code */}
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
