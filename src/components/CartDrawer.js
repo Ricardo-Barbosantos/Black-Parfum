@@ -575,7 +575,7 @@ export default function CartDrawer({
               <span style={{ fontSize: 22, fontWeight: 900, color: TEXT }}>R$ {formatMoney(finalTotal)}</span>
             </div>
             <button onClick={handlePay} disabled={paymentLoading}
-              style={{ width: '100%', padding: '16px', borderRadius: 30, border: 'none', background: paymentLoading ? '#ccc' : `linear-gradient(135deg, ${GOLD}, #b8943c)`, color: '#fff', fontWeight: 800, fontSize: 16, cursor: paymentLoading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', boxShadow: paymentLoading ? 'none' : `0 4px 15px ${GOLD}66` }}>
+              style={{ width: '100%', padding: '16px', borderRadius: 30, border: 'none', background: paymentLoading ? '#ccc' : `linear-gradient(135deg, #e11d48, #be123c)`, color: '#fff', fontWeight: 800, fontSize: 16, cursor: paymentLoading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', boxShadow: paymentLoading ? 'none' : `0 4px 15px rgba(225, 29, 72, 0.4)` }}>
               {paymentLoading ? 'Processando...' : 'Fazer o pedido'}
             </button>
           </div>
