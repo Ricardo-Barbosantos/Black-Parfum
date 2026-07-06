@@ -449,164 +449,133 @@ export default function CartDrawer({
     }
 
     return (
-      <div style={{ position: 'fixed', inset: 0, background: LIGHT_BG, zIndex: 999, overflowY: 'auto', fontFamily: 'Inter, system-ui, sans-serif' }}>
-        <div style={{ padding: isMobile ? '20px 16px 60px' : '32px 20px 60px', maxWidth: 900, margin: '0 auto' }}>
+      <div style={{ position: 'fixed', inset: 0, background: '#f0f2f5', zIndex: 999, overflowY: 'auto', fontFamily: 'Inter, system-ui, sans-serif' }}>
+        {/* Top Header */}
+        <div style={{ position: 'sticky', top: 0, background: WHITE, zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 56, borderBottom: `1px solid ${BORDER}` }}>
+          <button onClick={() => setCheckoutStep('delivery')} style={{ position: 'absolute', left: 16, background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={TEXT} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(90deg)' }}><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div style={{ fontSize: 16, fontWeight: 800, color: TEXT, letterSpacing: 0.5 }}>Confirmação</div>
+        </div>
 
-          {/* Header */}
-          <div style={{ textAlign: 'center', marginBottom: 24 }}>
-            <div style={{ fontSize: isMobile ? 16 : 20, fontWeight: 800, letterSpacing: 5, textTransform: 'uppercase', color: TEXT, fontFamily: 'var(--font-cinzel, serif)' }}>
-              Obsidian <span style={{ color: GOLD }}>Parfums</span>
+        <div style={{ paddingBottom: 100, maxWidth: 600, margin: '0 auto' }}>
+          {/* Address */}
+          <div style={{ background: WHITE, padding: 20, marginBottom: 8, cursor: 'pointer' }} onClick={() => setCheckoutStep('delivery')}>
+            <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 12, color: TEXT }}>Endereços de Entrega</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 700, fontSize: 14, color: TEXT, marginBottom: 4 }}>{checkoutForm.name}</div>
+                <div style={{ fontSize: 13, color: TEXT2, marginBottom: 4 }}>{checkoutForm.whatsapp}</div>
+                <div style={{ fontSize: 13, color: TEXT2, lineHeight: 1.4 }}>{checkoutForm.address}{checkoutForm.number ? `, ${checkoutForm.number}` : ''}{checkoutForm.complement ? ` - ${checkoutForm.complement}` : ''}</div>
+                <div style={{ fontSize: 13, color: TEXT2 }}>{checkoutForm.city}, {checkoutForm.state}, Brasil, {checkoutForm.zip}</div>
+              </div>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={TEXT3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(-90deg)' }}><polyline points="6 9 12 15 18 9"></polyline></svg>
             </div>
-            <div style={{ width: 36, height: 2, background: GOLD, margin: '8px auto 0' }} />
           </div>
 
-          {/* Stepper */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, background: WHITE, borderRadius: 10, padding: '12px 16px', border: `1px solid ${BORDER}`, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-            <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#d1f5e8', color: '#059669', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</div>
-            <span style={{ fontSize: 12, color: TEXT3 }}>Entrega</span>
-            <div style={{ flex: 1, height: 1, background: BORDER }} />
-            <div style={{ width: 22, height: 22, borderRadius: '50%', background: GOLD, color: '#fff', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>2</div>
-            <span style={{ fontSize: 13, fontWeight: 700, color: TEXT }}>Pagamento</span>
-          </div>
-
-          {/* Grid — resumo primeiro no mobile */}
-          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 16 : 24, alignItems: 'start' }}>
-
-            {/* Coluna esquerda — Métodos (direita no mobile fica abaixo) */}
-            <div style={{ flex: isMobile ? 'none' : '1.3', minWidth: 0, order: isMobile ? 2 : 1 }}>
-              <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, overflow: 'hidden', background: WHITE, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-                {methods.map((m, idx) => (
-                  <div key={m.id} style={{ borderTop: idx ? `1px solid ${BORDER}` : 'none' }}>
-                    <button onClick={() => setPaymentMethod(m.id)}
-                      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '16px 18px', background: paymentMethod === m.id ? `${GOLD}0a` : 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s' }}>
-                      <div style={{ width: 18, height: 18, borderRadius: '50%', border: `1.5px solid ${paymentMethod === m.id ? GOLD : BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'border-color 0.15s' }}>
-                        {paymentMethod === m.id && <div style={{ width: 9, height: 9, borderRadius: '50%', background: GOLD }} />}
+          {/* Payment Methods */}
+          <div style={{ background: WHITE, padding: '20px 20px 10px', marginBottom: 8 }}>
+            <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 12, color: TEXT }}>Métodos de Pagamento</div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {methods.map((m, idx) => (
+                <div key={m.id} style={{ borderTop: idx ? `1px solid ${BORDER}` : 'none' }}>
+                  <button onClick={() => setPaymentMethod(m.id)}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '16px 0', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+                    <div style={{ width: 22, height: 22, borderRadius: '50%', border: `2px solid ${paymentMethod === m.id ? GOLD : '#ccc'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s' }}>
+                      {paymentMethod === m.id && <div style={{ width: 12, height: 12, borderRadius: '50%', background: GOLD }} />}
+                    </div>
+                    <span style={{ color: paymentMethod === m.id ? (m.id === 'pix' ? '#4db6ac' : GOLD) : TEXT3, display: 'flex' }}><m.Icon /></span>
+                    <div style={{ flex: 1, fontSize: 14, fontWeight: 700, color: TEXT }}>{m.label}</div>
+                  </button>
+                  {paymentMethod === m.id && m.id === 'credit_card' && (
+                    <div style={{ padding: '0 0 16px 34px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        <div>
+                          <input value={cardForm.number} onChange={e => setCardForm(f => ({ ...f, number: formatCardNumber(e.target.value) }))} onFocus={focusGold} onBlur={blurBorder} placeholder="Número do cartão" maxLength={19} style={fieldInput} />
+                        </div>
+                        <div>
+                          <input value={cardForm.name} onChange={e => setCardForm(f => ({ ...f, name: e.target.value.toUpperCase() }))} onFocus={focusGold} onBlur={blurBorder} placeholder="Nome impresso no cartão" style={fieldInput} />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                          <input value={cardForm.expiry} onChange={e => setCardForm(f => ({ ...f, expiry: formatExpiry(e.target.value) }))} onFocus={focusGold} onBlur={blurBorder} placeholder="Validade (MM/AA)" maxLength={5} style={fieldInput} />
+                          <input value={cardForm.cvv} onChange={e => setCardForm(f => ({ ...f, cvv: e.target.value.replace(/\D/g,'').slice(0,4) }))} onFocus={focusGold} onBlur={blurBorder} placeholder="CVV" maxLength={4} type="password" style={fieldInput} />
+                        </div>
+                        <div>
+                          <select value={cardForm.installments} onChange={e => setCardForm(f => ({ ...f, installments: Number(e.target.value) }))} style={{ ...fieldInput, cursor: 'pointer', appearance: 'auto' }}>
+                            {[1,2,3,4,5].map(n => (
+                              <option key={n} value={n}>{n}x de R$ {formatMoney(finalTotal / n)} sem juros</option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
-                      <span style={{ color: paymentMethod === m.id ? (m.id === 'pix' ? '#4db6ac' : GOLD) : TEXT3, display: 'flex' }}><m.Icon /></span>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: TEXT }}>{m.label}</div>
-                        <div style={{ fontSize: 11.5, color: m.id === 'pix' ? '#4db6ac' : TEXT3 }}>{m.tag}</div>
-                      </div>
-                      <span style={{ color: TEXT3 }}><IconChevron open={paymentMethod === m.id} /></span>
-                    </button>
-
-                    {paymentMethod === m.id && (
-                      <div style={{ padding: '0 18px 20px' }}>
-
-
-
-                        {/* CARTÃO */}
-                        {m.id === 'credit_card' && (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                            {/* Bandeiras aceitas */}
-                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
-                              <MastercardLogo />
-                              <VisaLogo />
-                              <div style={{ display: 'flex', alignItems: 'center', padding: '0 8px', height: 22, background: '#f5f5f5', borderRadius: 3, fontSize: 9, fontWeight: 700, color: '#555', letterSpacing: 0.5 }}>ELO</div>
-                              <div style={{ display: 'flex', alignItems: 'center', padding: '0 8px', height: 22, background: '#f5f5f5', borderRadius: 3, fontSize: 9, fontWeight: 700, color: '#b22222', letterSpacing: 0.5 }}>HIPER</div>
-                            </div>
-                            <div>
-                              <label style={fieldLabel}>Número do cartão</label>
-                              <input value={cardForm.number} onChange={e => setCardForm(f => ({ ...f, number: formatCardNumber(e.target.value) }))} onFocus={focusGold} onBlur={blurBorder} placeholder="0000 0000 0000 0000" maxLength={19} style={fieldInput} />
-                            </div>
-                            <div>
-                              <label style={fieldLabel}>Nome no cartão</label>
-                              <input value={cardForm.name} onChange={e => setCardForm(f => ({ ...f, name: e.target.value.toUpperCase() }))} onFocus={focusGold} onBlur={blurBorder} placeholder="COMO ESTÁ NO CARTÃO" style={fieldInput} />
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                              <div>
-                                <label style={fieldLabel}>Validade</label>
-                                <input value={cardForm.expiry} onChange={e => setCardForm(f => ({ ...f, expiry: formatExpiry(e.target.value) }))} onFocus={focusGold} onBlur={blurBorder} placeholder="MM/AA" maxLength={5} style={fieldInput} />
-                              </div>
-                              <div>
-                                <label style={fieldLabel}>CVV</label>
-                                <input value={cardForm.cvv} onChange={e => setCardForm(f => ({ ...f, cvv: e.target.value.replace(/\D/g,'').slice(0,4) }))} onFocus={focusGold} onBlur={blurBorder} placeholder="•••" maxLength={4} type="password" style={fieldInput} />
-                              </div>
-                            </div>
-                            <div>
-                              <label style={fieldLabel}>Parcelas</label>
-                              <select value={cardForm.installments} onChange={e => setCardForm(f => ({ ...f, installments: Number(e.target.value) }))} style={{ ...fieldInput, cursor: 'pointer', appearance: 'auto' }}>
-                                {[1,2,3,4,5].map(n => (
-                                  <option key={n} value={n}>{n}x de R$ {formatMoney(finalTotal / n)} sem juros</option>
-                                ))}
-                              </select>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {paymentError && (
-                <div style={{ marginTop: 12, padding: '10px 14px', background: '#fff0f0', border: '1px solid #fca5a5', borderRadius: 8, color: '#dc2626', fontSize: 13 }}>
-                  {paymentError}
-                </div>
-              )}
-
-              <button onClick={handlePay} disabled={paymentLoading}
-                style={{ width: '100%', marginTop: 16, padding: '15px', borderRadius: 10, border: 'none', background: paymentLoading ? '#ccc' : `linear-gradient(135deg, ${GOLD}, #b8943c)`, color: '#fff', fontWeight: 800, fontSize: 14, letterSpacing: 0.5, cursor: paymentLoading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', boxShadow: paymentLoading ? 'none' : `0 4px 20px ${GOLD}44` }}>
-                {paymentLoading ? 'Processando...' : `Pagar R$ ${formatMoney(finalTotal)}`}
-              </button>
-
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6, marginTop: 12, fontSize: 11, color: TEXT3 }}>
-                <IconLock /> Pagamento seguro
-              </div>
-
-              <button onClick={() => setCheckoutStep('delivery')} style={{ display: 'block', margin: '12px auto 0', background: 'none', border: 'none', color: TEXT3, fontSize: 12, cursor: 'pointer', textDecoration: 'underline' }}>
-                ← Voltar aos dados de entrega
-              </button>
-            </div>
-
-            {/* Coluna direita — Resumo (aparece primeiro no mobile) */}
-            <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, background: WHITE, padding: isMobile ? '14px 16px' : 20, position: isMobile ? 'static' : 'sticky', top: 20, flex: isMobile ? 'none' : '1', minWidth: 0, order: isMobile ? 1 : 2, width: isMobile ? '100%' : 'auto', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-              <div style={{ fontSize: 10, letterSpacing: 1.5, color: TEXT3, textTransform: 'uppercase', marginBottom: 14, fontWeight: 600 }}>Resumo do pedido</div>
-
-              {cart.map((item, i) => (
-                <div key={i} style={{ display: 'flex', gap: 12, marginBottom: 14, alignItems: 'center' }}>
-                  <div style={{ width: 52, height: 52, borderRadius: 8, background: LIGHT_BG, border: `1px solid ${BORDER}`, flexShrink: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {item.image ? <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: GOLD, fontSize: 10, fontWeight: 700 }}>{item.quantity}x</span>}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12, lineHeight: 1.3, color: TEXT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}{item.selectedSize ? ` (${item.selectedSize})` : ''}</div>
-                    <div style={{ fontSize: 10.5, color: TEXT3 }}>Qtd: {item.quantity}</div>
-                  </div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: TEXT, whiteSpace: 'nowrap' }}>R$ {formatMoney(item.price * item.quantity)}</div>
+                    </div>
+                  )}
                 </div>
               ))}
-
-              <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: TEXT2 }}>
-                  <span>Subtotal</span><span>R$ {formatMoney(cartTotal)}</span>
-                </div>
-                {couponDiscount > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#059669' }}>
-                    <span>Cupom ({appliedCoupon.code})</span><span>- R$ {formatMoney(couponDiscount)}</span>
-                  </div>
-                )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: TEXT2 }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><IconTruck /> Frete</span>
-                  <span>{isFreeDelivery ? 'Grátis' : `R$ ${formatMoney(shippingCost)}`}</span>
-                </div>
-                {pixDiscount > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#009688' }}>
-                    <span>Desconto PIX (5%)</span><span>- R$ {formatMoney(pixDiscount)}</span>
-                  </div>
-                )}
-              </div>
-
-              <div style={{ borderTop: `1px solid ${BORDER}`, marginTop: 10, paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: TEXT }}>Total</span>
-                <span style={{ fontSize: 22, fontWeight: 800, color: GOLD }}>R$ {formatMoney(finalTotal)}</span>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 16, fontSize: 11, color: TEXT3, justifyContent: 'center' }}>
-                <IconShield /> Dados protegidos com criptografia
-              </div>
             </div>
+            {paymentError && (
+              <div style={{ marginTop: 12, padding: '10px 14px', background: '#fff0f0', border: '1px solid #fca5a5', borderRadius: 8, color: '#dc2626', fontSize: 13 }}>
+                {paymentError}
+              </div>
+            )}
           </div>
 
+          {/* Produtos e Resumo */}
+          <div style={{ background: WHITE, padding: 20 }}>
+            <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 16, color: TEXT }}>Resumo do Pedido</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {cart.map((item, i) => (
+                <div key={i} style={{ display: 'flex', gap: 14, paddingBottom: 16, borderBottom: `1px solid ${BORDER}` }}>
+                  <div style={{ width: 72, height: 72, borderRadius: 8, background: LIGHT_BG, border: `1px solid ${BORDER}`, flexShrink: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {item.image ? <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: GOLD, fontSize: 10, fontWeight: 700 }}>{item.quantity}x</span>}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.4, color: TEXT, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.name}{item.selectedSize ? ` (${item.selectedSize})` : ''}</div>
+                    <div style={{ fontSize: 13, color: TEXT2, marginTop: 6 }}>Qtd: {item.quantity}</div>
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: TEXT, display: 'flex', alignItems: 'flex-start' }}>R$ {formatMoney(item.price * item.quantity)}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: TEXT2 }}>
+                <span>Subtotal</span><span style={{ fontWeight: 600, color: TEXT }}>R$ {formatMoney(cartTotal)}</span>
+              </div>
+              {couponDiscount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#059669' }}>
+                  <span>Cupom ({appliedCoupon.code})</span><span style={{ fontWeight: 700 }}>- R$ {formatMoney(couponDiscount)}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: TEXT2 }}>
+                <span>Frete</span>
+                <span style={{ fontWeight: 600, color: TEXT }}>{isFreeDelivery ? 'Grátis' : `R$ ${formatMoney(shippingCost)}`}</span>
+              </div>
+              {pixDiscount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#009688' }}>
+                  <span>Desconto PIX (5%)</span><span style={{ fontWeight: 700 }}>- R$ {formatMoney(pixDiscount)}</span>
+                </div>
+              )}
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 24, fontSize: 12, color: TEXT3, justifyContent: 'center' }}>
+              <IconShield /> Pagamento 100% seguro com criptografia
+            </div>
+          </div>
+        </div>
+
+        {/* Sticky Footer */}
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: WHITE, borderTop: `1px solid ${BORDER}`, padding: '12px 20px', display: 'flex', justifyContent: 'center', zIndex: 10, boxShadow: '0 -4px 12px rgba(0,0,0,0.03)' }}>
+          <div style={{ maxWidth: 600, width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontSize: 12, color: TEXT2, fontWeight: 600 }}>Total</span>
+              <span style={{ fontSize: 22, fontWeight: 900, color: GOLD }}>R$ {formatMoney(finalTotal)}</span>
+            </div>
+            <button onClick={handlePay} disabled={paymentLoading}
+              style={{ padding: '14px 32px', borderRadius: 30, border: 'none', background: paymentLoading ? '#ccc' : `linear-gradient(135deg, ${GOLD}, #b8943c)`, color: '#fff', fontWeight: 800, fontSize: 15, cursor: paymentLoading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', boxShadow: paymentLoading ? 'none' : `0 4px 15px ${GOLD}66` }}>
+              {paymentLoading ? 'Processando...' : 'Fazer o pedido'}
+            </button>
+          </div>
         </div>
       </div>
     );
