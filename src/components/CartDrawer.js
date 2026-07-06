@@ -487,7 +487,20 @@ export default function CartDrawer({
                       {paymentMethod === m.id && <div style={{ width: 12, height: 12, borderRadius: '50%', background: GOLD }} />}
                     </div>
                     <span style={{ color: paymentMethod === m.id ? (m.id === 'pix' ? '#4db6ac' : GOLD) : TEXT3, display: 'flex' }}><m.Icon /></span>
-                    <div style={{ flex: 1, fontSize: 14, fontWeight: 700, color: TEXT }}>{m.label}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>{m.label}</div>
+                      {m.id === 'pix' && (
+                        <div style={{ fontSize: 12, color: '#059669', marginTop: 4, fontWeight: 600 }}>5% de desconto</div>
+                      )}
+                      {m.id === 'credit_card' && (
+                        <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'center' }}>
+                          <MastercardLogo />
+                          <VisaLogo />
+                          <div style={{ display: 'flex', alignItems: 'center', padding: '0 6px', height: 22, background: '#f0f0f0', borderRadius: 3, fontSize: 9, fontWeight: 800, color: '#555', letterSpacing: 0.5 }}>ELO</div>
+                          <div style={{ display: 'flex', alignItems: 'center', padding: '0 6px', height: 22, background: '#f0f0f0', borderRadius: 3, fontSize: 9, fontWeight: 800, color: '#b22222', letterSpacing: 0.5 }}>HIPER</div>
+                        </div>
+                      )}
+                    </div>
                   </button>
                   {paymentMethod === m.id && m.id === 'credit_card' && (
                     <div style={{ padding: '0 0 16px 34px' }}>
