@@ -449,13 +449,15 @@ export default function CartDrawer({
     }
 
     return (
-      <div style={{ position: 'fixed', inset: 0, background: '#f0f2f5', zIndex: 999, overflowY: 'auto', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, height: '100dvh', background: '#f0f2f5', zIndex: 999, overflowY: 'auto', WebkitOverflowScrolling: 'touch', fontFamily: 'Inter, system-ui, sans-serif' }}>
         {/* Top Header */}
         <div style={{ position: 'sticky', top: 0, background: WHITE, zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 56, borderBottom: `1px solid ${BORDER}` }}>
           <button onClick={() => setCheckoutStep('delivery')} style={{ position: 'absolute', left: 16, background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={TEXT} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(90deg)' }}><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
-          <div style={{ fontSize: 16, fontWeight: 800, color: TEXT, letterSpacing: 0.5 }}>Confirmação</div>
+          <div style={{ fontSize: 16, fontWeight: 800, letterSpacing: 2, textTransform: 'uppercase', color: TEXT, fontFamily: 'var(--font-cinzel, serif)' }}>
+            Obsidian <span style={{ color: GOLD }}>Parfums</span>
+          </div>
         </div>
 
         <div style={{ paddingBottom: 100, maxWidth: 600, margin: '0 auto' }}>
@@ -565,14 +567,15 @@ export default function CartDrawer({
         </div>
 
         {/* Sticky Footer */}
-        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: WHITE, borderTop: `1px solid ${BORDER}`, padding: '12px 20px', display: 'flex', justifyContent: 'center', zIndex: 10, boxShadow: '0 -4px 12px rgba(0,0,0,0.03)' }}>
-          <div style={{ maxWidth: 600, width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: 12, color: TEXT2, fontWeight: 600 }}>Total</span>
-              <span style={{ fontSize: 22, fontWeight: 900, color: GOLD }}>R$ {formatMoney(finalTotal)}</span>
+        {/* Sticky Footer */}
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: WHITE, borderTop: `1px solid ${BORDER}`, padding: '16px 20px 24px', display: 'flex', flexDirection: 'column', zIndex: 10, boxShadow: '0 -4px 12px rgba(0,0,0,0.03)' }}>
+          <div style={{ maxWidth: 600, width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 16, color: TEXT, fontWeight: 800 }}>Total</span>
+              <span style={{ fontSize: 22, fontWeight: 900, color: TEXT }}>R$ {formatMoney(finalTotal)}</span>
             </div>
             <button onClick={handlePay} disabled={paymentLoading}
-              style={{ padding: '14px 32px', borderRadius: 30, border: 'none', background: paymentLoading ? '#ccc' : `linear-gradient(135deg, ${GOLD}, #b8943c)`, color: '#fff', fontWeight: 800, fontSize: 15, cursor: paymentLoading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', boxShadow: paymentLoading ? 'none' : `0 4px 15px ${GOLD}66` }}>
+              style={{ width: '100%', padding: '16px', borderRadius: 30, border: 'none', background: paymentLoading ? '#ccc' : `linear-gradient(135deg, #e11d48, #be123c)`, color: '#fff', fontWeight: 800, fontSize: 16, cursor: paymentLoading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', boxShadow: paymentLoading ? 'none' : `0 4px 15px rgba(225, 29, 72, 0.4)` }}>
               {paymentLoading ? 'Processando...' : 'Fazer o pedido'}
             </button>
           </div>
