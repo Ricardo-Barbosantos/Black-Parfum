@@ -66,9 +66,9 @@ const IconPix = () => (
 );
 const IconCard = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-    <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-    <path d="M2 10h20" stroke="currentColor" strokeWidth="1.5"/>
-    <path d="M6 15h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    <rect x="2" y="5" width="20" height="14" rx="2" stroke="#d4af37" strokeWidth="1.5"/>
+    <path d="M2 10h20" stroke="#d4af37" strokeWidth="1.5"/>
+    <path d="M6 15h4" stroke="#d4af37" strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
 );
 /* Mastercard logo */
@@ -202,7 +202,7 @@ export default function CartDrawer({
   const selectedShippingOption = isFreeDelivery ? null : shippingOptions.find(o => o.id === checkoutForm.shippingServiceId) || shippingOptions[0] || null;
   const shippingCost = isFreeDelivery ? 0 : Number(selectedShippingOption?.price || 0);
   const couponDiscount = getCouponDiscount(cartTotal, appliedCoupon);
-  const pixDiscount = paymentMethod === 'pix' ? Number((cartTotal * 0.05).toFixed(2)) : 0;
+  const pixDiscount = paymentMethod === 'pix' && couponDiscount === 0 ? Number((cartTotal * 0.05).toFixed(2)) : 0;
   const orderTotal = Number((cartTotal - couponDiscount + shippingCost).toFixed(2));
   const finalTotal = Number((orderTotal - pixDiscount).toFixed(2));
 
@@ -392,7 +392,7 @@ export default function CartDrawer({
   if (checkoutStep === 'payment') {
     const methods = [
       { id: 'pix', Icon: IconPix, label: 'PIX', tag: '5% de desconto · aprovação imediata' },
-      { id: 'credit_card', Icon: IconCard, label: 'Cartão de crédito', tag: 'Visa · Mastercard · Elo · Hipercard' },
+      { id: 'credit_card', Icon: IconCard, label: 'Cartão de crédito ou débito', tag: 'Visa · Mastercard · Elo · Hipercard' },
     ];
 
     const fieldInput = { width: '100%', background: WHITE, border: `1.5px solid ${BORDER}`, borderRadius: 8, padding: '11px 13px', color: TEXT, fontSize: 13.5, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', transition: 'border-color 0.15s' };
@@ -482,7 +482,7 @@ export default function CartDrawer({
                       <div style={{ width: 18, height: 18, borderRadius: '50%', border: `1.5px solid ${paymentMethod === m.id ? GOLD : BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'border-color 0.15s' }}>
                         {paymentMethod === m.id && <div style={{ width: 9, height: 9, borderRadius: '50%', background: GOLD }} />}
                       </div>
-                      <span style={{ color: paymentMethod === m.id ? '#4db6ac' : TEXT3, display: 'flex' }}><m.Icon /></span>
+                      <span style={{ color: paymentMethod === m.id ? (m.id === 'pix' ? '#4db6ac' : GOLD) : TEXT3, display: 'flex' }}><m.Icon /></span>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 14, fontWeight: 600, color: TEXT }}>{m.label}</div>
                         <div style={{ fontSize: 11.5, color: m.id === 'pix' ? '#4db6ac' : TEXT3 }}>{m.tag}</div>
@@ -495,21 +495,21 @@ export default function CartDrawer({
 
                         {/* PIX */}
                         {m.id === 'pix' && (
-                          <div style={{ background: '#0d0d0d', border: `1px solid #1e1e1e`, borderRadius: 8, padding: 16 }}>
+                          <div style={{ background: '#f8fafc', border: `1px solid #e5e7eb`, borderRadius: 8, padding: 16 }}>
                             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
                               {/* Ícone decorativo PIX */}
-                              <div style={{ width: 48, height: 48, borderRadius: 10, background: 'linear-gradient(135deg,#1a1a1a,#0d0d0d)', border: `1px solid ${GOLD}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <div style={{ width: 48, height: 48, borderRadius: 10, background: '#ffffff', border: `1px solid #e5e7eb`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                                  <path d="M6.5 6.5L12 2l5.5 4.5V12L12 22 6.5 12V6.5z" stroke={GOLD} strokeWidth="1.5" strokeLinejoin="round"/>
-                                  <path d="M8 12h8M12 8v8" stroke={GOLD} strokeWidth="1.5" strokeLinecap="round"/>
+                                  <path d="M6.5 6.5L12 2l5.5 4.5V12L12 22 6.5 12V6.5z" stroke="#4db6ac" strokeWidth="1.5" strokeLinejoin="round"/>
+                                  <path d="M8 12h8M12 8v8" stroke="#4db6ac" strokeWidth="1.5" strokeLinecap="round"/>
                                 </svg>
                               </div>
                               <div style={{ flex: 1 }}>
-                                <p style={{ fontSize: 12.5, color: '#bbb', margin: '0 0 10px', lineHeight: 1.6 }}>
-                                  Ao confirmar, você receberá o <strong style={{ color: '#eee' }}>QR Code PIX</strong> para escanear no app do banco. A confirmação é automática e imediata.
+                                <p style={{ fontSize: 12.5, color: '#4b5563', margin: '0 0 10px', lineHeight: 1.6 }}>
+                                  Ao confirmar, você receberá o <strong style={{ color: '#111827' }}>QR Code PIX</strong> para escanear no app do banco. A confirmação é automática e imediata.
                                 </p>
-                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: GOLD, fontWeight: 700, padding: '5px 10px', border: `1px solid ${GOLD}`, borderRadius: 5 }}>
-                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke={GOLD} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#0f766e', fontWeight: 700, padding: '5px 10px', border: `1px solid #4db6ac`, borderRadius: 5, background: '#f0fdfa' }}>
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#0f766e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                   5% de desconto
                                 </div>
                               </div>

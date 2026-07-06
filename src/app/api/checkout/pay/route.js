@@ -136,7 +136,18 @@ export async function POST(request) {
     const subtotal = orderItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
     const couponSummary = await getCouponSummary({ couponCode, subtotal });
     const shipping = await getShipping({ customer, subtotal, shippingServiceId });
-    const total = Number((couponSummary.discountedSubtotal + shipping.cost).toFixed(2));
+    
+    // Verificacao de seguranca: desconto de PIX so entra se NAO tiver cupom
+    let totalDiscount = couponSummary.discountAmount;
+    let pixDiscountAmount = 0;
+    
+    if (paymentMethod === 'pix' && couponSummary.discountAmount === 0) {
+      pixDiscountAmount = Number((subtotal * 0.05).toFixed(2));
+      totalDiscount += pixDiscountAmount;
+    }
+    
+    const discountedSubtotal = Number((subtotal - totalDiscount).toFixed(2));
+    const total = Number((discountedSubtotal + shipping.cost).toFixed(2));
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.obsidianparfums.site';
     const orderId = createOrderId();
@@ -210,7 +221,7 @@ export async function POST(request) {
         commissionFixed: couponSummary.coupon.commissionFixed,
         commissionAmount: couponSummary.commissionAmount,
       } : null,
-      amounts: { subtotal, discount: couponSummary.discountAmount, shipping: shipping.cost, total, paid: mpStatus === 'approved' ? total : 0 },
+      amounts: { subtotal, discount: totalDiscount, shipping: shipping.cost, total, paid: mpStatus === 'approved' ? total : 0 },
       items: orderItems,
     });
 

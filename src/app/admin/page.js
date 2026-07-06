@@ -1148,8 +1148,8 @@ export default function AdminPage() {
               </div>
             ) : (
               coupons.map((coupon, index) => (
-                <div key={coupon.id || index} style={{ background: '#0a0a0a', border: '1px solid #333', borderRadius: '8px', padding: '20px', display: 'grid', gridTemplateColumns: '1.1fr .8fr 1fr .8fr .8fr auto', gap: '14px', alignItems: 'end' }}>
-                  <div>
+                <div key={coupon.id || index} style={{ background: '#0a0a0a', border: '1px solid #333', borderRadius: '8px', padding: '20px', display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'end' }}>
+                  <div style={{ flex: '1 1 140px' }}>
                     <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.85rem' }}>Codigo do cupom</label>
                     <input
                       type="text"
@@ -1159,7 +1159,7 @@ export default function AdminPage() {
                       style={{ width: '100%', padding: '12px', background: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', textTransform: 'uppercase' }}
                     />
                   </div>
-                  <div>
+                  <div style={{ flex: '1 1 100px' }}>
                     <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.85rem' }}>Desconto (%)</label>
                     <input
                       type="number"
@@ -1171,7 +1171,7 @@ export default function AdminPage() {
                       style={{ width: '100%', padding: '12px', background: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
                     />
                   </div>
-                  <div>
+                  <div style={{ flex: '1 1 140px' }}>
                     <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.85rem' }}>Influencer</label>
                     <input
                       type="text"
@@ -1181,7 +1181,7 @@ export default function AdminPage() {
                       style={{ width: '100%', padding: '12px', background: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
                     />
                   </div>
-                  <div>
+                  <div style={{ flex: '1 1 100px' }}>
                     <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.85rem' }}>Comissao (%)</label>
                     <input
                       type="number"
@@ -1193,7 +1193,7 @@ export default function AdminPage() {
                       style={{ width: '100%', padding: '12px', background: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
                     />
                   </div>
-                  <div>
+                  <div style={{ flex: '1 1 120px' }}>
                     <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-dim)', fontSize: '0.85rem' }}>Comissao fixa (R$)</label>
                     <input
                       type="number"
@@ -1204,7 +1204,7 @@ export default function AdminPage() {
                       style={{ width: '100%', padding: '12px', background: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
                     />
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingBottom: '10px' }}>
+                  <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', gap: '10px', paddingBottom: '10px' }}>
                     <label style={{ color: coupon.active !== false ? '#4ade80' : '#f87171', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <input
                         type="checkbox"
