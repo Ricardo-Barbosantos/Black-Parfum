@@ -163,6 +163,15 @@ export default function Home() {
               style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', whiteSpace: 'nowrap', border: '1px solid #ddd', background: (selectedBrand === 'Todas' && selectedGender === 'Todos' && selectedCategory === 'Todos' && maxPrice === Infinity) ? '#111' : '#fff', color: (selectedBrand === 'Todas' && selectedGender === 'Todos' && selectedCategory === 'Todos' && maxPrice === Infinity) ? '#fff' : '#111', cursor: 'pointer' }}>
               Todos
             </button>
+            <button
+              onClick={() => {
+                const isActive = selectedCategory === 'Combo Decantes' && maxPrice === 99;
+                setSelectedCategory(isActive ? 'Todos' : 'Combo Decantes');
+                setMaxPrice(isActive ? Infinity : 99);
+              }}
+              style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', whiteSpace: 'nowrap', border: '1px solid #e11d48', background: (selectedCategory === 'Combo Decantes' && maxPrice === 99) ? '#e11d48' : '#fff', color: (selectedCategory === 'Combo Decantes' && maxPrice === 99) ? '#fff' : '#e11d48', cursor: 'pointer', fontWeight: 700 }}>
+              🔥 Até R$ 99
+            </button>
             <button 
               onClick={() => {
                 setSelectedGender(selectedGender === 'Feminino' ? 'Todos' : 'Feminino');
@@ -195,15 +204,6 @@ export default function Home() {
               }}
               style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', whiteSpace: 'nowrap', border: '1px solid #ddd', background: (selectedCategory === 'Combo Decantes' && maxPrice !== 99) ? '#111' : '#fff', color: (selectedCategory === 'Combo Decantes' && maxPrice !== 99) ? '#fff' : '#111', cursor: 'pointer' }}>
               Combos Decantes
-            </button>
-            <button
-              onClick={() => {
-                const isActive = selectedCategory === 'Combo Decantes' && maxPrice === 99;
-                setSelectedCategory(isActive ? 'Todos' : 'Combo Decantes');
-                setMaxPrice(isActive ? Infinity : 99);
-              }}
-              style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', whiteSpace: 'nowrap', border: '1px solid #e11d48', background: (selectedCategory === 'Combo Decantes' && maxPrice === 99) ? '#e11d48' : '#fff', color: (selectedCategory === 'Combo Decantes' && maxPrice === 99) ? '#fff' : '#e11d48', cursor: 'pointer', fontWeight: 700 }}>
-              🔥 Até R$ 99
             </button>
             {brands.map(brand => (
               <button 
