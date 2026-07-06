@@ -442,7 +442,7 @@ export default function CartDrawer({
               <div style={{ fontSize: 11, color: TEXT3, marginBottom: 16 }}>Pedido: <strong style={{ color: TEXT }}>{orderResult.orderId}</strong> · Total: <strong style={{ color: GOLD }}>R$ {formatMoney(finalTotal)}</strong></div>
             )}
 
-            <p style={{ fontSize: 11, color: TEXT3, marginBottom: 20 }}>Após o pagamento, você receberá a confirmação por e-mail.</p>
+            <p style={{ fontSize: 11, color: TEXT3, marginBottom: 20 }}>Após o pagamento, você receberá a confirmação por e-mail e os detalhes sobre a entrega.</p>
 
             <button onClick={() => { setCheckoutStep('success'); if (onCheckout) onCheckout('__transparent__'); }}
               style={{ width: '100%', padding: '13px', borderRadius: 8, border: `1.5px solid ${BORDER}`, background: LIGHT_BG, color: TEXT2, fontSize: 13, cursor: 'pointer', fontWeight: 600 }}>
