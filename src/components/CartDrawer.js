@@ -493,29 +493,7 @@ export default function CartDrawer({
                     {paymentMethod === m.id && (
                       <div style={{ padding: '0 18px 20px' }}>
 
-                        {/* PIX */}
-                        {m.id === 'pix' && (
-                          <div style={{ background: '#f8fafc', border: `1px solid #e5e7eb`, borderRadius: 8, padding: 16 }}>
-                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-                              {/* Ícone decorativo PIX */}
-                              <div style={{ width: 48, height: 48, borderRadius: 10, background: '#ffffff', border: `1px solid #e5e7eb`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                                  <path d="M6.5 6.5L12 2l5.5 4.5V12L12 22 6.5 12V6.5z" stroke="#4db6ac" strokeWidth="1.5" strokeLinejoin="round"/>
-                                  <path d="M8 12h8M12 8v8" stroke="#4db6ac" strokeWidth="1.5" strokeLinecap="round"/>
-                                </svg>
-                              </div>
-                              <div style={{ flex: 1 }}>
-                                <p style={{ fontSize: 12.5, color: '#4b5563', margin: '0 0 10px', lineHeight: 1.6 }}>
-                                  Ao confirmar, você receberá o <strong style={{ color: '#111827' }}>QR Code PIX</strong> para escanear no app do banco. A confirmação é automática e imediata.
-                                </p>
-                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#0f766e', fontWeight: 700, padding: '5px 10px', border: `1px solid #4db6ac`, borderRadius: 5, background: '#f0fdfa' }}>
-                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#0f766e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                                  5% de desconto
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
+
 
                         {/* CARTÃO */}
                         {m.id === 'credit_card' && (
