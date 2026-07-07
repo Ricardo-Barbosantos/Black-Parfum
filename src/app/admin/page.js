@@ -179,10 +179,39 @@ export default function AdminPage() {
     setEmail('');
   };
 
-  const handleChange = (index, field, value) => {
+  const handleChange = async (index, field, value) => {
     const newProducts = [...products];
     newProducts[index][field] = value;
+    
+    // Auto-corrigir estoque se desmarcar esgotado manualmente
+    if (field === 'soldOut' && value === false) {
+      if (newProducts[index].stock !== null && newProducts[index].stock <= 0) {
+        newProducts[index].stock = null;
+      }
+    }
+    
     setProducts(newProducts);
+
+    // Auto-save para os botões de ativação/esgotado
+    if (['active', 'isOnSale', 'soldOut'].includes(field)) {
+      try {
+        const payload = newProducts.map(p => ({
+          ...p,
+          compareAtPrice: p.compareAtPrice ? Number(p.compareAtPrice) : null,
+          price: Number(p.price)
+        }));
+        await fetch('/api/products', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify(payload)
+        });
+      } catch (e) {
+        console.error('Auto-save falhou', e);
+      }
+    }
   };
 
   const handleImageUpload = async (index, files) => {
@@ -1126,7 +1155,7 @@ export default function AdminPage() {
                   <input
                     type="checkbox"
                     id={`sold-out-${product.id}`}
-                    checked={product.soldOut || false}
+                    checked={product.soldOut || (product.stock !== null && product.stock <= 0)}
                     onChange={(e) => handleChange(index, 'soldOut', e.target.checked)}
                     style={{ width: '20px', height: '20px', accentColor: '#f87171', cursor: 'pointer' }}
                   />

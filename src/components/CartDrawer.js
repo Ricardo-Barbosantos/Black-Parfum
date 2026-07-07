@@ -717,7 +717,17 @@ export default function CartDrawer({
                     <input type="text" value={checkoutForm.complement} onChange={e => onFormChange({...checkoutForm, complement: e.target.value})} style={compactInputStyle({ fontWeight: 500 })} />
                   </div>
 
-                  {isFreeDelivery && <div style={{ fontSize: '0.82rem', color: '#16a34a', lineHeight: 1.3 }}>Frete grátis. {isFreeShippingRegion(checkoutForm.city) ? 'Entrega em até 24 horas.' : ''}</div>}
+                  {isFreeDelivery && (
+                    <div style={{ background: '#ecfdf5', border: '1px solid #34d399', borderRadius: '8px', padding: '14px', display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px' }}>
+                      <div style={{ background: '#10b981', color: '#fff', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 10px rgba(16, 185, 129, 0.3)' }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                      </div>
+                      <div>
+                        <div style={{ color: '#064e3b', fontWeight: 800, fontSize: '0.95rem', marginBottom: '2px' }}>🎉 Você ganhou Frete Grátis!</div>
+                        {isFreeShippingRegion(checkoutForm.city) && <div style={{ color: '#047857', fontSize: '0.75rem', fontWeight: 600 }}>Sua entrega será super rápida em até 24 horas.</div>}
+                      </div>
+                    </div>
+                  )}
                   {!isFreeDelivery && (hasValidZip || shippingLoading || shippingError || shippingOptions.length > 0) && (
                     <div style={{ border: '1px solid #e5e7eb', borderRadius: '4px', background: '#fff', padding: '8px', color: '#111' }}>
                       <div style={{ fontSize: '0.7rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '5px' }}>Frete</div>
