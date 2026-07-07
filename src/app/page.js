@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import Footer from '@/components/Footer';
+import FAQ from '@/components/FAQ';
 import ProductCard from '@/components/ProductCard';
 import CartDrawer from '@/components/CartDrawer';
 import NavigationMenu from '@/components/NavigationMenu';
@@ -276,6 +277,9 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* FAQ */}
+      <FAQ />
 
       <Footer />
 
