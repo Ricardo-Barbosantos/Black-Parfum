@@ -457,6 +457,22 @@
 }
 
 /* OLFACTORY NOTES */
+.mobile-only {
+  display: none;
+}
+.desktop-only {
+  display: block;
+}
+
+@media(max-width: 900px) {
+  .mobile-only {
+    display: block;
+  }
+  .desktop-only {
+    display: none;
+  }
+}
+
 .olfactory-section {
   margin-bottom: 60px;
   padding-top: 40px;

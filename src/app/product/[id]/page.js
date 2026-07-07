@@ -350,6 +350,57 @@ export default function ProductPage() {
     );
   };
 
+  const renderOlfactory = (isMobile) => {
+    if (!product.topNotes && !product.heartNotes && !product.baseNotes) return null;
+    
+    return (
+      <div className={`olfactory-section ${isMobile ? 'mobile-only container' : 'desktop-only'}`} style={{ borderTop: isMobile ? '1px solid #eaeaea' : 'none', margin: isMobile ? '0 auto' : '20px 0 0 0', paddingTop: '20px', width: '100%' }}>
+        <h2 className="section-title" style={{ fontSize: isMobile ? '1.8rem' : '1.4rem', textAlign: isMobile ? 'center' : 'left', marginBottom: '20px' }}>Pirâmide Olfativa</h2>
+        <div className="notes-container" style={{ gap: '20px', justifyContent: isMobile ? 'center' : 'flex-start' }}>
+           {product.topNotes && (
+             <div className="notes-card" style={{ padding: '15px' }}>
+                <h4 className="notes-card-title" style={{ fontSize: '0.9rem' }}>TOP</h4>
+                <div className="notes-grid">
+                  {product.topNotes.split(',').map((n, i) => (
+                    <div className="note-item-real" key={i}>
+                      <NoteImage note={n} />
+                      <span className="note-name">{n.trim()}</span>
+                    </div>
+                  ))}
+                </div>
+             </div>
+           )}
+           {product.heartNotes && (
+             <div className="notes-card" style={{ padding: '15px' }}>
+                <h4 className="notes-card-title" style={{ fontSize: '0.9rem' }}>CORAÇÃO</h4>
+                <div className="notes-grid">
+                  {product.heartNotes.split(',').map((n, i) => (
+                    <div className="note-item-real" key={i}>
+                      <NoteImage note={n} />
+                      <span className="note-name">{n.trim()}</span>
+                    </div>
+                  ))}
+                </div>
+             </div>
+           )}
+           {product.baseNotes && (
+             <div className="notes-card" style={{ padding: '15px' }}>
+                <h4 className="notes-card-title" style={{ fontSize: '0.9rem' }}>FUNDO</h4>
+                <div className="notes-grid">
+                  {product.baseNotes.split(',').map((n, i) => (
+                    <div className="note-item-real" key={i}>
+                      <NoteImage note={n} />
+                      <span className="note-name">{n.trim()}</span>
+                    </div>
+                  ))}
+                </div>
+             </div>
+           )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <main style={{ backgroundColor: '#fcfcfc', minHeight: '100vh', position: 'relative' }}>
       <Header cartItemCount={cartItemCount} onCartClick={() => setIsCartOpen(true)} onMenuClick={() => setIsMenuOpen(true)} />
@@ -384,53 +435,8 @@ export default function ProductPage() {
               </div>
             )}
 
-            {/* OLFACTORY NOTES REPOSITIONED */}
-            {(product.topNotes || product.heartNotes || product.baseNotes) && (
-              <div className="olfactory-section" style={{ borderTop: 'none', margin: '20px 0 0 0', paddingTop: '20px' }}>
-                <h2 className="section-title" style={{ fontSize: '1.4rem', textAlign: 'left', marginBottom: '20px' }}>Pirâmide Olfativa</h2>
-                <div className="notes-container" style={{ gap: '20px', justifyContent: 'flex-start' }}>
-                   {product.topNotes && (
-                     <div className="notes-card" style={{ padding: '15px', minWidth: '150px' }}>
-                        <h4 className="notes-card-title" style={{ fontSize: '0.9rem' }}>TOP</h4>
-                        <div className="notes-grid">
-                          {product.topNotes.split(',').map((n, i) => (
-                            <div className="note-item-real" key={i}>
-                              <NoteImage note={n} />
-                              <span className="note-name">{n.trim()}</span>
-                            </div>
-                          ))}
-                        </div>
-                     </div>
-                   )}
-                   {product.heartNotes && (
-                     <div className="notes-card" style={{ padding: '15px', minWidth: '150px' }}>
-                        <h4 className="notes-card-title" style={{ fontSize: '0.9rem' }}>CORAÇÃO</h4>
-                        <div className="notes-grid">
-                          {product.heartNotes.split(',').map((n, i) => (
-                            <div className="note-item-real" key={i}>
-                              <NoteImage note={n} />
-                              <span className="note-name">{n.trim()}</span>
-                            </div>
-                          ))}
-                        </div>
-                     </div>
-                   )}
-                   {product.baseNotes && (
-                     <div className="notes-card" style={{ padding: '15px', minWidth: '150px' }}>
-                        <h4 className="notes-card-title" style={{ fontSize: '0.9rem' }}>FUNDO</h4>
-                        <div className="notes-grid">
-                          {product.baseNotes.split(',').map((n, i) => (
-                            <div className="note-item-real" key={i}>
-                              <NoteImage note={n} />
-                              <span className="note-name">{n.trim()}</span>
-                            </div>
-                          ))}
-                        </div>
-                     </div>
-                   )}
-                </div>
-              </div>
-            )}
+            {/* OLFACTORY NOTES DESKTOP ONLY */}
+            {renderOlfactory(false)}
           </div>
 
           {/* Info View */}
@@ -487,6 +493,9 @@ export default function ProductPage() {
 
            </div>
         </div>
+
+        {/* OLFACTORY NOTES MOBILE ONLY */}
+        {renderOlfactory(true)}
 
         {/* REVIEWS SECTION REPOSITIONED */}
         <div className="reviews-section container" style={{ borderTop: '1px solid #eaeaea', paddingTop: '60px', marginTop: '20px', maxWidth: '800px', margin: '0 auto', marginBottom: '60px' }}>
