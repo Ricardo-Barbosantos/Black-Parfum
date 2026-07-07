@@ -321,7 +321,8 @@
   font-weight: 600;
   font-size: 0.95rem;
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
   transition: all 0.2s;
 }
 
