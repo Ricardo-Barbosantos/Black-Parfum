@@ -28,9 +28,9 @@ export async function GET(request) {
     }
     
     if (productId) {
-        reviews = reviews.filter(r => r.productId === productId && (r.status === 'approved' || isAdmin));
+        reviews = reviews.filter(r => r.productId === productId && (r.status !== 'rejected' || isAdmin));
     } else if (!isAdmin) {
-       reviews = reviews.filter(r => r.status === 'approved');
+       reviews = reviews.filter(r => r.status !== 'rejected');
     }
 
     return new Response(JSON.stringify(reviews), { status: 200, headers: { 'Content-Type': 'application/json' } });
