@@ -4,11 +4,11 @@ import { useState } from 'react';
 const faqData = [
   {
     question: "Quando vou receber meu perfume?",
-    answer: "Se você mora em Vitória da Conquista, a entrega é expressa e ocorre em até 24 horas! Para outras cidades do Brasil, o prazo médio é de 2 a 10 dias úteis, através da nossa integração de ponta com o Melhor Envio."
+    answer: "Se você mora em Vitória da Conquista, a entrega é expressa e ocorre em até 24 horas! Para outras cidades do Brasil, o prazo médio é de 2 a 10 dias úteis"
   },
   {
     question: "Quais são as formas de pagamento?",
-    answer: "Aceitamos diversas formas de pagamento seguras. Você pode pagar via PIX (com desconto especial de 5%), Cartão de Crédito em até 5x sem juros, ou Boleto Bancário."
+    answer: "Aceitamos diversas formas de pagamento seguras. Você pode pagar via PIX, Cartão de Crédito em até 5x sem juros, ou Débito."
   },
   {
     question: "Os perfumes são originais?",
