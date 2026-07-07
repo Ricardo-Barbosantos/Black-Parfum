@@ -27,6 +27,8 @@ export const metadata = {
 };
 
 import Script from 'next/script';
+import MetaPixelEvents from '@/components/MetaPixelEvents';
+import { Suspense } from 'react';
 
 export default function RootLayout({ children }) {
   return (
@@ -46,6 +48,9 @@ export default function RootLayout({ children }) {
         `}} />
       </head>
       <body className={`${cinzel.variable} ${inter.variable}`}>
+        <Suspense fallback={null}>
+          <MetaPixelEvents />
+        </Suspense>
         {children}
         <noscript>
           <img height="1" width="1" style={{ display: 'none' }} src="https://www.facebook.com/tr?id=1531972801990161&ev=PageView&noscript=1" alt="" />
