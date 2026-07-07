@@ -239,10 +239,10 @@ export default function CartDrawer({
   const showFinalSummary = isFreeDelivery || Boolean(selectedShippingOption) || shippingLoading;
 
   /* ─── Estilos compartilhados (Delivery step) ─── */
-  const inputStyle = (extra = {}) => ({ padding: '8px 10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '0.95rem', minHeight: '38px', lineHeight: 1.2, color: '#111', background: '#fff', ...extra });
+  const inputStyle = (extra = {}) => ({ padding: '8px 10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '16px', minHeight: '38px', lineHeight: 1.2, color: '#111', background: '#fff', ...extra });
   const compactFieldStyle = { position: 'relative', display: 'flex', flexDirection: 'column', gap: '2px' };
   const compactLabelStyle = { position: 'absolute', top: '5px', left: '10px', color: '#777', fontSize: '0.63rem', fontWeight: 600, lineHeight: 1, pointerEvents: 'none', zIndex: 1 };
-  const compactInputStyle = (extra = {}) => inputStyle({ width: '100%', minHeight: '44px', padding: '17px 10px 5px', fontSize: '0.93rem', fontWeight: 600, ...extra });
+  const compactInputStyle = (extra = {}) => inputStyle({ width: '100%', minHeight: '44px', padding: '17px 10px 5px', fontSize: '16px', fontWeight: 600, ...extra });
   const errorStyle = { color: '#dc2626', fontSize: '0.78rem', lineHeight: 1.35 };
   const sectionTitleStyle = { fontSize: '0.72rem', margin: 0, color: '#666', textTransform: 'uppercase', letterSpacing: '1px' };
   const fieldError = (f) => {
@@ -430,7 +430,7 @@ export default function CartDrawer({
       { id: 'credit_card', Icon: IconCard, label: 'Cartão de crédito ou débito', tag: 'Visa · Mastercard · Elo · Hipercard' },
     ];
 
-    const fieldInput = { width: '100%', background: WHITE, border: `1.5px solid ${BORDER}`, borderRadius: 8, padding: '11px 13px', color: TEXT, fontSize: 13.5, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', transition: 'border-color 0.15s' };
+    const fieldInput = { width: '100%', background: WHITE, border: `1.5px solid ${BORDER}`, borderRadius: 8, padding: '11px 13px', color: TEXT, fontSize: 16, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', transition: 'border-color 0.15s' };
     const fieldLabel = { fontSize: 10, letterSpacing: 1.2, color: TEXT3, textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 };
 
     const focusGold = (e) => e.target.style.borderColor = GOLD;
