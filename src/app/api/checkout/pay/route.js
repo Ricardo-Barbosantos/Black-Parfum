@@ -10,6 +10,7 @@ import {
   getActiveCouponByCode,
   normalizeCouponCode,
 } from '@/lib/coupons';
+import { sendToMetaCAPI } from '@/lib/metaCAPI';
 
 const PaySchema = z.object({
   cart: z.array(z.object({
@@ -231,6 +232,34 @@ export async function POST(request) {
       await sendOrderEmail(order, 'Novo pedido');
     } catch (e) {
       console.error('Erro ao enviar email:', e);
+    }
+
+    if (mpStatus === 'approved') {
+      try {
+        await sendToMetaCAPI({
+          eventName: 'Purchase',
+          eventId: orderId,
+          userData: {
+            client_ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1',
+            client_user_agent: request.headers.get('user-agent') || '',
+            em: customer.email,
+            fn: firstName,
+            ln: lastName,
+            ph: cpf || '',
+            zp: customer.zip || '',
+            ct: customer.city || '',
+            st: customer.state || '',
+          },
+          customData: {
+            value: total,
+            currency: 'BRL',
+            content_ids: orderItems.map(i => i.productId),
+            num_items: orderItems.reduce((acc, curr) => acc + curr.quantity, 0),
+          }
+        });
+      } catch (e) {
+        console.error('CAPI Error na API:', e);
+      }
     }
 
     if (mpStatus === 'rejected') {

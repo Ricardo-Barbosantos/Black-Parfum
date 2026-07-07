@@ -2,6 +2,7 @@ import { kv } from '@vercel/kv';
 import Redis from 'ioredis';
 import { decrementProductStock } from '@/lib/products';
 import { sendOrderEmail } from '@/lib/notifications';
+import { sendToMetaCAPI } from '@/lib/metaCAPI';
 
 const ORDERS_KEY = 'obsidian_orders';
 
@@ -255,6 +256,27 @@ export async function updateOrderFromPayment(payment = {}) {
   if (paidNow) {
     try {
       await sendOrderEmail(nextOrder, 'Pedido pago');
+      
+      const nameParts = nextOrder.customer?.name?.trim().split(' ') || [];
+      await sendToMetaCAPI({
+        eventName: 'Purchase',
+        eventId: nextOrder.id,
+        userData: {
+          em: nextOrder.customer?.email,
+          fn: nameParts[0] || '',
+          ln: nameParts.slice(1).join(' ') || nameParts[0] || '',
+          zp: nextOrder.customer?.zip || '',
+          ct: nextOrder.customer?.city || '',
+          st: nextOrder.customer?.state || '',
+        },
+        customData: {
+          value: nextOrder.amounts?.total || 0,
+          currency: 'BRL',
+          content_ids: nextOrder.items?.map(i => i.productId) || [],
+          num_items: nextOrder.items?.reduce((acc, curr) => acc + (curr.quantity || 1), 0) || 0,
+        }
+      }).catch(err => console.error('CAPI async error:', err));
+      
       nextOrder = sanitizeOrder({ ...nextOrder, emailNotifiedAt: new Date().toISOString() });
       const notifiedOrders = await getOrders();
       const notifiedIndex = notifiedOrders.findIndex((order) => order.id === nextOrder.id);

@@ -6,6 +6,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CartDrawer from '@/components/CartDrawer';
 import NavigationMenu from '@/components/NavigationMenu';
+import { fbq } from '@/lib/metaPixel';
 import './product.css';
 
 const NoteImage = ({ note }) => {
@@ -138,6 +139,13 @@ export default function ProductPage() {
           const found = data.find(p => p.id === id);
           if (found) {
             setProduct(found);
+            fbq('track', 'ViewContent', {
+              content_ids: [found.id],
+              content_name: found.name,
+              content_type: 'product',
+              value: found.price,
+              currency: 'BRL'
+            });
             setSelectedImage(found.images?.[0] || found.image);
             const foundSizes = found.sizes || found.size || found.ml || found.volume || found.volumes || '';
             if (foundSizes) {
@@ -193,6 +201,14 @@ export default function ProductPage() {
         return prev.map(item => item.cartItemId === cartItemId ? { ...item, quantity: item.quantity + 1 } : item);
       }
       return [...prev, { ...product, cartItemId, selectedSize, quantity: 1 }];
+    });
+    fbq('track', 'AddToCart', {
+      content_ids: [product.id],
+      content_name: product.name,
+      content_type: 'product',
+      value: product.price,
+      currency: 'BRL',
+      num_items: 1
     });
     showToast(`${product.name} adicionado ao carrinho`);
     setIsCartOpen(true);

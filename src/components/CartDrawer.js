@@ -1,6 +1,7 @@
 'use client';
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
+import { fbq } from '@/lib/metaPixel';
 
 /* ─────────────────────────────────────────────
    UTILITÁRIOS
@@ -362,6 +363,17 @@ export default function CartDrawer({
 
       if (typeof window !== 'undefined') localStorage.setItem('hasPurchased', 'true');
       setOrderResult({ orderId: data.orderId, total: data.total });
+
+      // CAPI is handled backend. We fire fbq front-end only if it's credit card (instant approval)
+      if (paymentMethod === 'credit_card') {
+        fbq('track', 'Purchase', {
+          content_ids: cart.map(i => i.id),
+          content_type: 'product',
+          value: finalTotal,
+          currency: 'BRL',
+          num_items: cartItemCount
+        }, { eventID: data.orderId });
+      }
 
       if (paymentMethod === 'pix' && data.pixData) {
         setPixData(data.pixData);
@@ -790,6 +802,13 @@ export default function CartDrawer({
                 if (missingFields.length > 0) { setSubmitted(true); return; }
                 if (!isFreeDelivery && !selectedShippingOption && !shippingLoading) { setSubmitted(true); return; }
                 setSubmitted(false);
+                fbq('track', 'InitiateCheckout', {
+                  content_ids: cart.map(i => i.id),
+                  content_type: 'product',
+                  value: cartTotal,
+                  currency: 'BRL',
+                  num_items: cartItemCount
+                });
                 setCheckoutStep('payment');
               }}
               style={{ width: '100%', background: '#111', color: GOLD, padding: '15px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem', letterSpacing: 1 }}>
