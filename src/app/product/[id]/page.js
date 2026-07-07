@@ -273,12 +273,20 @@ export default function ProductPage() {
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     setSubmittingReview(true);
-    await fetch('/api/reviews', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...reviewForm, productId: product.id })
-    });
-    alert('Avaliação enviada com sucesso! Aguardando aprovação.');
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...reviewForm, productId: product.id })
+      });
+      const data = await res.json();
+      if (data.success && data.review) {
+        setReviews(prev => [...prev, data.review]);
+        showToast('Avaliação enviada com sucesso!');
+      }
+    } catch (e) {
+      console.error(e);
+    }
     setSubmittingReview(false);
     setReviewForm({ name: '', email: '', text: '', rating: 5 });
   };

@@ -48,7 +48,7 @@ export async function POST(request) {
             ...validation.data,
             id: `rev_${randomUUID()}`,
             date: new Date().toISOString(),
-            status: 'pending' // always pending initially
+            status: 'approved'
         };
 
         const reviews = await getReviews();
