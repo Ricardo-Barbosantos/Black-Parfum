@@ -194,6 +194,29 @@ export default function CartDrawer({
     }
   }, [isOpen]);
 
+  /* ─── Cupom Automático de Primeira Compra ─── */
+  useEffect(() => {
+    if (isOpen && cart.length > 0 && !couponCode && !appliedCoupon && cartTotal > 0) {
+      if (typeof window !== 'undefined' && !localStorage.getItem('hasPurchased') && !localStorage.getItem('compra5_applied')) {
+        localStorage.setItem('compra5_applied', 'true');
+        setCouponCode('COMPRA5');
+        fetch('/api/coupons/validate', { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' }, 
+          body: JSON.stringify({ code: 'COMPRA5', subtotal: cartTotal }) 
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.coupon) {
+              setAppliedCoupon(data.coupon);
+              setCouponMessage(`🎁 Você ganhou ${data.coupon.discountPercent}% OFF na sua primeira compra!`);
+            }
+          })
+          .catch(() => {});
+      }
+    }
+  }, [isOpen, cart.length, couponCode, appliedCoupon, cartTotal]);
+
   if (!isOpen) return null;
 
   /* ─── Cálculos ─── */
@@ -337,6 +360,7 @@ export default function CartDrawer({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erro ao processar pagamento.');
 
+      if (typeof window !== 'undefined') localStorage.setItem('hasPurchased', 'true');
       setOrderResult({ orderId: data.orderId, total: data.total });
 
       if (paymentMethod === 'pix' && data.pixData) {
@@ -494,7 +518,7 @@ export default function CartDrawer({
                     <span style={{ color: paymentMethod === m.id ? (m.id === 'pix' ? '#4db6ac' : GOLD) : TEXT3, display: 'flex' }}><m.Icon /></span>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>{m.label}</div>
-                      {m.id === 'pix' && (
+                      {m.id === 'pix' && !appliedCoupon && !couponCode.trim() && (
                         <div style={{ fontSize: 12, color: '#059669', marginTop: 4, fontWeight: 600 }}>5% de desconto</div>
                       )}
                       {m.id === 'credit_card' && (
