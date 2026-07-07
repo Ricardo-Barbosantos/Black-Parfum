@@ -198,8 +198,7 @@ export default function CartDrawer({
   /* ─── Cupom Automático de Primeira Compra ─── */
   useEffect(() => {
     if (isOpen && cart.length > 0 && !couponCode && !appliedCoupon && cartTotal > 0) {
-      if (typeof window !== 'undefined' && !localStorage.getItem('hasPurchased') && !localStorage.getItem('compra5_applied')) {
-        localStorage.setItem('compra5_applied', 'true');
+      if (typeof window !== 'undefined' && !localStorage.getItem('hasPurchased') && !localStorage.getItem('compra5_removed')) {
         setCouponCode('COMPRA5');
         fetch('/api/coupons/validate', { 
           method: 'POST', 
@@ -265,7 +264,7 @@ export default function CartDrawer({
     } catch (e) { setAppliedCoupon(null); setCouponMessage(e.message || 'Não foi possível aplicar o cupom.'); }
     finally { setCouponLoading(false); }
   };
-  const removeCoupon = () => { setAppliedCoupon(null); setCouponCode(''); setCouponMessage(''); };
+  const removeCoupon = () => { setAppliedCoupon(null); setCouponCode(''); setCouponMessage(''); if (typeof window !== 'undefined') localStorage.setItem('compra5_removed', 'true'); };
 
   /* ─── Frete ─── */
   const loadShippingOptions = async ({ zip, city, form = checkoutForm }) => {
