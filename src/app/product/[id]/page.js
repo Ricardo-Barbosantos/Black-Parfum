@@ -383,6 +383,54 @@ export default function ProductPage() {
                 ))}
               </div>
             )}
+
+            {/* OLFACTORY NOTES REPOSITIONED */}
+            {(product.topNotes || product.heartNotes || product.baseNotes) && (
+              <div className="olfactory-section" style={{ borderTop: 'none', margin: '20px 0 0 0', paddingTop: '20px' }}>
+                <h2 className="section-title" style={{ fontSize: '1.4rem', textAlign: 'left', marginBottom: '20px' }}>Pirâmide Olfativa</h2>
+                <div className="notes-container" style={{ gap: '20px', justifyContent: 'flex-start' }}>
+                   {product.topNotes && (
+                     <div className="notes-card" style={{ padding: '15px', minWidth: '150px' }}>
+                        <h4 className="notes-card-title" style={{ fontSize: '0.9rem' }}>TOP</h4>
+                        <div className="notes-grid">
+                          {product.topNotes.split(',').map((n, i) => (
+                            <div className="note-item-real" key={i}>
+                              <NoteImage note={n} />
+                              <span className="note-name">{n.trim()}</span>
+                            </div>
+                          ))}
+                        </div>
+                     </div>
+                   )}
+                   {product.heartNotes && (
+                     <div className="notes-card" style={{ padding: '15px', minWidth: '150px' }}>
+                        <h4 className="notes-card-title" style={{ fontSize: '0.9rem' }}>CORAÇÃO</h4>
+                        <div className="notes-grid">
+                          {product.heartNotes.split(',').map((n, i) => (
+                            <div className="note-item-real" key={i}>
+                              <NoteImage note={n} />
+                              <span className="note-name">{n.trim()}</span>
+                            </div>
+                          ))}
+                        </div>
+                     </div>
+                   )}
+                   {product.baseNotes && (
+                     <div className="notes-card" style={{ padding: '15px', minWidth: '150px' }}>
+                        <h4 className="notes-card-title" style={{ fontSize: '0.9rem' }}>FUNDO</h4>
+                        <div className="notes-grid">
+                          {product.baseNotes.split(',').map((n, i) => (
+                            <div className="note-item-real" key={i}>
+                              <NoteImage note={n} />
+                              <span className="note-name">{n.trim()}</span>
+                            </div>
+                          ))}
+                        </div>
+                     </div>
+                   )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Info View */}
@@ -437,98 +485,50 @@ export default function ProductPage() {
                  </div>
               )}
 
-              {/* REVIEWS SECTION REPOSITIONED */}
-              <div className="reviews-section" style={{ borderTop: 'none', paddingTop: '20px', marginTop: '20px' }}>
-                <h2 className="section-title" style={{ fontSize: '1.4rem', textAlign: 'left', marginBottom: '20px' }}>O que nossos clientes dizem</h2>
-                <div className="reviews-layout">
-                   <div className="reviews-list">
-                     {reviews.length === 0 ? (
-                       <p style={{ color: '#555', fontSize: '0.9rem' }}>Nenhuma avaliação ainda. Seja o primeiro!</p>
-                     ) : (
-                       reviews.slice(0, 3).map(r => (
-                         <div className="review-card" key={r.id} style={{ padding: '15px', marginBottom: '10px' }}>
-                           <div className="review-header" style={{ marginBottom: '8px' }}>
-                              <div className="review-avatar" style={{ width: '30px', height: '30px', fontSize: '1rem' }}>{r.name.charAt(0).toUpperCase()}</div>
-                              <div>
-                                 <div className="review-name" style={{ fontSize: '0.9rem' }}>{r.name}</div>
-                                 <div className="review-stars-static" style={{ fontSize: '0.8rem' }}>{Array(r.rating).fill('⭐').join('')}</div>
-                              </div>
-                           </div>
-                           <p style={{ fontSize: '0.85rem', color: '#444', margin: 0 }}>{r.text}</p>
-                         </div>
-                       ))
-                     )}
-                   </div>
-                   
-                   <div className="review-form-box" style={{ padding: '20px', marginTop: '10px' }}>
-                      <form onSubmit={handleReviewSubmit}>
-                        <div style={{ marginBottom: '10px' }}>
-                          <label style={{ fontSize: '0.85rem' }}>Nota</label>
-                          <div className="rating-select">
-                            {[1,2,3,4,5].map(v => (
-                              <span key={v} style={{ cursor: 'pointer', fontSize: '1.2rem', filter: reviewForm.rating >= v ? 'none' : 'grayscale(100%) opacity(0.3)' }} onClick={() => setReviewForm(prev => ({...prev, rating: v}))}>⭐</span>
-                            ))}
-                          </div>
-                        </div>
-                        <input type="text" placeholder="Nome" required value={reviewForm.name} onChange={e => setReviewForm(prev => ({...prev, name: e.target.value}))} />
-                        <input type="email" placeholder="E-mail (não será exibido)" required value={reviewForm.email} onChange={e => setReviewForm(prev => ({...prev, email: e.target.value}))} />
-                        <textarea rows="3" placeholder="Sua experiência com o perfume" required value={reviewForm.text} onChange={e => setReviewForm(prev => ({...prev, text: e.target.value}))}></textarea>
-                        <button type="submit" disabled={submittingReview} className="review-submit-btn" style={{ padding: '10px' }}>{submittingReview ? 'Enviando...' : 'Enviar Avaliação'}</button>
-                      </form>
-                   </div>
-                </div>
-              </div>
-
            </div>
         </div>
 
-        {/* OLFACTORY NOTES */}
-        {(product.topNotes || product.heartNotes || product.baseNotes) && (
-          <div className="olfactory-section container">
-            <h2 className="section-title">Pirâmide Olfativa</h2>
-            <div className="notes-container">
-               {product.topNotes && (
-                 <div className="notes-card">
-                    <h4 className="notes-card-title">TOP</h4>
-                    <div className="notes-grid">
-                      {product.topNotes.split(',').map((n, i) => (
-                        <div className="note-item-real" key={i}>
-                          <NoteImage note={n} />
-                          <span className="note-name">{n.trim()}</span>
+        {/* REVIEWS SECTION REPOSITIONED */}
+        <div className="reviews-section container" style={{ borderTop: '1px solid #eaeaea', paddingTop: '60px', marginTop: '20px', maxWidth: '800px', margin: '0 auto', marginBottom: '60px' }}>
+          <h2 className="section-title" style={{ fontSize: '1.8rem', textAlign: 'center', marginBottom: '30px' }}>O que nossos clientes dizem</h2>
+          <div className="reviews-layout">
+             <div className="reviews-list">
+               {reviews.length === 0 ? (
+                 <p style={{ color: '#555', fontSize: '1rem', textAlign: 'center' }}>Nenhuma avaliação ainda. Seja o primeiro!</p>
+               ) : (
+                 reviews.slice(0, 3).map(r => (
+                   <div className="review-card" key={r.id} style={{ padding: '20px', marginBottom: '15px' }}>
+                     <div className="review-header" style={{ marginBottom: '10px' }}>
+                        <div className="review-avatar" style={{ width: '40px', height: '40px', fontSize: '1.1rem' }}>{r.name.charAt(0).toUpperCase()}</div>
+                        <div>
+                           <div className="review-name" style={{ fontSize: '1rem' }}>{r.name}</div>
+                           <div className="review-stars-static" style={{ fontSize: '0.9rem' }}>{Array(r.rating).fill('⭐').join('')}</div>
                         </div>
+                     </div>
+                     <p style={{ fontSize: '0.95rem', color: '#444', margin: 0 }}>{r.text}</p>
+                   </div>
+                 ))
+               )}
+             </div>
+             
+             <div className="review-form-box" style={{ padding: '30px', marginTop: '20px' }}>
+                <form onSubmit={handleReviewSubmit}>
+                  <div style={{ marginBottom: '15px' }}>
+                    <label style={{ fontSize: '1rem', fontWeight: 600 }}>Sua Nota</label>
+                    <div className="rating-select" style={{ marginTop: '5px' }}>
+                      {[1,2,3,4,5].map(v => (
+                        <span key={v} style={{ cursor: 'pointer', fontSize: '1.5rem', filter: reviewForm.rating >= v ? 'none' : 'grayscale(100%) opacity(0.3)' }} onClick={() => setReviewForm(prev => ({...prev, rating: v}))}>⭐</span>
                       ))}
                     </div>
-                 </div>
-               )}
-               {product.heartNotes && (
-                 <div className="notes-card">
-                    <h4 className="notes-card-title">CORAÇÃO</h4>
-                    <div className="notes-grid">
-                      {product.heartNotes.split(',').map((n, i) => (
-                        <div className="note-item-real" key={i}>
-                          <NoteImage note={n} />
-                          <span className="note-name">{n.trim()}</span>
-                        </div>
-                      ))}
-                    </div>
-                 </div>
-               )}
-               {product.baseNotes && (
-                 <div className="notes-card">
-                    <h4 className="notes-card-title">FUNDO</h4>
-                    <div className="notes-grid">
-                      {product.baseNotes.split(',').map((n, i) => (
-                        <div className="note-item-real" key={i}>
-                          <NoteImage note={n} />
-                          <span className="note-name">{n.trim()}</span>
-                        </div>
-                      ))}
-                    </div>
-                 </div>
-               )}
-            </div>
+                  </div>
+                  <input type="text" placeholder="Nome" required value={reviewForm.name} onChange={e => setReviewForm(prev => ({...prev, name: e.target.value}))} />
+                  <input type="email" placeholder="E-mail (não será exibido)" required value={reviewForm.email} onChange={e => setReviewForm(prev => ({...prev, email: e.target.value}))} />
+                  <textarea rows="4" placeholder="Sua experiência com o perfume" required value={reviewForm.text} onChange={e => setReviewForm(prev => ({...prev, text: e.target.value}))}></textarea>
+                  <button type="submit" disabled={submittingReview} className="review-submit-btn" style={{ padding: '15px', fontSize: '1.1rem' }}>{submittingReview ? 'Enviando...' : 'Enviar Avaliação'}</button>
+                </form>
+             </div>
           </div>
-        )}
+        </div>
       </div>
 
       <Footer />
